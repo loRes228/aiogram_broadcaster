@@ -21,6 +21,17 @@ class Mailer:
     success: int
     failed: int
 
+    __slots__ = (
+        "id",
+        "bot",
+        "storage",
+        "data",
+        "status",
+        "stop_event",
+        "success",
+        "failed",
+    )
+
     def __init__(
         self,
         *,
@@ -48,15 +59,11 @@ class Mailer:
         for chat_id in self.data.chat_ids[:]:
             if self.stop_event.is_set():
                 break
-
             await self.send(chat_id=chat_id)
-
             is_last_chat = chat_id == self.data.chat_ids[-1]
             await self.pop_chat()
-
             if not is_last_chat:
                 await self.sleep()
-
         else:
             self.status = MailerStatus.COMPLETED
 

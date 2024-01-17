@@ -34,6 +34,7 @@ class Broadcaster:
     ) -> None:
         if not redis.get_encoder().decode_responses:
             raise RuntimeError("Redis client must have decode_responses set to True.")
+
         self.bot = bot
         self.storage = Storage(redis=redis, key_prefix=redis_key)
         self._mailers = {}
