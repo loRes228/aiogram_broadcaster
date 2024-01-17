@@ -1,4 +1,5 @@
 from datetime import timedelta
+from logging import Logger, getLogger
 from typing import Dict, List, Optional, Union
 
 from aiogram import Bot, Dispatcher
@@ -11,18 +12,21 @@ from .storage import Storage
 
 Interval = Union[float, int, timedelta]
 
-DEFAULT_REDIS_KEY = "broadcaster"
+DEFAULT_REDIS_KEY = "BCR"
+DEFAULT_LOGGER_NAME = "broadcaster"
 DEFAULT_CONTEXT_KEY = "broadcaster"
 
 
 class Broadcaster:
     bot: Bot
     storage: Storage
+    logger: Logger
     _mailers: Dict[int, Mailer]
 
     __slots__ = (
         "bot",
         "storage",
+        "logger",
         "_mailers",
     )
 
@@ -31,13 +35,18 @@ class Broadcaster:
         bot: Bot,
         redis: Redis,
         redis_key: str = DEFAULT_REDIS_KEY,
+        logger: Union[Logger, str] = DEFAULT_LOGGER_NAME,
     ) -> None:
-        if not redis.get_encoder().decode_responses:
+        if not redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
             raise RuntimeError("Redis client must have decode_responses set to True.")
 
         self.bot = bot
         self.storage = Storage(redis=redis, key_prefix=redis_key)
         self._mailers = {}
+
+        if not isinstance(logger, Logger):
+            logger = getLogger(name=logger)
+        self.logger = logger
 
     def setup(
         self,
@@ -71,7 +80,13 @@ class Broadcaster:
         return mailer
 
     def create_from_data(self, *, id_: Optional[int] = None, data: MailerData) -> Mailer:
-        mailer = Mailer(id_=id_, bot=self.bot, storage=self.storage, data=data)
+        mailer = Mailer(
+            id_=id_,
+            bot=self.bot,
+            storage=self.storage,
+            data=data,
+            logger=self.logger,
+        )
         self._mailers[mailer.id] = mailer
         return mailer
 

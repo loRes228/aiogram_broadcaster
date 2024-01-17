@@ -1,6 +1,7 @@
 from asyncio import Event, wait_for
 from asyncio.exceptions import TimeoutError
 from contextlib import suppress
+from logging import Logger
 from typing import Optional
 
 from aiogram import Bot
@@ -16,6 +17,7 @@ class Mailer:
     bot: Bot
     storage: Storage
     data: MailerData
+    logger: Logger
     status: MailerStatus
     stop_event: Event
     success: int
@@ -26,6 +28,7 @@ class Mailer:
         "bot",
         "storage",
         "data",
+        "logger",
         "status",
         "stop_event",
         "success",
@@ -39,11 +42,13 @@ class Mailer:
         bot: Bot,
         storage: Storage,
         data: MailerData,
+        logger: Logger,
     ) -> None:
         self.id = id_ or id(self)
         self.bot = bot
         self.storage = storage
         self.data = data.model_copy()
+        self.logger = logger
         self.status = MailerStatus.STOPPED
         self.stop_event = Event()
         self.success = 0
@@ -53,6 +58,7 @@ class Mailer:
         if self.status == MailerStatus.COMPLETED or len(self.data.chat_ids) == 0:
             raise RuntimeError("No chats for broadcasting.")
 
+        self.logger.info("Start broadcaster id=%d", self.id)
         self.status = MailerStatus.STARTED
         self.stop_event.clear()
 
@@ -70,6 +76,7 @@ class Mailer:
     def stop(self) -> bool:
         if self.status is MailerStatus.COMPLETED:
             return False
+        self.logger.info("Stop broadcaster id=%d", self.id)
         self.stop_event.set()
         self.status = MailerStatus.STOPPED
         return True
@@ -90,10 +97,16 @@ class Mailer:
                 disable_notification=not self.data.settings.notifications,
                 protect_content=self.data.settings.protect_content,
             )
-        except AiogramError:
+        except AiogramError as error:
             self.failed += 1
+            self.logger.info(
+                "Failed to send message to chat id=%d, error: %s",
+                chat_id,
+                type(error).__name__,
+            )
         else:
             self.success += 1
+            self.logger.info("Success send message to chat id=%d", chat_id)
 
     async def pop_chat(self) -> None:
         await self.storage.pop_chat(mailer_id=self.id)
