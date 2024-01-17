@@ -1,0 +1,95 @@
+cache-dir = ".cache/ruff"
+
+target-version = "py38"
+line-length = 99
+
+preview = true
+show-fixes = true
+show-source = true
+respect-gitignore = false
+ignore-init-module-imports = true
+
+namespace-packages = ["examples"]
+
+
+[lint]
+select = [
+    "F", # Pyflakes
+    "E", # pycodestyle Error
+    "W", # pycodestyle Warning
+    "C90", # mccabe
+    "I", # isort
+    "N", # pep8-naming
+    # "D", # pydocstyle
+    "UP", # pyupgrade
+    "YTT", # flake8-2020
+    "ANN", # flake8-annotations
+    "ASYNC", # flake8-async
+    "TRIO", # flake8-trio
+    "S", # flake8-bandit
+    "BLE", # flake8-blind-except
+    "FBT", # flake8-boolean-trap
+    "B", # flake8-bugbear
+    "A", # flake8-builtins
+    "COM", # flake8-commas
+    # "CPY", # flake8-copyright
+    "C4", # flake8-comprehensions
+    "DTZ", # flake8-datetimez
+    "T10", # flake8-debugger
+    # "DJ", # flake8-django
+    "EM", # flake8-errmsg
+    "EXE", # flake8-executable
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "G", # flake8-logging-format
+    "INP", # flake8-no-pep420
+    "PIE", # flake8-pie
+    "T20", # flake8-print
+    "PYI", # flake8-pyi
+    "PT", # flake8-pytest-style
+    "Q", # flake8-quotes
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SLF", # flake8-self
+    "SLOT", # flake8-slots
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
+    # "INT", # flake8-gettext
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "TD", # flake8-todos
+    "FIX", # flake8-fixme
+    "ERA", # eradicate
+    # "PD", # pandas-vet
+    "PGH", # pygrep-hooks
+    "PL", # Pylint
+    "TRY", # tryceratops
+    "FLY", # flynt
+    # "NPY", # NumPy-specific rules
+    # "AIR", # Airflow
+    "PERF", # Perflint
+    "FURB", # refurb
+    "LOG", # flake8-logging
+    "RUF" # Ruff-specific rules
+]
+ignore = [
+    "ANN101", # missing-type-self
+    "ANN102", # missing-type-cls
+    "ANN401", # any-type
+    "PLR6301", # no-self-use
+    "PLR0913", # too-many-arguments
+    "PLR0917", # too-many-positional
+    "EM101", # raw-string-in-exception
+    "EM102", # f-string-in-exception
+    "TRY003" # raise-vanilla-args
+]
+
+[lint.isort]
+lines-after-imports = 2
+
+[lint.flake8-type-checking]
+strict = true
+
+[lint.per-file-ignores]
+"tests/**" = ["S101"] # assert

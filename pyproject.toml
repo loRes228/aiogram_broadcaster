@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aiogram-broadcaster"
+dynamic = ["version"]
+description = "Aiogram broadcaster with storage in Redis"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "LORES" },
+]
+dependencies = [
+    "redis>=5.0.0",
+    "aiogram>=3.0.0"
+]
+
+[project.urls]
+Source = "https://github.com/unknown/aiogram-broadcaster"
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.8.0",
+    "ruff>=0.1.13"
+]
+
+[tool.hatch.version]
+path = "aiogram_broadcaster/__about__.py"
