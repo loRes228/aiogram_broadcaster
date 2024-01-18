@@ -9,5 +9,8 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 max_line_length = 99
 
+[*.{yml,yaml,json}]
+indent_size = 2
+
 [Makefile]
 indent_style = tab
