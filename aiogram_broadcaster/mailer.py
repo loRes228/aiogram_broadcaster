@@ -68,7 +68,6 @@ class Mailer:
                 break
             await self._send(chat_id=chat_id)
             is_last_chat = chat_id == self.data.chat_ids[-1]
-            print(self.data.chat_ids)
             await self._pop_chat()
             if not is_last_chat:
                 await self._sleep()
