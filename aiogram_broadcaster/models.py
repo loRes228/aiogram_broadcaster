@@ -29,11 +29,12 @@ class MailerData(BaseModel):
         notifications: bool,
         protect_content: bool,
     ) -> "MailerData":
+        chat_ids = set(chat_ids)
         return MailerData(
-            chat_ids=list(set(chat_ids)),
+            chat_ids=list(chat_ids),
             settings=MailerSettingsData(
                 interval=interval,
-                total_chats=len(set(chat_ids)),
+                total_chats=len(chat_ids),
                 message_id=message_id,
                 from_chat_id=from_chat_id,
                 notifications=notifications,
