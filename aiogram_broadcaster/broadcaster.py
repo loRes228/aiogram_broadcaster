@@ -8,9 +8,8 @@ from redis.asyncio import Redis
 from .mailer import Mailer
 from .models import MailerData
 from .storage import Storage
+from .types_ import ChatsIds, Interval
 
-
-Interval = Union[float, int, timedelta]
 
 DEFAULT_REDIS_KEY = "BCR"
 DEFAULT_LOGGER_NAME = "broadcaster"
@@ -39,7 +38,6 @@ class Broadcaster:
     ) -> None:
         if not redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
             raise RuntimeError("Redis client must have decode_responses set to True.")
-
         self.bot = bot
         self.storage = Storage(redis=redis, key_prefix=redis_key)
         if not isinstance(logger, Logger):
@@ -57,7 +55,7 @@ class Broadcaster:
 
     async def create(
         self,
-        chat_ids: List[int],
+        chat_ids: ChatsIds,
         interval: Interval,
         message_id: int,
         from_chat_id: int,

@@ -1,6 +1,8 @@
 from typing import List, NamedTuple
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
+
+from .types_ import ChatsIds
 
 
 class MailerSettingsData(BaseModel):
@@ -16,16 +18,11 @@ class MailerData(BaseModel):
     chat_ids: List[int]
     settings: MailerSettingsData
 
-    @field_validator("chat_ids")
-    @classmethod
-    def delete_duplicates(cls, value: List[int]) -> List[int]:
-        return list(set(value))
-
     @classmethod
     def build(
         cls,
         *,
-        chat_ids: List[int],
+        chat_ids: ChatsIds,
         interval: float,
         message_id: int,
         from_chat_id: int,
@@ -33,10 +30,10 @@ class MailerData(BaseModel):
         protect_content: bool,
     ) -> "MailerData":
         return MailerData(
-            chat_ids=chat_ids,
+            chat_ids=list(set(chat_ids)),
             settings=MailerSettingsData(
                 interval=interval,
-                total_chats=len(chat_ids),
+                total_chats=len(set(chat_ids)),
                 message_id=message_id,
                 from_chat_id=from_chat_id,
                 notifications=notifications,
