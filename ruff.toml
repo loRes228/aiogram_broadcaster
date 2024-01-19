@@ -39,6 +39,7 @@ select = [
     # "DJ", # flake8-django
     "EM", # flake8-errmsg
     "EXE", # flake8-executable
+    # "FA", # flake8-future-annotations
     "ISC", # flake8-implicit-str-concat
     "ICN", # flake8-import-conventions
     "G", # flake8-logging-format
