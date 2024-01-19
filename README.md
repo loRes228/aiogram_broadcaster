@@ -54,13 +54,8 @@ async def on_state_message(
         from_chat_id=message.chat.id,
         interval=10,
     )
-
-    try:
-        await message.answer(text="Run broadcasting...")
-        await mailer.run()
-    finally:
-        await broadcaster.delete(mailer_id=mailer.id)
-
+    await message.answer(text="Run broadcasting...")
+    await mailer.run()
     statistic = mailer.statistic()
 
     return await message.reply(
