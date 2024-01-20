@@ -1,9 +1,10 @@
-from asyncio import Event, TimeoutError, wait_for
+from asyncio import Event, TimeoutError, create_task, wait_for
 from contextlib import suppress
 from logging import Logger
 from typing import Dict, Optional
 
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
+from aiogram.dispatcher.event.handler import CallableObject
 from aiogram.exceptions import AiogramError
 
 from .models import BroadcastStatistic, MailerData
@@ -13,9 +14,11 @@ from .storage import Storage
 class Mailer:
     data: MailerData
     bot: Bot
+    dispatcher: Dispatcher
     storage: Storage
     logger: Logger
     _mailers: Dict[int, "Mailer"]
+    callback_on_failed: Optional[CallableObject]
     _id: int
     stop_event: Event
     _success: int
@@ -24,9 +27,11 @@ class Mailer:
     __slots__ = (
         "data",
         "bot",
+        "dispatcher",
         "storage",
         "logger",
         "_mailers",
+        "callback_on_failed",
         "_id",
         "stop_event",
         "_success",
@@ -38,16 +43,20 @@ class Mailer:
         *,
         data: MailerData,
         bot: Bot,
+        dispatcher: Dispatcher,
         storage: Storage,
         logger: Logger,
         mailers: Dict[int, "Mailer"],
+        callback_on_failed: Optional[CallableObject],
         id_: Optional[int] = None,
     ) -> None:
         self.data = data
         self.bot = bot
+        self.dispatcher = dispatcher
         self.storage = storage
         self.logger = logger
         self._mailers = mailers
+        self.callback_on_failed = callback_on_failed
         self._id = id_ or id(self)
         self.stop_event = Event()
         self._success = 0
@@ -116,6 +125,17 @@ class Mailer:
                 chat_id,
                 type(error).__name__,
             )
+            if self.callback_on_failed:
+                create_task(  # noqa: RUF006
+                    self.callback_on_failed.call(
+                        error=error,
+                        chat_id=chat_id,
+                        mailer_id=self.id,
+                        bot=self.bot,
+                        dispatcher=self.dispatcher,
+                        **self.dispatcher.workflow_data,
+                    ),
+                )
         else:
             self._success += 1
             self.logger.info(

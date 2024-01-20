@@ -3,6 +3,7 @@ from logging import Logger, getLogger
 from typing import Dict, List, Optional, Union
 
 from aiogram import Bot, Dispatcher
+from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 from redis.asyncio import Redis
 
 from .mailer import Mailer
@@ -18,41 +19,49 @@ DEFAULT_CONTEXT_KEY = "broadcaster"
 
 class Broadcaster:
     bot: Bot
+    dispatcher: Dispatcher
     storage: Storage
+    callback_on_failed: Optional[CallableObject]
     logger: Logger
     _mailers: Dict[int, Mailer]
 
     __slots__ = (
         "bot",
+        "dispatcher",
         "storage",
+        "callback_on_failed",
         "logger",
         "_mailers",
     )
 
     def __init__(
         self,
-        bot: Bot,
         redis: Redis,
+        bot: Bot,
+        dispatcher: Dispatcher,
         *,
+        callback_on_failed: Optional[CallbackType] = None,
         redis_key: str = DEFAULT_REDIS_KEY,
         logger: Union[Logger, str] = DEFAULT_LOGGER_NAME,
     ) -> None:
         if not redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
             raise RuntimeError("Redis client must have decode_responses set to True.")
         self.bot = bot
+        self.dispatcher = dispatcher
         self.storage = Storage(redis=redis, key_prefix=redis_key)
+        self.callback_on_failed = (
+            CallableObject(callback=callback_on_failed)  # fmt: skip
+            if callback_on_failed
+            else None
+        )
         if not isinstance(logger, Logger):
             logger = getLogger(name=logger)
         self.logger = logger
         self._mailers = {}
 
-    def setup(
-        self,
-        dispatcher: Dispatcher,
-        context_key: str = DEFAULT_CONTEXT_KEY,
-    ) -> None:
-        dispatcher[context_key] = self
-        dispatcher.startup.register(self.startup)
+    def setup(self, context_key: str = DEFAULT_CONTEXT_KEY) -> None:
+        self.dispatcher[context_key] = self
+        self.dispatcher.startup.register(self.startup)
 
     async def create(
         self,
@@ -108,9 +117,11 @@ class Broadcaster:
         return Mailer(
             data=data,
             bot=self.bot,
+            dispatcher=self.dispatcher,
             storage=self.storage,
             logger=self.logger,
             mailers=self._mailers,
+            callback_on_failed=self.callback_on_failed,
             id_=id_,
         )
 
