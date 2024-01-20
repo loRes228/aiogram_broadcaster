@@ -1,7 +1,7 @@
 from asyncio import Event, TimeoutError, create_task, wait_for
 from contextlib import suppress
 from logging import Logger
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional, Set
 
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject
@@ -9,6 +9,10 @@ from aiogram.exceptions import AiogramError
 
 from .models import BroadcastStatistic, MailerData
 from .storage import Storage
+
+
+if TYPE_CHECKING:
+    from asyncio import Task
 
 
 class Mailer:
@@ -19,8 +23,9 @@ class Mailer:
     logger: Logger
     _mailers: Dict[int, "Mailer"]
     callback_on_failed: Optional[CallableObject]
+    _callback_tasks: "Set[Task[Any]]"
     _id: int
-    stop_event: Event
+    _stop_event: Event
     _success: int
     _failed: int
 
@@ -32,8 +37,9 @@ class Mailer:
         "logger",
         "_mailers",
         "callback_on_failed",
+        "_callback_tasks",
         "_id",
-        "stop_event",
+        "_stop_event",
         "_success",
         "_failed",
     )
@@ -48,6 +54,7 @@ class Mailer:
         logger: Logger,
         mailers: Dict[int, "Mailer"],
         callback_on_failed: Optional[CallableObject],
+        callback_tasks: "Set[Task[Any]]",
         id_: Optional[int] = None,
     ) -> None:
         self.data = data
@@ -57,12 +64,13 @@ class Mailer:
         self.logger = logger
         self._mailers = mailers
         self.callback_on_failed = callback_on_failed
+        self._callback_tasks = callback_tasks
         self._id = id_ or id(self)
-        self.stop_event = Event()
+        self._stop_event = Event()
         self._success = 0
         self._failed = 0
         self._mailers[self._id] = self
-        self.stop_event.set()
+        self._stop_event.set()
 
     @property
     def id(self) -> int:
@@ -72,9 +80,9 @@ class Mailer:
         if self.is_working() or len(self.data.chat_ids) == 0:
             return
         self.logger.info("Run broadcaster id=%d.", self.id)
-        self.stop_event.clear()
+        self._stop_event.clear()
         for chat_id in self.data.chat_ids[:]:
-            if self.stop_event.is_set():
+            if self._stop_event.is_set():
                 break
             await self._send(chat_id=chat_id)
             is_last_chat = chat_id == self.data.chat_ids[-1]
@@ -82,14 +90,14 @@ class Mailer:
             if not is_last_chat:
                 await self._sleep()
         else:
-            self.stop_event.set()
+            self._stop_event.set()
             await self.delete()
 
     def stop(self) -> bool:
         if not self.is_working():
             return False
         self.logger.info("Stop broadcaster id=%d.", self.id)
-        self.stop_event.set()
+        self._stop_event.set()
         return True
 
     async def delete(self) -> None:
@@ -99,7 +107,7 @@ class Mailer:
         await self.storage.delete_data(mailer_id=self.id)
 
     def is_working(self) -> bool:
-        return not self.stop_event.is_set()
+        return not self._stop_event.is_set()
 
     def statistic(self) -> BroadcastStatistic:
         return BroadcastStatistic(
@@ -126,7 +134,7 @@ class Mailer:
                 type(error).__name__,
             )
             if self.callback_on_failed:
-                create_task(  # noqa: RUF006
+                task = create_task(
                     self.callback_on_failed.call(
                         error=error,
                         chat_id=chat_id,
@@ -136,6 +144,8 @@ class Mailer:
                         **self.dispatcher.workflow_data,
                     ),
                 )
+                self._callback_tasks.add(task)
+                task.add_done_callback(self._callback_tasks.discard)
         else:
             self._success += 1
             self.logger.info(
@@ -146,7 +156,7 @@ class Mailer:
     async def _sleep(self) -> None:
         with suppress(TimeoutError):
             await wait_for(
-                fut=self.stop_event.wait(),
+                fut=self._stop_event.wait(),
                 timeout=self.data.settings.interval,
             )
 

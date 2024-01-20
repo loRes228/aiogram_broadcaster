@@ -1,6 +1,6 @@
 from datetime import timedelta
 from logging import Logger, getLogger
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
@@ -11,6 +11,9 @@ from .models import MailerData
 from .storage import Storage
 from .types_ import ChatsIds, Interval
 
+
+if TYPE_CHECKING:
+    from asyncio import Task
 
 DEFAULT_REDIS_KEY = "BCR"
 DEFAULT_LOGGER_NAME = "broadcaster"
@@ -24,6 +27,7 @@ class Broadcaster:
     callback_on_failed: Optional[CallableObject]
     logger: Logger
     _mailers: Dict[int, Mailer]
+    _callback_tasks: "Set[Task[Any]]"
 
     __slots__ = (
         "bot",
@@ -32,6 +36,7 @@ class Broadcaster:
         "callback_on_failed",
         "logger",
         "_mailers",
+        "_callback_tasks",
     )
 
     def __init__(
@@ -58,6 +63,7 @@ class Broadcaster:
             logger = getLogger(name=logger)
         self.logger = logger
         self._mailers = {}
+        self._callback_tasks = set()
 
     def setup(self, context_key: str = DEFAULT_CONTEXT_KEY) -> None:
         self.dispatcher[context_key] = self
@@ -122,6 +128,7 @@ class Broadcaster:
             logger=self.logger,
             mailers=self._mailers,
             callback_on_failed=self.callback_on_failed,
+            callback_tasks=self._callback_tasks,
             id_=id_,
         )
 
