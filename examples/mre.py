@@ -66,8 +66,12 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot=bot, redis=redis)
-    broadcaster.setup(dispatcher)
+    broadcaster = Broadcaster(
+        redis=redis,
+        bot=bot,
+        dispatcher=dispatcher,
+    )
+    broadcaster.setup()
 
     dispatcher.run_polling(bot)
 
