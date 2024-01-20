@@ -35,6 +35,7 @@ class Mailer:
 
     def __init__(
         self,
+        *,
         data: MailerData,
         bot: Bot,
         storage: Storage,
@@ -109,18 +110,18 @@ class Mailer:
                 protect_content=self.data.settings.protect_content,
             )
         except AiogramError as error:
+            self._failed += 1
             self.logger.info(
                 "Failed to send message to chat id=%d, error: %s.",
                 chat_id,
                 type(error).__name__,
             )
-            self._failed += 1
         else:
+            self._success += 1
             self.logger.info(
                 "Successfully sent a message to chat id=%d.",
                 chat_id,
             )
-            self._success += 1
 
     async def _sleep(self) -> None:
         with suppress(TimeoutError):
