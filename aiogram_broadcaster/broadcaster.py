@@ -33,6 +33,7 @@ class Broadcaster:
         self,
         bot: Bot,
         redis: Redis,
+        *,
         redis_key: str = DEFAULT_REDIS_KEY,
         logger: Union[Logger, str] = DEFAULT_LOGGER_NAME,
     ) -> None:
@@ -56,10 +57,10 @@ class Broadcaster:
     async def create(
         self,
         chat_ids: ChatsIds,
+        *,
         interval: Interval,
         message_id: int,
         from_chat_id: int,
-        *,
         notifications: bool = True,
         protect_content: bool = False,
     ) -> Mailer:
@@ -117,3 +118,6 @@ class Broadcaster:
         if isinstance(interval, timedelta):
             return interval.total_seconds()
         return float(interval)
+
+    def __repr__(self) -> str:
+        return f"Broadcaster(total_mailers={len(self.mailers())})"
