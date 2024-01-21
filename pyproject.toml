@@ -18,12 +18,12 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/unknown/aiogram-broadcaster"
+Source = "https://github.com/loRes228/aiogram_broadcaster"
 
 [project.optional-dependencies]
 dev = [
     "mypy>=1.8.0",
-    "ruff>=0.1.13"
+    "ruff>=0.1.14"
 ]
 
 [tool.hatch.version]
