@@ -40,8 +40,7 @@ async def on_state_message(
     await state.clear()
     mailer = await broadcaster.create(
         chat_ids=CHATS_IDS_TO_MAILING,
-        message_id=message.message_id,
-        from_chat_id=message.chat.id,
+        message=message,
         interval=10,
     )
     await message.answer(text="Run broadcasting...")
