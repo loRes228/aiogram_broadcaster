@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
+from aiogram.types import Message
 from redis.asyncio import Redis
 
 from .mailer import Mailer
@@ -72,21 +73,17 @@ class Broadcaster:
     async def create(
         self,
         chat_ids: ChatsIds,
+        message: Message,
         *,
         interval: Interval,
-        message_id: int,
-        from_chat_id: int,
-        notifications: bool = True,
-        protect_content: bool = False,
+        disable_notification: bool = False,
     ) -> Mailer:
         interval = self.validate_interval(interval=interval)
         data = MailerData.build(
             chat_ids=chat_ids,
+            message=message,
             interval=interval,
-            message_id=message_id,
-            from_chat_id=from_chat_id,
-            notifications=notifications,
-            protect_content=protect_content,
+            disable_notification=disable_notification,
         )
         mailer = self.create_from_data(data=data)
         await self.storage.set_data(mailer_id=mailer.id, data=data)

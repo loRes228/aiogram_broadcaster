@@ -1,17 +1,16 @@
 from typing import List, NamedTuple
 
+from aiogram.types import Message
 from pydantic import BaseModel
 
 from .types_ import ChatsIds
 
 
 class MailerSettingsData(BaseModel):
+    message: Message
     interval: float
     total_chats: int
-    message_id: int
-    from_chat_id: int
-    notifications: bool
-    protect_content: bool
+    disable_notification: bool
 
 
 class MailerData(BaseModel):
@@ -23,22 +22,18 @@ class MailerData(BaseModel):
         cls,
         *,
         chat_ids: ChatsIds,
+        message: Message,
         interval: float,
-        message_id: int,
-        from_chat_id: int,
-        notifications: bool,
-        protect_content: bool,
+        disable_notification: bool,
     ) -> "MailerData":
         chat_ids = set(chat_ids)
         return MailerData(
             chat_ids=list(chat_ids),
             settings=MailerSettingsData(
+                message=message,
                 interval=interval,
                 total_chats=len(chat_ids),
-                message_id=message_id,
-                from_chat_id=from_chat_id,
-                notifications=notifications,
-                protect_content=protect_content,
+                disable_notification=disable_notification,
             ),
         )
 

@@ -119,12 +119,9 @@ class Mailer:
 
     async def _send(self, chat_id: int) -> None:
         try:
-            await self.bot.copy_message(
+            await self.data.settings.message.as_(self.bot).send_copy(
                 chat_id=chat_id,
-                from_chat_id=self.data.settings.from_chat_id,
-                message_id=self.data.settings.message_id,
-                disable_notification=not self.data.settings.notifications,
-                protect_content=self.data.settings.protect_content,
+                disable_notification=self.data.settings.disable_notification,
             )
         except AiogramError as error:
             self._failed += 1
