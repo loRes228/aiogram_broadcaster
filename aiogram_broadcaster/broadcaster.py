@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardMarkup, Message
 from redis.asyncio import Redis
 
 from .mailer import Mailer
@@ -74,8 +74,9 @@ class Broadcaster:
         self,
         chat_ids: ChatsIds,
         message: Message,
-        *,
         interval: Interval,
+        *,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
         disable_notification: bool = False,
     ) -> Mailer:
         interval = self.validate_interval(interval=interval)
@@ -83,6 +84,7 @@ class Broadcaster:
             chat_ids=chat_ids,
             message=message,
             interval=interval,
+            reply_markup=reply_markup,
             disable_notification=disable_notification,
         )
         mailer = self.create_from_data(data=data)
