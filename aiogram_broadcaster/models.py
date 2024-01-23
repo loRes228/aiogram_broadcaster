@@ -49,7 +49,7 @@ class MailerData(BaseModel):
         )
 
 
-class BroadcastStatistic(NamedTuple):
+class Statistic(NamedTuple):
     total_chats: int
     success: int
     failed: int

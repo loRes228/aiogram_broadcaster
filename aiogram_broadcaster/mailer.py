@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject
 from aiogram.exceptions import AiogramError
 
-from .models import BroadcastStatistic, MailerData
+from .models import MailerData, Statistic
 from .storage import Storage
 
 
@@ -109,8 +109,8 @@ class Mailer:
     def is_working(self) -> bool:
         return not self._stop_event.is_set()
 
-    def statistic(self) -> BroadcastStatistic:
-        return BroadcastStatistic(
+    def statistic(self) -> Statistic:
+        return Statistic(
             total_chats=self.data.settings.total_chats,
             success=self._success,
             failed=self._failed,

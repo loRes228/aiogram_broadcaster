@@ -1,6 +1,6 @@
 from datetime import timedelta
-from typing import Iterable, Union
+from typing import Iterable, Sequence, Union
 
 
-ChatsIds = Iterable[Union[int, str]]
+ChatsIds = Union[Iterable[Union[int, str]], Sequence[Union[int, str]]]
 Interval = Union[float, int, timedelta]
