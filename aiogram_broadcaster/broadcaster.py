@@ -8,7 +8,7 @@ from aiogram.types import Message
 from redis.asyncio import Redis
 
 from .mailer import Mailer
-from .models import MailerData
+from .models import MailerData, Statistic
 from .storage import Storage
 from .types_ import ChatsIds, Interval
 
@@ -103,6 +103,10 @@ class Broadcaster:
     async def delete(self, mailer_id: int) -> None:
         mailer = self.get(mailer_id=mailer_id)
         await mailer.delete()
+
+    def statistic(self, mailer_id: int) -> Statistic:
+        mailer = self.get(mailer_id=mailer_id)
+        return mailer.statistic()
 
     def mailers(self) -> List[Mailer]:
         return list(self._mailers.values())
