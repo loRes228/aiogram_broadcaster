@@ -21,13 +21,13 @@ class Mailer:
     dispatcher: Dispatcher
     storage: Storage
     logger: Logger
-    _mailers: Dict[int, "Mailer"]
+    mailers: Dict[int, "Mailer"]
     callback_on_failed: Optional[CallableObject]
-    _callback_tasks: "Set[Task[Any]]"
+    callback_tasks: "Set[Task[Any]]"
     _id: int
-    _stop_event: Event
-    _success: int
-    _failed: int
+    stop_event: Event
+    success: int
+    failed: int
 
     __slots__ = (
         "data",
@@ -35,13 +35,13 @@ class Mailer:
         "dispatcher",
         "storage",
         "logger",
-        "_mailers",
+        "mailers",
         "callback_on_failed",
-        "_callback_tasks",
+        "callback_tasks",
         "_id",
-        "_stop_event",
-        "_success",
-        "_failed",
+        "stop_event",
+        "success",
+        "failed",
     )
 
     def __init__(
@@ -62,15 +62,15 @@ class Mailer:
         self.dispatcher = dispatcher
         self.storage = storage
         self.logger = logger
-        self._mailers = mailers
+        self.mailers = mailers
         self.callback_on_failed = callback_on_failed
-        self._callback_tasks = callback_tasks
+        self.callback_tasks = callback_tasks
         self._id = id_ or id(self)
-        self._stop_event = Event()
-        self._success = 0
-        self._failed = 0
-        self._mailers[self._id] = self
-        self._stop_event.set()
+        self.stop_event = Event()
+        self.success = 0
+        self.failed = 0
+        self.mailers[self._id] = self
+        self.stop_event.set()
 
     @property
     def id(self) -> int:
@@ -80,9 +80,9 @@ class Mailer:
         if self.is_working() or len(self.data.chat_ids) == 0:
             return
         self.logger.info("Run broadcaster id=%d.", self.id)
-        self._stop_event.clear()
+        self.stop_event.clear()
         for chat_id in self.data.chat_ids[:]:
-            if self._stop_event.is_set():
+            if self.stop_event.is_set():
                 break
             await self._send(chat_id=chat_id)
             is_last_chat = chat_id == self.data.chat_ids[-1]
@@ -90,31 +90,31 @@ class Mailer:
             if not is_last_chat:
                 await self._sleep()
         else:
-            self._stop_event.set()
+            self.stop_event.set()
             await self.delete()
 
     def stop(self) -> bool:
         if not self.is_working():
             return False
         self.logger.info("Stop broadcaster id=%d.", self.id)
-        self._stop_event.set()
+        self.stop_event.set()
         return True
 
     async def delete(self) -> None:
         self.logger.info("Delete broadcaster id=%d.", self.id)
         self.stop()
-        del self._mailers[self.id]
+        del self.mailers[self.id]
         await self.storage.delete_data(mailer_id=self.id)
 
     def is_working(self) -> bool:
-        return not self._stop_event.is_set()
+        return not self.stop_event.is_set()
 
     def statistic(self) -> Statistic:
         return Statistic(
             total_chats=self.data.settings.total_chats,
-            success=self._success,
-            failed=self._failed,
-            ratio=(self._success / self.data.settings.total_chats) * 100,
+            success=self.success,
+            failed=self.failed,
+            ratio=(self.success / self.data.settings.total_chats) * 100,
         )
 
     async def _send(self, chat_id: int) -> None:
@@ -124,7 +124,7 @@ class Mailer:
                 disable_notification=self.data.settings.disable_notification,
             )
         except AiogramError as error:
-            self._failed += 1
+            self.failed += 1
             self.logger.info(
                 "Failed to send message to chat id=%d, error: %s.",
                 chat_id,
@@ -141,10 +141,10 @@ class Mailer:
                         **self.dispatcher.workflow_data,
                     ),
                 )
-                self._callback_tasks.add(task)
-                task.add_done_callback(self._callback_tasks.discard)
+                self.callback_tasks.add(task)
+                task.add_done_callback(self.callback_tasks.discard)
         else:
-            self._success += 1
+            self.success += 1
             self.logger.info(
                 "Successfully sent a message to chat id=%d.",
                 chat_id,
@@ -153,7 +153,7 @@ class Mailer:
     async def _sleep(self) -> None:
         with suppress(TimeoutError):
             await wait_for(
-                fut=self._stop_event.wait(),
+                fut=self.stop_event.wait(),
                 timeout=self.data.settings.interval,
             )
 

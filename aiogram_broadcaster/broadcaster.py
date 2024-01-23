@@ -28,7 +28,7 @@ class Broadcaster:
     callback_on_failed: Optional[CallableObject]
     logger: Logger
     _mailers: Dict[int, Mailer]
-    _callback_tasks: "Set[Task[Any]]"
+    callback_tasks: "Set[Task[Any]]"
 
     __slots__ = (
         "bot",
@@ -36,8 +36,8 @@ class Broadcaster:
         "storage",
         "callback_on_failed",
         "logger",
+        "callback_tasks",
         "_mailers",
-        "_callback_tasks",
     )
 
     def __init__(
@@ -63,8 +63,8 @@ class Broadcaster:
         if not isinstance(logger, Logger):
             logger = getLogger(name=logger)
         self.logger = logger
+        self.callback_tasks = set()
         self._mailers = {}
-        self._callback_tasks = set()
 
     def setup(self, context_key: str = DEFAULT_CONTEXT_KEY) -> None:
         self.dispatcher[context_key] = self
@@ -129,7 +129,7 @@ class Broadcaster:
             logger=self.logger,
             mailers=self._mailers,
             callback_on_failed=self.callback_on_failed,
-            callback_tasks=self._callback_tasks,
+            callback_tasks=self.callback_tasks,
             id_=id_,
         )
 
