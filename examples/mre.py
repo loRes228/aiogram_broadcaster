@@ -1,4 +1,5 @@
 import logging
+import sys
 from typing import Any
 
 from aiogram import Bot, Dispatcher, Router
@@ -46,7 +47,6 @@ async def on_state_message(
     await message.answer(text="Run broadcasting...")
     await mailer.run()
     statistic = mailer.statistic()
-
     return await message.reply(
         text=(
             "Successful!\n"
@@ -59,7 +59,7 @@ async def on_state_message(
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     bot = Bot(token=TOKEN)
     redis = Redis(decode_responses=True)
     dispatcher = Dispatcher()
