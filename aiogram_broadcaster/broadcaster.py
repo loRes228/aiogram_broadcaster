@@ -1,122 +1,100 @@
 from datetime import timedelta
 from logging import Logger, getLogger
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Union
 
 from aiogram import Bot, Dispatcher
-from aiogram.dispatcher.event.handler import CallableObject, CallbackType
-from aiogram.types import InlineKeyboardMarkup, Message
+from aiogram.types import Message
 from redis.asyncio import Redis
 
+from .event import EventManager
 from .mailer import Mailer
-from .models import MailerData, Statistic
-from .storage import Storage
-from .types_ import ChatsIds, Interval
-
-
-if TYPE_CHECKING:
-    from asyncio import Task
-
-DEFAULT_REDIS_KEY = "BCR"
-DEFAULT_LOGGER_NAME = "broadcaster"
-DEFAULT_CONTEXT_KEY = "broadcaster"
+from .models import ChatIds, Interval, MailerData, ReplyMarkup
+from .storage import MailerStorage
 
 
 class Broadcaster:
     bot: Bot
     dispatcher: Dispatcher
-    storage: Storage
-    callback_on_failed: Optional[CallableObject]
+    storage: MailerStorage
+    context_key: str
     logger: Logger
+    event: EventManager
     _mailers: Dict[int, Mailer]
-    callback_tasks: "Set[Task[Any]]"
 
     __slots__ = (
         "bot",
         "dispatcher",
         "storage",
-        "callback_on_failed",
+        "context_key",
         "logger",
-        "callback_tasks",
+        "event",
         "_mailers",
     )
 
     def __init__(
         self,
-        redis: Redis,
         bot: Bot,
         dispatcher: Dispatcher,
+        redis: Redis,
         *,
-        callback_on_failed: Optional[CallbackType] = None,
-        redis_key: str = DEFAULT_REDIS_KEY,
-        logger: Union[Logger, str] = DEFAULT_LOGGER_NAME,
+        redis_key: str = "BCR",
+        context_key: str = "broadcaster",
+        logger: Union[Logger, str] = "aiogram.broadcaster",
     ) -> None:
-        if not redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
-            raise RuntimeError("Redis client must have decode_responses set to True.")
         self.bot = bot
         self.dispatcher = dispatcher
-        self.storage = Storage(redis=redis, key_prefix=redis_key)
-        self.callback_on_failed = (
-            CallableObject(callback=callback_on_failed)  # fmt: skip
-            if callback_on_failed
-            else None
+        self.storage = MailerStorage(redis=redis, key_prefix=redis_key)
+        self.context_key = context_key
+        self.logger = (
+            getLogger(name=logger)  # fmt: skip
+            if not isinstance(logger, Logger)
+            else logger
         )
-        if not isinstance(logger, Logger):
-            logger = getLogger(name=logger)
-        self.logger = logger
-        self.callback_tasks = set()
+        self.event = EventManager(bot=bot, dispatcher=dispatcher)
         self._mailers = {}
 
-    def setup(self, context_key: str = DEFAULT_CONTEXT_KEY) -> None:
-        self.dispatcher[context_key] = self
-        self.dispatcher.startup.register(self.startup)
+    def __getitem__(self, item: int) -> Mailer:
+        return self._mailers[item]
 
-    async def create(
-        self,
-        chat_ids: ChatsIds,
-        message: Message,
-        interval: Interval,
-        *,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
-        disable_notification: bool = False,
-    ) -> Mailer:
-        interval = self.validate_interval(interval=interval)
-        data = MailerData.build(
-            chat_ids=chat_ids,
-            message=message,
-            interval=interval,
-            reply_markup=reply_markup,
-            disable_notification=disable_notification,
-        )
-        mailer = self.create_from_data(data=data)
-        await self.storage.set_data(mailer_id=mailer.id, data=data)
-        return mailer
+    def __len__(self) -> int:
+        return len(self._mailers)
 
-    def get(self, mailer_id: int) -> Mailer:
-        return self._mailers[mailer_id]
+    def __repr__(self) -> str:
+        return f"Broadcaster(total_mailers={len(self)})"
 
-    async def run(self, mailer_id: int) -> None:
-        mailer = self.get(mailer_id=mailer_id)
-        await mailer.run()
-
-    def stop(self, mailer_id: int) -> bool:
-        mailer = self.get(mailer_id=mailer_id)
-        return mailer.stop()
-
-    async def delete(self, mailer_id: int) -> None:
-        mailer = self.get(mailer_id=mailer_id)
-        await mailer.delete()
-
-    def statistic(self, mailer_id: int) -> Statistic:
-        mailer = self.get(mailer_id=mailer_id)
-        return mailer.statistic()
+    def __str__(self) -> str:
+        return repr(self)
 
     def mailers(self) -> List[Mailer]:
         return list(self._mailers.values())
 
-    async def startup(self) -> None:
-        for mailer_id in await self.storage.get_mailer_ids():
-            data = await self.storage.get_data(mailer_id=mailer_id)
-            self.create_from_data(data=data, id_=mailer_id)
+    def get(self, mailer_id: int) -> Optional[Mailer]:
+        return self._mailers.get(mailer_id)
+
+    async def create(
+        self,
+        chat_ids: ChatIds,
+        message: Message,
+        interval: Interval,
+        *,
+        reply_markup: ReplyMarkup = None,
+        disable_notification: bool = False,
+    ) -> Mailer:
+        interval = (
+            interval.total_seconds()  # fmt: skip
+            if isinstance(interval, timedelta)
+            else float(interval)
+        )
+        data = MailerData.build(
+            chat_ids=chat_ids,
+            message=message,
+            reply_markup=reply_markup,
+            disable_notification=disable_notification,
+            interval=interval,
+        )
+        mailer = self.create_from_data(data=data)
+        await self.storage.set_data(mailer_id=mailer.id, data=data)
+        return mailer
 
     def create_from_data(
         self,
@@ -124,21 +102,21 @@ class Broadcaster:
         id_: Optional[int] = None,
     ) -> Mailer:
         return Mailer(
-            data=data,
             bot=self.bot,
             dispatcher=self.dispatcher,
-            storage=self.storage,
             logger=self.logger,
+            data=data,
+            storage=self.storage,
+            event_manager=self.event,
             mailers=self._mailers,
-            callback_on_failed=self.callback_on_failed,
-            callback_tasks=self.callback_tasks,
             id_=id_,
         )
 
-    def validate_interval(self, interval: Interval) -> float:
-        if isinstance(interval, timedelta):
-            return interval.total_seconds()
-        return float(interval)
+    async def startup(self) -> None:
+        for mailer_id in await self.storage.get_mailer_ids():
+            data = await self.storage.get_data(mailer_id=mailer_id)
+            self.create_from_data(data=data, id_=mailer_id)
 
-    def __repr__(self) -> str:
-        return f"Broadcaster(total_mailers={len(self.mailers())})"
+    def setup(self) -> None:
+        self.dispatcher[self.context_key] = self
+        self.dispatcher.startup.register(self.startup)
