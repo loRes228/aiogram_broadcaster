@@ -1,17 +1,21 @@
-from typing import List, NamedTuple, Optional
+from datetime import timedelta
+from typing import Iterable, List, NamedTuple, Optional, Sequence, Union
 
 from aiogram.types import InlineKeyboardMarkup, Message
 from pydantic import BaseModel
 
-from .types_ import ChatsIds
+
+ChatIds = Union[Iterable[Union[int, str]], Sequence[Union[int, str]]]
+ReplyMarkup = Optional[InlineKeyboardMarkup]
+Interval = Union[float, int, timedelta]
 
 
 class MailerSettingsData(BaseModel):
     message: Message
-    reply_markup: Optional[InlineKeyboardMarkup]
+    reply_markup: ReplyMarkup
+    disable_notification: bool
     interval: float
     total_chats: int
-    disable_notification: bool
 
 
 class MailerData(BaseModel):
@@ -22,11 +26,11 @@ class MailerData(BaseModel):
     def build(
         cls,
         *,
-        chat_ids: ChatsIds,
+        chat_ids: ChatIds,
         message: Message,
-        reply_markup: Optional[InlineKeyboardMarkup],
-        interval: float,
+        reply_markup: ReplyMarkup,
         disable_notification: bool,
+        interval: float,
     ) -> "MailerData":
         chat_ids = set(chat_ids)
         return MailerData(
@@ -34,15 +38,16 @@ class MailerData(BaseModel):
             settings=MailerSettingsData(
                 message=message,
                 reply_markup=reply_markup,
+                disable_notification=disable_notification,
                 interval=interval,
                 total_chats=len(chat_ids),
-                disable_notification=disable_notification,
             ),
         )
 
     @classmethod
     def build_from_json(
         cls,
+        *,
         chat_ids: List[int],
         settings: str,
     ) -> "MailerData":
