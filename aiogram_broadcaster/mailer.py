@@ -7,9 +7,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
 
-from .event import EventManager
 from .models import MailerData, Statistic
 from .storage import MailerStorage
+from .trigger import TriggerManager
 
 
 class Mailer:
@@ -18,7 +18,7 @@ class Mailer:
     logger: Logger
     data: MailerData
     storage: MailerStorage
-    event_manager: EventManager
+    trigger_manager: TriggerManager
     _mailers: Dict[int, "Mailer"]
     _id: int
     _success: int
@@ -32,7 +32,7 @@ class Mailer:
         "logger",
         "data",
         "storage",
-        "event_manager",
+        "trigger_manager",
         "_mailers",
         "_id",
         "_success",
@@ -48,7 +48,7 @@ class Mailer:
         logger: Logger,
         data: MailerData,
         storage: MailerStorage,
-        event_manager: EventManager,
+        trigger_manager: TriggerManager,
         mailers: Dict[int, "Mailer"],
         id_: Optional[int] = None,
     ) -> None:
@@ -57,7 +57,7 @@ class Mailer:
         self.logger = logger
         self.data = data
         self.storage = storage
-        self.event_manager = event_manager
+        self.trigger_manager = trigger_manager
         self._mailers = mailers
         self._id = id_ or id(self)
         self._success = 0
@@ -108,7 +108,7 @@ class Mailer:
     def stop(self) -> None:
         if not self.is_working():
             return
-        self.event_manager.shutdown.trigger(mailer_id=self.id)
+        self.trigger_manager.shutdown.trigger(mailer=self)
         self._stop_event.set()
         self.logger.info("Stop broadcaster id=%d", self.id)
 
@@ -118,7 +118,7 @@ class Mailer:
         if not self.data.chat_ids:
             raise RuntimeError(f"Mailer id={self.id} has no chats.")
 
-        self.event_manager.startup.trigger(mailer_id=self.id)
+        self.trigger_manager.startup.trigger(mailer=self)
         self._stop_event.clear()
         self.logger.info("Run broadcaster id=%d", self.id)
 
@@ -131,7 +131,7 @@ class Mailer:
             if not is_last_chat:
                 await self._sleep()
         else:
-            self.event_manager.complete.trigger(mailer_id=self.id)
+            self.trigger_manager.complete.trigger(mailer=self)
             await self.delete()
             self.logger.info("Broadcasting id=%d complete!", self.id)
 
@@ -144,10 +144,10 @@ class Mailer:
             )
         except TelegramAPIError as error:
             self._failed += 1
-            self.event_manager.failed_sent.trigger(
+            self.trigger_manager.failed_sent.trigger(
+                mailer=self,
                 error=error,
                 chat_id=chat_id,
-                mailer_id=self.id,
             )
             self.logger.info(
                 "Failed to send message to chat id=%d, error: %s.",
@@ -156,9 +156,9 @@ class Mailer:
             )
         else:
             self._success += 1
-            self.event_manager.success_sent.trigger(
+            self.trigger_manager.success_sent.trigger(
+                mailer=self,
                 chat_id=chat_id,
-                mailer_id=self.id,
             )
             self.logger.info(
                 "Successfully sent a message to chat id=%d.",

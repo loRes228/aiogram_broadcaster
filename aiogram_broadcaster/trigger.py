@@ -4,12 +4,14 @@ from typing import TYPE_CHECKING, Any, List, Set
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 
+from .mailer import Mailer
+
 
 if TYPE_CHECKING:
     from asyncio import Task
 
 
-class EventObserver:
+class TriggerObserver:
     bot: Bot
     dispatcher: Dispatcher
     callbacks: List[CallableObject]
@@ -31,22 +33,26 @@ class EventObserver:
     def register(self, callback: CallbackType) -> None:
         self.callbacks.append(CallableObject(callback=callback))
 
-    def trigger(self, **kwargs: Any) -> None:
+    def trigger(self, mailer: Mailer, **kwargs: Any) -> None:
         if not self.callbacks:
             return
-        kwargs.update(bot=self.bot, **self.dispatcher.workflow_data)
+        kwargs.update(
+            mailer=mailer,
+            bot=self.bot,
+            **self.dispatcher.workflow_data,
+        )
         for callback in self.callbacks:
             task = create_task(callback.call(**kwargs))
             self.tasks.add(task)
             task.add_done_callback(self.tasks.discard)
 
 
-class EventManager:
-    startup: EventObserver
-    shutdown: EventObserver
-    complete: EventObserver
-    success_sent: EventObserver
-    failed_sent: EventObserver
+class TriggerManager:
+    startup: TriggerObserver
+    shutdown: TriggerObserver
+    complete: TriggerObserver
+    success_sent: TriggerObserver
+    failed_sent: TriggerObserver
 
     __slots__ = (
         "startup",
@@ -58,4 +64,4 @@ class EventManager:
 
     def __init__(self, bot: Bot, dispatcher: Dispatcher) -> None:
         for event in self.__slots__:
-            setattr(self, event, EventObserver(bot=bot, dispatcher=dispatcher))
+            setattr(self, event, TriggerObserver(bot=bot, dispatcher=dispatcher))

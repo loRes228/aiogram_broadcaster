@@ -6,10 +6,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from redis.asyncio import Redis
 
-from .event import EventManager
 from .mailer import Mailer
 from .models import ChatIds, Interval, MailerData, ReplyMarkup
 from .storage import MailerStorage
+from .trigger import TriggerManager
 
 
 class Broadcaster:
@@ -18,7 +18,7 @@ class Broadcaster:
     storage: MailerStorage
     context_key: str
     logger: Logger
-    event: EventManager
+    trigger: TriggerManager
     _mailers: Dict[int, Mailer]
 
     __slots__ = (
@@ -27,7 +27,7 @@ class Broadcaster:
         "storage",
         "context_key",
         "logger",
-        "event",
+        "trigger",
         "_mailers",
     )
 
@@ -50,7 +50,7 @@ class Broadcaster:
             if not isinstance(logger, Logger)
             else logger
         )
-        self.event = EventManager(bot=bot, dispatcher=dispatcher)
+        self.trigger = TriggerManager(bot=bot, dispatcher=dispatcher)
         self._mailers = {}
 
     def __getitem__(self, item: int) -> Mailer:
@@ -107,7 +107,7 @@ class Broadcaster:
             logger=self.logger,
             data=data,
             storage=self.storage,
-            event_manager=self.event,
+            trigger_manager=self.trigger,
             mailers=self._mailers,
             id_=id_,
         )
