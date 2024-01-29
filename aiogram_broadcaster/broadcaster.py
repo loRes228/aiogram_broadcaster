@@ -94,15 +94,15 @@ class Broadcaster:
             disable_notification=disable_notification,
             interval=interval,
         )
-        mailer = self._create_mailer(data=data, preserve=preserve)
-        if preserve:
-            await self.storage.set_data(mailer_id=mailer.id, data=data)
+        storage = self.storage if preserve else self._null_storage
+        mailer = self._create_mailer(data=data, storage=storage)
+        await storage.set_data(mailer_id=mailer.id, data=data)
         return mailer
 
     async def startup(self) -> None:
         for mailer_id in await self.storage.get_mailer_ids() or []:
             data = await self.storage.get_data(mailer_id=mailer_id)
-            self._create_mailer(data=data, id_=mailer_id)
+            self._create_mailer(data=data, storage=self.storage, id_=mailer_id)
 
     def setup(self) -> None:
         self.dispatcher[self.context_key] = self
@@ -112,7 +112,7 @@ class Broadcaster:
         self,
         *,
         data: MailerData,
-        preserve: bool = True,
+        storage: BaseStorage,
         id_: Optional[int] = None,
     ) -> Mailer:
         return Mailer(
@@ -120,7 +120,7 @@ class Broadcaster:
             dispatcher=self.dispatcher,
             logger=self.logger,
             data=data,
-            storage=self.storage if preserve else self._null_storage,
+            storage=storage,
             trigger_manager=self.trigger,
             mailers=self._mailers,
             id_=id_,
