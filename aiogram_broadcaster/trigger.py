@@ -1,5 +1,5 @@
 from asyncio import create_task
-from typing import TYPE_CHECKING, Any, List, Set
+from typing import TYPE_CHECKING, Any, List, NamedTuple, Set
 
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
@@ -11,10 +11,15 @@ if TYPE_CHECKING:
     from .mailer import Mailer
 
 
+class Callback(NamedTuple):
+    callback: CallableObject
+    as_task: bool
+
+
 class TriggerObserver:
     bot: Bot
     dispatcher: Dispatcher
-    callbacks: List[CallableObject]
+    callbacks: List[Callback]
     tasks: Set["Task[Any]"]
 
     __slots__ = (
@@ -30,10 +35,15 @@ class TriggerObserver:
         self.callbacks = []
         self.tasks = set()
 
-    def register(self, callback: CallbackType) -> None:
-        self.callbacks.append(CallableObject(callback=callback))
+    def register(self, callback: CallbackType, *, as_task: bool = False) -> None:
+        self.callbacks.append(
+            Callback(
+                callback=CallableObject(callback=callback),
+                as_task=as_task,
+            ),
+        )
 
-    def trigger(self, mailer: "Mailer", **kwargs: Any) -> None:
+    async def trigger(self, mailer: "Mailer", *, as_task: bool = False, **kwargs: Any) -> None:
         if not self.callbacks:
             return
         kwargs.update(
@@ -42,9 +52,12 @@ class TriggerObserver:
             **self.dispatcher.workflow_data,
         )
         for callback in self.callbacks:
-            task = create_task(callback.call(**kwargs))
-            self.tasks.add(task)
-            task.add_done_callback(self.tasks.discard)
+            if callback.as_task or as_task:
+                task = create_task(callback.callback.call(**kwargs))
+                self.tasks.add(task)
+                task.add_done_callback(self.tasks.discard)
+            else:
+                await callback.callback.call(**kwargs)
 
 
 class TriggerManager:
