@@ -27,9 +27,8 @@ class RedisStorage(BaseStorage):
             if isinstance(redis, ConnectionPool)
             else redis
         )
-        if isinstance(redis, ConnectionPool):
-            redis = Redis(connection_pool=redis)
-        self.redis = redis
+        if not self.redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
+            raise ValueError("The 'decode_responses' must be enabled in the Redis client.")
         self.key_prefix = key_prefix
 
     async def get_mailer_ids(self) -> List[int]:
