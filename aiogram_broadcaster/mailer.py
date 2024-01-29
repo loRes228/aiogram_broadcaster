@@ -21,8 +21,8 @@ class Mailer:
     trigger_manager: TriggerManager
     _mailers: Dict[int, "Mailer"]
     _id: int
-    _success: int
-    _failed: int
+    _success_sent: int
+    _failed_sent: int
     _delay: float
     _stop_event: Event
 
@@ -35,8 +35,8 @@ class Mailer:
         "trigger_manager",
         "_mailers",
         "_id",
-        "_success",
-        "_failed",
+        "_success_sent",
+        "_failed_sent",
         "_delay",
         "_stop_event",
     )
@@ -60,8 +60,8 @@ class Mailer:
         self.trigger_manager = trigger_manager
         self._mailers = mailers
         self._id = id_ or id(self)
-        self._success = 0
-        self._failed = 0
+        self._success_sent = 0
+        self._failed_sent = 0
         self._delay = self.data.settings.interval / self.data.settings.total_chats
         self._stop_event = Event()
         self._mailers[self._id] = self
@@ -98,9 +98,9 @@ class Mailer:
     def statistic(self) -> Statistic:
         return Statistic(
             total_chats=self.data.settings.total_chats,
-            success=self._success,
-            failed=self._failed,
-            ratio=(self._success / self.data.settings.total_chats) * 100,
+            success=self._success_sent,
+            failed=self._failed_sent,
+            ratio=(self._success_sent / self.data.settings.total_chats) * 100,
         )
 
     async def delete(self) -> None:
@@ -147,7 +147,7 @@ class Mailer:
                 reply_markup=self.data.settings.reply_markup,
             )
         except TelegramAPIError as error:
-            self._failed += 1
+            self._failed_sent += 1
             await self.trigger_manager.failed_sent.trigger(
                 mailer=self,
                 as_task=True,
@@ -160,7 +160,7 @@ class Mailer:
                 type(error).__name__,
             )
         else:
-            self._success += 1
+            self._success_sent += 1
             await self.trigger_manager.success_sent.trigger(
                 mailer=self,
                 as_task=True,
