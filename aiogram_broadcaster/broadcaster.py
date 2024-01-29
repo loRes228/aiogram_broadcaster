@@ -60,10 +60,10 @@ class Broadcaster:
         return len(self._mailers)
 
     def __repr__(self) -> str:
-        return f"Broadcaster(total_mailers={len(self)})"
+        return "Broadcaster(total_mailers=%d)" % len(self)
 
     def __str__(self) -> str:
-        return repr(self)
+        return "Broadcaster[%s]" % ", ".join(map(repr, self.mailers()))
 
     def mailers(self) -> List[Mailer]:
         return list(self._mailers.values())
