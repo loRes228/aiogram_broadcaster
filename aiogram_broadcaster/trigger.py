@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING, Any, List, Set
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 
-from .mailer import Mailer
-
 
 if TYPE_CHECKING:
     from asyncio import Task
+
+    from .mailer import Mailer
 
 
 class TriggerObserver:
@@ -33,7 +33,7 @@ class TriggerObserver:
     def register(self, callback: CallbackType) -> None:
         self.callbacks.append(CallableObject(callback=callback))
 
-    def trigger(self, mailer: Mailer, **kwargs: Any) -> None:
+    def trigger(self, mailer: "Mailer", **kwargs: Any) -> None:
         if not self.callbacks:
             return
         kwargs.update(
@@ -63,5 +63,5 @@ class TriggerManager:
     )
 
     def __init__(self, bot: Bot, dispatcher: Dispatcher) -> None:
-        for event in self.__slots__:
-            setattr(self, event, TriggerObserver(bot=bot, dispatcher=dispatcher))
+        for trigger in self.__slots__:
+            setattr(self, trigger, TriggerObserver(bot=bot, dispatcher=dispatcher))
