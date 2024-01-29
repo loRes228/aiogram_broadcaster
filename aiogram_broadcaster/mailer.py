@@ -10,7 +10,7 @@ from aiogram.types import Message
 
 from .data import MailerData
 from .statistic import Statistic
-from .storage import MailerStorage
+from .storage.base import BaseStorage
 from .trigger import TriggerManager
 
 
@@ -19,7 +19,7 @@ class Mailer:
     dispatcher: Dispatcher
     logger: Logger
     data: MailerData
-    storage: MailerStorage
+    storage: BaseStorage
     trigger_manager: TriggerManager
     _mailers: Dict[int, "Mailer"]
     _id: int
@@ -49,7 +49,7 @@ class Mailer:
         dispatcher: Dispatcher,
         logger: Logger,
         data: MailerData,
-        storage: MailerStorage,
+        storage: BaseStorage,
         trigger_manager: TriggerManager,
         mailers: Dict[int, "Mailer"],
         id_: Optional[int] = None,

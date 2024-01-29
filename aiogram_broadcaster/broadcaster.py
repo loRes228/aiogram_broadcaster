@@ -4,21 +4,21 @@ from typing import Dict, List, Optional, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
-from redis.asyncio import Redis
 
 from .data import ChatIds, Interval, MailerData, ReplyMarkup
 from .mailer import Mailer
-from .storage import MailerStorage
+from .storage.base import BaseStorage, NullStorage
 from .trigger import TriggerManager
 
 
 class Broadcaster:
     bot: Bot
     dispatcher: Dispatcher
-    storage: MailerStorage
+    storage: BaseStorage
     context_key: str
     logger: Logger
     trigger: TriggerManager
+    _null_storage: NullStorage
     _mailers: Dict[int, Mailer]
 
     __slots__ = (
@@ -28,6 +28,7 @@ class Broadcaster:
         "context_key",
         "logger",
         "trigger",
+        "_null_storage",
         "_mailers",
     )
 
@@ -35,15 +36,15 @@ class Broadcaster:
         self,
         bot: Bot,
         dispatcher: Dispatcher,
-        redis: Redis,
+        storage: Optional[BaseStorage] = None,
         *,
-        redis_key: str = "BCR",
-        context_key: str = "broadcaster",
         logger: Union[Logger, str] = "aiogram.broadcaster",
+        context_key: str = "broadcaster",
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
-        self.storage = MailerStorage(redis=redis, key_prefix=redis_key)
+        self._null_storage = NullStorage()
+        self.storage = storage or self._null_storage
         self.context_key = context_key
         self.logger = (
             getLogger(name=logger)  # fmt: skip
@@ -79,6 +80,7 @@ class Broadcaster:
         *,
         reply_markup: ReplyMarkup = None,
         disable_notification: bool = False,
+        preserve: bool = True,
     ) -> Mailer:
         interval = (
             interval.total_seconds()  # fmt: skip
@@ -92,12 +94,13 @@ class Broadcaster:
             disable_notification=disable_notification,
             interval=interval,
         )
-        mailer = self._create_mailer(data=data)
-        await self.storage.set_data(mailer_id=mailer.id, data=data)
+        mailer = self._create_mailer(data=data, preserve=preserve)
+        if preserve:
+            await self.storage.set_data(mailer_id=mailer.id, data=data)
         return mailer
 
     async def startup(self) -> None:
-        for mailer_id in await self.storage.get_mailer_ids():
+        for mailer_id in await self.storage.get_mailer_ids() or []:
             data = await self.storage.get_data(mailer_id=mailer_id)
             self._create_mailer(data=data, id_=mailer_id)
 
@@ -107,7 +110,9 @@ class Broadcaster:
 
     def _create_mailer(
         self,
+        *,
         data: MailerData,
+        preserve: bool = True,
         id_: Optional[int] = None,
     ) -> Mailer:
         return Mailer(
@@ -115,7 +120,7 @@ class Broadcaster:
             dispatcher=self.dispatcher,
             logger=self.logger,
             data=data,
-            storage=self.storage,
+            storage=self.storage if preserve else self._null_storage,
             trigger_manager=self.trigger,
             mailers=self._mailers,
             id_=id_,
