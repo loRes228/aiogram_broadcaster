@@ -23,8 +23,8 @@ class Mailer:
     _id: int
     _success: int
     _failed: int
-    _stop_event: Event
     _delay: float
+    _stop_event: Event
 
     __slots__ = (
         "bot",
@@ -37,8 +37,8 @@ class Mailer:
         "_id",
         "_success",
         "_failed",
-        "_stop_event",
         "_delay",
+        "_stop_event",
     )
 
     def __init__(
@@ -62,13 +62,17 @@ class Mailer:
         self._id = id_ or id(self)
         self._success = 0
         self._failed = 0
+        self._delay = self.data.settings.interval / self.data.settings.total_chats
         self._stop_event = Event()
         self._mailers[self._id] = self
-        self._delay = self.data.settings.interval / self.data.settings.total_chats
         self._stop_event.set()
 
     def __repr__(self) -> str:
-        return f"Mailer(id={self.id}, is_working={self.is_working()})"
+        return "Mailer(id=%d, total_chats=%d, is_working=%s)" % (
+            self.id,
+            len(self.data.chat_ids),
+            self.is_working(),
+        )
 
     def __str__(self) -> str:
         return ", ".join(
