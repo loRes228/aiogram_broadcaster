@@ -5,7 +5,8 @@ from aiogram.types import InlineKeyboardMarkup, Message
 from pydantic import BaseModel
 
 
-ChatIds = Union[Iterable[Union[int, str]], Sequence[Union[int, str]]]
+ChatId = Union[int, str]
+ChatIds = Union[Iterable[ChatId], Sequence[ChatId]]
 ReplyMarkup = Optional[InlineKeyboardMarkup]
 Interval = Union[float, int, timedelta]
 
