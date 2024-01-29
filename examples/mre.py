@@ -7,7 +7,6 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from redis.asyncio import Redis
 
 from aiogram_broadcaster import Broadcaster
 
@@ -61,15 +60,10 @@ async def on_state_message(
 def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     bot = Bot(token=TOKEN)
-    redis = Redis(decode_responses=True)
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(
-        redis=redis,
-        bot=bot,
-        dispatcher=dispatcher,
-    )
+    broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher)
     broadcaster.setup()
 
     dispatcher.run_polling(bot)

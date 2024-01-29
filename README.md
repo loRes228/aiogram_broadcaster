@@ -10,6 +10,7 @@ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 
 ```python
 import logging
+import sys
 from typing import Any
 
 from aiogram import Bot, Dispatcher, Router
@@ -17,7 +18,6 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from redis.asyncio import Redis
 
 from aiogram_broadcaster import Broadcaster
 
@@ -56,7 +56,6 @@ async def on_state_message(
     await message.answer(text="Run broadcasting...")
     await mailer.run()
     statistic = mailer.statistic()
-
     return await message.reply(
         text=(
             "Successful!\n"
@@ -69,17 +68,12 @@ async def on_state_message(
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     bot = Bot(token=TOKEN)
-    redis = Redis(decode_responses=True)
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(
-        redis=redis,
-        bot=bot,
-        dispatcher=dispatcher,
-    )
+    broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher)
     broadcaster.setup()
 
     dispatcher.run_polling(bot)
