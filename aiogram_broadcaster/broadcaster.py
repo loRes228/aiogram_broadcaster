@@ -6,8 +6,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from redis.asyncio import Redis
 
+from .data import ChatIds, Interval, MailerData, ReplyMarkup
 from .mailer import Mailer
-from .models import ChatIds, Interval, MailerData, ReplyMarkup
 from .storage import MailerStorage
 from .trigger import TriggerManager
 
@@ -92,11 +92,20 @@ class Broadcaster:
             disable_notification=disable_notification,
             interval=interval,
         )
-        mailer = self.create_from_data(data=data)
+        mailer = self._create_mailer(data=data)
         await self.storage.set_data(mailer_id=mailer.id, data=data)
         return mailer
 
-    def create_from_data(
+    async def startup(self) -> None:
+        for mailer_id in await self.storage.get_mailer_ids():
+            data = await self.storage.get_data(mailer_id=mailer_id)
+            self._create_mailer(data=data, id_=mailer_id)
+
+    def setup(self) -> None:
+        self.dispatcher[self.context_key] = self
+        self.dispatcher.startup.register(self.startup)
+
+    def _create_mailer(
         self,
         data: MailerData,
         id_: Optional[int] = None,
@@ -111,12 +120,3 @@ class Broadcaster:
             mailers=self._mailers,
             id_=id_,
         )
-
-    async def startup(self) -> None:
-        for mailer_id in await self.storage.get_mailer_ids():
-            data = await self.storage.get_data(mailer_id=mailer_id)
-            self.create_from_data(data=data, id_=mailer_id)
-
-    def setup(self) -> None:
-        self.dispatcher[self.context_key] = self
-        self.dispatcher.startup.register(self.startup)

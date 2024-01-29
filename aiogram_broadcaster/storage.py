@@ -2,7 +2,7 @@ from typing import List, NamedTuple
 
 from redis.asyncio import Redis
 
-from .models import MailerData
+from .data import MailerData
 
 
 class StorageKey(NamedTuple):

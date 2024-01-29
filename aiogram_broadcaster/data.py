@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Iterable, List, NamedTuple, Optional, Sequence, Union
+from typing import Iterable, List, Optional, Sequence, Union
 
 from aiogram.types import InlineKeyboardMarkup, Message
 from pydantic import BaseModel
@@ -55,10 +55,3 @@ class MailerData(BaseModel):
             chat_ids=chat_ids,
             settings=MailerSettingsData.model_validate_json(settings),
         )
-
-
-class Statistic(NamedTuple):
-    total_chats: int
-    success: int
-    failed: int
-    ratio: float

@@ -1,5 +1,6 @@
 from asyncio import Event, TimeoutError, wait_for
 from contextlib import suppress
+from dataclasses import asdict
 from logging import Logger
 from typing import Dict, Optional
 
@@ -7,7 +8,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
 
-from .models import MailerData, Statistic
+from .data import MailerData
+from .statistic import Statistic
 from .storage import MailerStorage
 from .trigger import TriggerManager
 
@@ -77,7 +79,7 @@ class Mailer:
     def __str__(self) -> str:
         return ", ".join(
             f"{key}={value}"  # fmt: skip
-            for key, value in self.statistic()._asdict().items()
+            for key, value in asdict(self.statistic()).items()
         )
 
     @property
@@ -100,11 +102,10 @@ class Mailer:
             total_chats=self.data.settings.total_chats,
             success=self._success_sent,
             failed=self._failed_sent,
-            ratio=(self._success_sent / self.data.settings.total_chats) * 100,
         )
 
     async def delete(self) -> None:
-        self.logger.info("Delete broadcaster id=%d", self.id)
+        self.logger.info("Delete broadcaster id=%d.", self.id)
         await self.stop()
         await self.storage.delete_data(mailer_id=self.id)
         del self._mailers[self.id]
@@ -114,7 +115,7 @@ class Mailer:
             return
         await self.trigger_manager.shutdown.trigger(mailer=self)
         self._stop_event.set()
-        self.logger.info("Stop broadcaster id=%d", self.id)
+        self.logger.info("Stop broadcaster id=%d.", self.id)
 
     async def run(self) -> None:
         if self.is_working():
