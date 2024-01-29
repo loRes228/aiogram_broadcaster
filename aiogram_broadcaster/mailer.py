@@ -105,14 +105,14 @@ class Mailer:
 
     async def delete(self) -> None:
         self.logger.info("Delete broadcaster id=%d", self.id)
-        self.stop()
+        await self.stop()
         await self.storage.delete_data(mailer_id=self.id)
         del self._mailers[self.id]
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         if not self.is_working():
             return
-        self.trigger_manager.shutdown.trigger(mailer=self)
+        await self.trigger_manager.shutdown.trigger(mailer=self)
         self._stop_event.set()
         self.logger.info("Stop broadcaster id=%d", self.id)
 
@@ -122,7 +122,7 @@ class Mailer:
         if not self.data.chat_ids:
             raise RuntimeError(f"Mailer id={self.id} has no chats.")
 
-        self.trigger_manager.startup.trigger(mailer=self)
+        await self.trigger_manager.startup.trigger(mailer=self)
         self._stop_event.clear()
         self.logger.info("Run broadcaster id=%d", self.id)
 
@@ -135,7 +135,7 @@ class Mailer:
             if not is_last_chat:
                 await self._sleep()
         else:
-            self.trigger_manager.complete.trigger(mailer=self)
+            await self.trigger_manager.complete.trigger(mailer=self)
             await self.delete()
             self.logger.info("Broadcasting id=%d complete!", self.id)
 
@@ -148,8 +148,9 @@ class Mailer:
             )
         except TelegramAPIError as error:
             self._failed += 1
-            self.trigger_manager.failed_sent.trigger(
+            await self.trigger_manager.failed_sent.trigger(
                 mailer=self,
+                as_task=True,
                 error=error,
                 chat_id=chat_id,
             )
@@ -160,8 +161,9 @@ class Mailer:
             )
         else:
             self._success += 1
-            self.trigger_manager.success_sent.trigger(
+            await self.trigger_manager.success_sent.trigger(
                 mailer=self,
+                as_task=True,
                 chat_id=chat_id,
             )
             self.logger.info(
