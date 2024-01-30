@@ -28,17 +28,17 @@ class Mailer:
     _stop_event: Event
 
     __slots__ = (
+        "_delay",
+        "_failed_sent",
+        "_id",
+        "_mailers",
+        "_stop_event",
+        "_success_sent",
         "bot",
-        "logger",
         "data",
+        "logger",
         "storage",
         "trigger_manager",
-        "_mailers",
-        "_id",
-        "_success_sent",
-        "_failed_sent",
-        "_delay",
-        "_stop_event",
     )
 
     def __init__(

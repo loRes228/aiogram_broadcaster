@@ -24,8 +24,8 @@ class TriggerObserver:
 
     __slots__ = (
         "bot",
-        "dispatcher",
         "callbacks",
+        "dispatcher",
         "tasks",
     )
 
@@ -68,11 +68,11 @@ class TriggerManager:
     failed_sent: TriggerObserver
 
     __slots__ = (
-        "startup",
-        "shutdown",
         "complete",
-        "success_sent",
         "failed_sent",
+        "shutdown",
+        "startup",
+        "success_sent",
     )
 
     def __init__(self, bot: Bot, dispatcher: Dispatcher) -> None:

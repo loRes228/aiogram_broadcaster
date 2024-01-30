@@ -22,14 +22,14 @@ class Broadcaster:
     _mailers: Dict[int, Mailer]
 
     __slots__ = (
-        "bot",
-        "dispatcher",
-        "storage",
-        "context_key",
-        "logger",
-        "trigger",
-        "_null_storage",
         "_mailers",
+        "_null_storage",
+        "bot",
+        "context_key",
+        "dispatcher",
+        "logger",
+        "storage",
+        "trigger",
     )
 
     def __init__(
