@@ -17,8 +17,8 @@ class RedisStorage(BaseStorage):
     key_prefix: str
 
     __slots__ = (
-        "redis",
         "key_prefix",
+        "redis",
     )
 
     def __init__(self, redis: Union[Redis, ConnectionPool], key_prefix: str = "BCR") -> None:
