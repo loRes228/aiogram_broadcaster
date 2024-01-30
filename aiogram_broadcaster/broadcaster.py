@@ -75,11 +75,11 @@ class Broadcaster:
     async def create(
         self,
         chat_ids: ChatIds,
-        interval: Interval,
-        message: Message,
         *,
+        message: Message,
         reply_markup: ReplyMarkup = None,
         disable_notification: bool = False,
+        interval: Interval,
         dynamic_interval: bool = False,
         preserve: bool = True,
     ) -> Mailer:
@@ -119,7 +119,6 @@ class Broadcaster:
     ) -> Mailer:
         return Mailer(
             bot=self.bot,
-            dispatcher=self.dispatcher,
             logger=self.logger,
             data=data,
             storage=storage,

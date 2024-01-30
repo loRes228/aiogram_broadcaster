@@ -4,7 +4,7 @@ from dataclasses import asdict
 from logging import Logger
 from typing import Dict, Optional
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
 
@@ -16,7 +16,6 @@ from .trigger import TriggerManager
 
 class Mailer:
     bot: Bot
-    dispatcher: Dispatcher
     logger: Logger
     data: MailerData
     storage: BaseStorage
@@ -30,7 +29,6 @@ class Mailer:
 
     __slots__ = (
         "bot",
-        "dispatcher",
         "logger",
         "data",
         "storage",
@@ -46,7 +44,6 @@ class Mailer:
     def __init__(
         self,
         bot: Bot,
-        dispatcher: Dispatcher,
         logger: Logger,
         data: MailerData,
         storage: BaseStorage,
