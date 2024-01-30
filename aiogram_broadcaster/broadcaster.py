@@ -75,11 +75,12 @@ class Broadcaster:
     async def create(
         self,
         chat_ids: ChatIds,
-        message: Message,
         interval: Interval,
+        message: Message,
         *,
         reply_markup: ReplyMarkup = None,
         disable_notification: bool = False,
+        dynamic_interval: bool = False,
         preserve: bool = True,
     ) -> Mailer:
         interval = (
@@ -93,6 +94,7 @@ class Broadcaster:
             reply_markup=reply_markup,
             disable_notification=disable_notification,
             interval=interval,
+            dynamic_interval=dynamic_interval,
         )
         storage = self.storage if preserve else self._null_storage
         mailer = self._create_mailer(data=data, storage=storage)

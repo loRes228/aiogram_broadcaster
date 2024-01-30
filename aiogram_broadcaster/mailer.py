@@ -64,7 +64,11 @@ class Mailer:
         self._id = id_ or id(self)
         self._success_sent = 0
         self._failed_sent = 0
-        self._delay = self.data.settings.interval / self.data.settings.total_chats
+        self._delay = (
+            (self.data.settings.interval / self.data.settings.total_chats)
+            if self.data.settings.dynamic_interval
+            else self.data.settings.interval
+        )
         self._stop_event = Event()
         self._mailers[self._id] = self
         self._stop_event.set()

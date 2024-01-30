@@ -16,6 +16,7 @@ class MailerSettingsData(BaseModel):
     reply_markup: ReplyMarkup
     disable_notification: bool
     interval: float
+    dynamic_interval: bool
     total_chats: int
 
 
@@ -32,6 +33,7 @@ class MailerData(BaseModel):
         reply_markup: ReplyMarkup,
         disable_notification: bool,
         interval: float,
+        dynamic_interval: bool,
     ) -> "MailerData":
         chat_ids = set(chat_ids)
         return MailerData(
@@ -41,6 +43,7 @@ class MailerData(BaseModel):
                 reply_markup=reply_markup,
                 disable_notification=disable_notification,
                 interval=interval,
+                dynamic_interval=dynamic_interval,
                 total_chats=len(chat_ids),
             ),
         )
