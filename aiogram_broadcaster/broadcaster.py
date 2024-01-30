@@ -102,7 +102,10 @@ class Broadcaster:
         return mailer
 
     async def startup(self) -> None:
-        for mailer_id in await self.storage.get_mailer_ids() or []:
+        mailer_ids = await self.storage.get_mailer_ids()
+        if not mailer_ids:
+            return
+        for mailer_id in mailer_ids:
             data = await self.storage.get_data(mailer_id=mailer_id)
             self._create_mailer(data=data, storage=self.storage, id_=mailer_id)
 
