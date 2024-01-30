@@ -52,7 +52,6 @@ class Mailer:
         id_: Optional[int] = None,
     ) -> None:
         self.bot = bot
-        self.dispatcher = dispatcher
         self.logger = logger
         self.data = data
         self.storage = storage
