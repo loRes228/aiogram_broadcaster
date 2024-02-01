@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from aiogram_broadcaster.data import MailerData
+from aiogram_broadcaster.data import Data
 
 
 class BaseStorage(ABC):
@@ -10,11 +10,11 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    async def get_data(self, mailer_id: int) -> MailerData:
+    async def set_data(self, mailer_id: int, data: Data) -> None:
         pass
 
     @abstractmethod
-    async def set_data(self, mailer_id: int, data: MailerData) -> None:
+    async def get_data(self, mailer_id: int) -> Data:
         pass
 
     @abstractmethod
@@ -27,13 +27,13 @@ class BaseStorage(ABC):
 
 
 class NullStorage(BaseStorage):
-    async def get_mailer_ids(self) -> List[int]:  # type: ignore[empty-body]
+    async def get_mailer_ids(self) -> List[int]:
+        return []
+
+    async def set_data(self, mailer_id: int, data: Data) -> None:
         pass
 
-    async def get_data(self, mailer_id: int) -> MailerData:  # type: ignore[empty-body]
-        pass
-
-    async def set_data(self, mailer_id: int, data: MailerData) -> None:
+    async def get_data(self, mailer_id: int) -> Data:  # type: ignore[empty-body]
         pass
 
     async def delete_data(self, mailer_id: int) -> None:

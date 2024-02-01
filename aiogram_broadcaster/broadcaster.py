@@ -1,35 +1,37 @@
-from datetime import timedelta
 from logging import Logger, getLogger
-from typing import Dict, List, Optional, Union
+from typing import List, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
-from .data import ChatIds, Interval, MailerData, ReplyMarkup
+from .data import ChatIds, Data, Interval, ReplyMarkup
+from .event import EventManager
+from .exceptions import MailerNotExistsError
 from .mailer import Mailer
+from .pool import MailerPool
 from .storage.base import BaseStorage, NullStorage
-from .trigger import TriggerManager
+
+
+DEFAULT_LOGGER_NAME = "aiogram.broadcaster"
 
 
 class Broadcaster:
     bot: Bot
     dispatcher: Dispatcher
-    storage: BaseStorage
     context_key: str
+    storage: BaseStorage
     logger: Logger
-    trigger: TriggerManager
-    _null_storage: NullStorage
-    _mailers: Dict[int, Mailer]
+    event: EventManager
+    pool: MailerPool
 
     __slots__ = (
-        "_mailers",
-        "_null_storage",
         "bot",
         "context_key",
         "dispatcher",
+        "event",
         "logger",
+        "pool",
         "storage",
-        "trigger",
     )
 
     def __init__(
@@ -37,28 +39,29 @@ class Broadcaster:
         bot: Bot,
         dispatcher: Dispatcher,
         storage: Optional[BaseStorage] = None,
-        *,
-        logger: Union[Logger, str] = "aiogram.broadcaster",
+        logger: Optional[Logger] = None,
         context_key: str = "broadcaster",
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
-        self._null_storage = NullStorage()
-        self.storage = storage or self._null_storage
         self.context_key = context_key
-        self.logger = (
-            getLogger(name=logger)  # fmt: skip
-            if not isinstance(logger, Logger)
-            else logger
+        self.storage = storage or NullStorage()
+        self.logger = logger or getLogger(name=DEFAULT_LOGGER_NAME)
+        self.event = EventManager(bot=bot, dispatcher=dispatcher)
+        self.pool = MailerPool(
+            bot=bot,
+            storage=self.storage,
+            event=self.event,
+            logger=self.logger,
         )
-        self.trigger = TriggerManager(bot=bot, dispatcher=dispatcher)
-        self._mailers = {}
 
     def __getitem__(self, item: int) -> Mailer:
-        return self._mailers[item]
+        if mailer := self.get(mailer_id=item):
+            return mailer
+        raise MailerNotExistsError
 
     def __len__(self) -> int:
-        return len(self._mailers)
+        return len(self.pool)
 
     def __repr__(self) -> str:
         return "Broadcaster(total_mailers=%d)" % len(self)
@@ -67,28 +70,23 @@ class Broadcaster:
         return "Broadcaster[%s]" % ", ".join(map(repr, self.mailers()))
 
     def mailers(self) -> List[Mailer]:
-        return list(self._mailers.values())
+        return self.pool.get_all()
 
     def get(self, mailer_id: int) -> Optional[Mailer]:
-        return self._mailers.get(mailer_id)
+        return self.pool.get(id=mailer_id)
 
     async def create(
         self,
         chat_ids: ChatIds,
         *,
+        interval: Interval,
         message: Message,
         reply_markup: ReplyMarkup = None,
         disable_notification: bool = False,
-        interval: Interval,
-        dynamic_interval: bool = False,
-        preserve: bool = True,
+        dynamic_interval: bool = True,
+        delete_on_complete: bool = False,
     ) -> Mailer:
-        interval = (
-            interval.total_seconds()  # fmt: skip
-            if isinstance(interval, timedelta)
-            else float(interval)
-        )
-        data = MailerData.build(
+        data = Data.build(
             chat_ids=chat_ids,
             message=message,
             reply_markup=reply_markup,
@@ -96,36 +94,11 @@ class Broadcaster:
             interval=interval,
             dynamic_interval=dynamic_interval,
         )
-        storage = self.storage if preserve else self._null_storage
-        mailer = self._create_mailer(data=data, storage=storage)
-        await storage.set_data(mailer_id=mailer.id, data=data)
-        return mailer
-
-    async def startup(self) -> None:
-        mailer_ids = await self.storage.get_mailer_ids()
-        if not mailer_ids:
-            return
-        for mailer_id in mailer_ids:
-            data = await self.storage.get_data(mailer_id=mailer_id)
-            self._create_mailer(data=data, storage=self.storage, id_=mailer_id)
+        return await self.pool.create(
+            data=data,
+            delete_on_complete=delete_on_complete,
+        )
 
     def setup(self) -> None:
         self.dispatcher[self.context_key] = self
-        self.dispatcher.startup.register(self.startup)
-
-    def _create_mailer(
-        self,
-        *,
-        data: MailerData,
-        storage: BaseStorage,
-        id_: Optional[int] = None,
-    ) -> Mailer:
-        return Mailer(
-            bot=self.bot,
-            logger=self.logger,
-            data=data,
-            storage=storage,
-            trigger_manager=self.trigger,
-            mailers=self._mailers,
-            id_=id_,
-        )
+        self.dispatcher.startup.register(self.pool.create_all_from_storage)

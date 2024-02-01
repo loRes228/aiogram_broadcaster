@@ -1,12 +1,11 @@
-from dataclasses import dataclass, field
+from typing import NamedTuple
 
 
-@dataclass
-class Statistic:
+class Statistic(NamedTuple):
     total_chats: int
     success: int
     failed: int
-    ratio: float = field(init=False)
 
-    def __post_init__(self) -> None:
-        self.ratio = (self.success / self.total_chats) * 100
+    @property
+    def ratio(self) -> float:
+        return (self.success / self.total_chats) * 100

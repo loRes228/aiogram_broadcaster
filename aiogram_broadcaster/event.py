@@ -16,7 +16,7 @@ class Callback(NamedTuple):
     as_task: bool
 
 
-class TriggerObserver:
+class EventObserver:
     bot: Bot
     dispatcher: Dispatcher
     callbacks: List[Callback]
@@ -35,7 +35,12 @@ class TriggerObserver:
         self.callbacks = []
         self.tasks = set()
 
-    def register(self, callback: CallbackType, *, as_task: bool = False) -> None:
+    def register(
+        self,
+        callback: CallbackType,
+        *,
+        as_task: bool = False,
+    ) -> None:
         self.callbacks.append(
             Callback(
                 callback=CallableObject(callback=callback),
@@ -43,7 +48,13 @@ class TriggerObserver:
             ),
         )
 
-    async def trigger(self, mailer: "Mailer", *, as_task: bool = False, **kwargs: Any) -> None:
+    async def trigger(
+        self,
+        mailer: "Mailer",
+        *,
+        as_task: bool = False,
+        **kwargs: Any,
+    ) -> None:
         if not self.callbacks:
             return
         kwargs.update(
@@ -60,12 +71,12 @@ class TriggerObserver:
                 await callback.callback.call(**kwargs)
 
 
-class TriggerManager:
-    startup: TriggerObserver
-    shutdown: TriggerObserver
-    complete: TriggerObserver
-    success_sent: TriggerObserver
-    failed_sent: TriggerObserver
+class EventManager:
+    startup: EventObserver
+    shutdown: EventObserver
+    complete: EventObserver
+    success_sent: EventObserver
+    failed_sent: EventObserver
 
     __slots__ = (
         "complete",
@@ -77,4 +88,4 @@ class TriggerManager:
 
     def __init__(self, bot: Bot, dispatcher: Dispatcher) -> None:
         for trigger in self.__slots__:
-            setattr(self, trigger, TriggerObserver(bot=bot, dispatcher=dispatcher))
+            setattr(self, trigger, EventObserver(bot=bot, dispatcher=dispatcher))

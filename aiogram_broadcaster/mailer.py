@@ -1,85 +1,97 @@
 from asyncio import Event, TimeoutError, wait_for
 from contextlib import suppress
-from dataclasses import asdict
 from logging import Logger
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
 
-from .data import MailerData
+from .data import Data
+from .event import EventManager
+from .exceptions import (
+    MailerAlreadyStartedError,
+    MailerAlreadyStoppedError,
+    MailerHasBeenCompletedError,
+    MailerHasBeenDeletedError,
+)
 from .statistic import Statistic
+from .status import Status
 from .storage.base import BaseStorage
-from .trigger import TriggerManager
+
+
+if TYPE_CHECKING:
+    from .pool import MailerPool
 
 
 class Mailer:
     bot: Bot
-    logger: Logger
-    data: MailerData
+    data: Data
     storage: BaseStorage
-    trigger_manager: TriggerManager
-    _mailers: Dict[int, "Mailer"]
+    event: EventManager
+    pool: "MailerPool"
+    logger: Logger
+    delete_on_complete: bool
     _id: int
+    _status: Status
+    _stop_event: Event
     _success_sent: int
     _failed_sent: int
-    _delay: float
-    _stop_event: Event
 
     __slots__ = (
-        "_delay",
         "_failed_sent",
         "_id",
-        "_mailers",
+        "_status",
         "_stop_event",
         "_success_sent",
         "bot",
         "data",
+        "delete_on_complete",
+        "event",
         "logger",
+        "pool",
         "storage",
-        "trigger_manager",
     )
 
     def __init__(
         self,
+        *,
         bot: Bot,
-        logger: Logger,
-        data: MailerData,
+        data: Data,
         storage: BaseStorage,
-        trigger_manager: TriggerManager,
-        mailers: Dict[int, "Mailer"],
+        event: EventManager,
+        pool: "MailerPool",
+        logger: Logger,
+        delete_on_complete: bool,
         id_: Optional[int] = None,
     ) -> None:
         self.bot = bot
-        self.logger = logger
         self.data = data
         self.storage = storage
-        self.trigger_manager = trigger_manager
-        self._mailers = mailers
+        self.event = event
+        self.pool = pool
+        self.logger = logger
+        self.delete_on_complete = delete_on_complete
+
         self._id = id_ or id(self)
+        self._status = Status.STOPPED
+        self._stop_event = Event()
         self._success_sent = 0
         self._failed_sent = 0
-        self._delay = (
-            (self.data.settings.interval / self.data.settings.total_chats)
-            if self.data.settings.dynamic_interval
-            else self.data.settings.interval
-        )
-        self._stop_event = Event()
-        self._mailers[self._id] = self
+
         self._stop_event.set()
 
     def __repr__(self) -> str:
-        return "Mailer(id=%d, total_chats=%d, is_working=%s)" % (
+        return "Mailer(id=%d, status=%s, chats_left=%d)" % (
             self.id,
+            self.status.value,
             len(self.data.chat_ids),
-            self.is_working(),
         )
 
     def __str__(self) -> str:
         return ", ".join(
             f"{key}={value}"  # fmt: skip
-            for key, value in asdict(self.statistic()).items()
+            for key, value in self.statistic()._asdict().items()
         )
 
     @property
@@ -87,15 +99,12 @@ class Mailer:
         return self._id
 
     @property
-    def message(self) -> Message:
-        return self.data.settings.message.as_(bot=self.bot)
+    def status(self) -> Status:
+        return self._status
 
     @property
-    def interval(self) -> float:
-        return self.data.settings.interval
-
-    def is_working(self) -> bool:
-        return not self._stop_event.is_set()
+    def message(self) -> Message:
+        return self.data.settings.message.as_(bot=self.bot)
 
     def statistic(self) -> Statistic:
         return Statistic(
@@ -104,29 +113,53 @@ class Mailer:
             failed=self._failed_sent,
         )
 
-    async def delete(self) -> None:
-        self.logger.info("Delete broadcaster id=%d.", self.id)
-        await self.stop()
-        await self.storage.delete_data(mailer_id=self.id)
-        del self._mailers[self.id]
+    async def run(self) -> None:
+        if self.status is Status.COMPLETED:
+            raise MailerHasBeenCompletedError
+        if self.status is Status.STARTED:
+            raise MailerAlreadyStartedError
+        self.logger.info("Run mailer id=%d.", self.id)
+        await self._prepare_run()
+        if await self._broadcast():
+            self.logger.info("Mailer id=%d completed.")
+            await self._process_complete()
 
     async def stop(self) -> None:
-        if not self.is_working():
-            return
-        await self.trigger_manager.shutdown.trigger(mailer=self)
-        self._stop_event.set()
-        self.logger.info("Stop broadcaster id=%d.", self.id)
+        if self.status is Status.COMPLETED:
+            raise MailerHasBeenCompletedError
+        if self.status is Status.STOPPED:
+            raise MailerAlreadyStoppedError
+        self.logger.info("Stop mailer id=%d.", self.id)
+        await self._stop()
 
-    async def run(self) -> None:
-        if self.is_working():
-            raise RuntimeError(f"Mailer id={self.id} already started.")
-        if not self.data.chat_ids:
-            raise RuntimeError(f"Mailer id={self.id} has no chats.")
+    async def delete(self) -> None:
+        if not self.pool.get(id=self.id):
+            raise MailerHasBeenDeletedError
+        self.logger.info("Delete mailer id=%d.", self.id)
+        await self._stop()
+        await self._delete()
 
-        await self.trigger_manager.startup.trigger(mailer=self)
+    async def _prepare_run(self) -> None:
+        self._status = Status.STARTED
         self._stop_event.clear()
-        self.logger.info("Run broadcaster id=%d", self.id)
+        await self.event.startup.trigger(mailer=self)
 
+    async def _stop(self) -> None:
+        self._status = Status.STOPPED
+        self._stop_event.set()
+        await self.event.shutdown.trigger(mailer=self)
+
+    async def _delete(self) -> None:
+        await self.pool.delete(id=self.id)
+
+    async def _process_complete(self) -> None:
+        self._status = Status.COMPLETED
+        self._stop_event.clear()
+        await self.event.complete.trigger(mailer=self)
+        if self.delete_on_complete:
+            await self._delete()
+
+    async def _broadcast(self) -> bool:
         for chat_id in self.data.chat_ids[:]:
             if self._stop_event.is_set():
                 break
@@ -136,9 +169,8 @@ class Mailer:
             if not is_last_chat:
                 await self._sleep()
         else:
-            await self.trigger_manager.complete.trigger(mailer=self)
-            await self.delete()
-            self.logger.info("Broadcasting id=%d complete!", self.id)
+            return True
+        return False
 
     async def _send(self, chat_id: int) -> None:
         try:
@@ -148,37 +180,47 @@ class Mailer:
                 reply_markup=self.data.settings.reply_markup,
             )
         except TelegramAPIError as error:
-            self._failed_sent += 1
-            await self.trigger_manager.failed_sent.trigger(
-                mailer=self,
-                as_task=True,
-                error=error,
-                chat_id=chat_id,
-            )
-            self.logger.info(
-                "Failed to send message to chat id=%d, error: %s.",
-                chat_id,
-                type(error).__name__,
-            )
+            await self._handle_failed_sent(chat_id=chat_id, error=error)
         else:
-            self._success_sent += 1
-            await self.trigger_manager.success_sent.trigger(
-                mailer=self,
-                as_task=True,
-                chat_id=chat_id,
-            )
-            self.logger.info(
-                "Successfully sent a message to chat id=%d.",
-                chat_id,
-            )
+            await self._handle_success_sent(chat_id=chat_id)
+
+    async def _handle_failed_sent(
+        self,
+        chat_id: int,
+        error: TelegramAPIError,
+    ) -> None:
+        self.logger.info(
+            "Failed to send message to chat id=%d, error: %s.",
+            chat_id,
+            type(error).__name__,
+        )
+        self._failed_sent += 1
+        await self.event.failed_sent.trigger(
+            mailer=self,
+            as_task=True,
+            error=error,
+            chat_id=chat_id,
+        )
+
+    async def _handle_success_sent(self, chat_id: int) -> None:
+        self.logger.info(
+            "Successfully sent a message to chat id=%d.",
+            chat_id,
+        )
+        self._success_sent += 1
+        await self.event.success_sent.trigger(
+            mailer=self,
+            as_task=True,
+            chat_id=chat_id,
+        )
 
     async def _pop_chat(self) -> None:
-        await self.storage.pop_chat(mailer_id=self.id)
         self.data.chat_ids.pop(0)
+        await self.storage.pop_chat(mailer_id=self.id)
 
     async def _sleep(self) -> None:
         with suppress(TimeoutError):
             await wait_for(
                 fut=self._stop_event.wait(),
-                timeout=self._delay,
+                timeout=self.data.settings.delay,
             )

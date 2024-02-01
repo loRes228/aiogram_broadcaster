@@ -2,7 +2,7 @@ from typing import List, NamedTuple, Union
 
 from redis.asyncio import ConnectionPool, Redis
 
-from aiogram_broadcaster.data import MailerData
+from aiogram_broadcaster.data import Data
 
 from .base import BaseStorage
 
@@ -37,16 +37,16 @@ class RedisStorage(BaseStorage):
             return []
         return list({int(key.split(":")[1]) for key in keys})
 
-    async def get_data(self, mailer_id: int) -> MailerData:
-        key = self.build_key(mailer_id=mailer_id)
-        chats = await self.redis.lrange(name=key.chats, start=0, end=-1)  # type: ignore[misc]
-        settings = await self.redis.get(name=key.settings)
-        return MailerData.build_from_json(chat_ids=chats, settings=settings)
-
-    async def set_data(self, mailer_id: int, data: MailerData) -> None:
+    async def set_data(self, mailer_id: int, data: Data) -> None:
         key = self.build_key(mailer_id=mailer_id)
         await self.redis.rpush(key.chats, *data.chat_ids)  # type: ignore[misc]
         await self.redis.set(name=key.settings, value=data.settings.model_dump_json())
+
+    async def get_data(self, mailer_id: int) -> Data:
+        key = self.build_key(mailer_id=mailer_id)
+        chats = await self.redis.lrange(name=key.chats, start=0, end=-1)  # type: ignore[misc]
+        settings = await self.redis.get(name=key.settings)
+        return Data.build_from_json(chat_ids=chats, settings=settings)
 
     async def delete_data(self, mailer_id: int) -> None:
         key = self.build_key(mailer_id=mailer_id)
