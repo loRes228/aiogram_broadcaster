@@ -9,6 +9,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.mailer import Mailer
 
 
 TOKEN = "1234:Abc"  # noqa: S105
@@ -45,8 +46,11 @@ async def on_state_message(
     )
     await message.answer(text="Run broadcasting...")
     await mailer.run()
+
+
+async def on_complete(mailer: Mailer) -> None:
     statistic = mailer.statistic()
-    return await message.reply(
+    await mailer.message.reply(
         text=(
             "Successful!\n"
             f"Total chats: {statistic.total_chats}\n"
@@ -65,6 +69,7 @@ def main() -> None:
 
     broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher)
     broadcaster.setup()
+    broadcaster.event.complete.register(on_complete)
 
     dispatcher.run_polling(bot)
 
