@@ -5,14 +5,16 @@ line-length = 99
 
 preview = true
 show-fixes = true
-show-source = true
 respect-gitignore = false
-ignore-init-module-imports = true
+output-format = "full"
 
-namespace-packages = ["examples"]
+namespace-packages = [
+    "examples"
+]
 
 
 [lint]
+ignore-init-module-imports = true
 select = [
     "F", # Pyflakes
     "E", # pycodestyle Error
@@ -75,8 +77,6 @@ select = [
     "RUF" # Ruff-specific rules
 ]
 ignore = [
-    "ANN101", # missing-type-self
-    "ANN102", # missing-type-cls
     "ANN401", # any-type
     "PLR6301", # no-self-use
     "PLR0913", # too-many-arguments
@@ -91,6 +91,3 @@ lines-after-imports = 2
 
 [lint.flake8-type-checking]
 strict = true
-
-[lint.per-file-ignores]
-"tests/**" = ["S101"] # assert
