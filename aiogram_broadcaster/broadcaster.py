@@ -9,14 +9,14 @@ from .event import EventManager
 from .event_logs import setup_event_logging
 from .mailer import Mailer
 from .pool import MailerPool
-from .storage.base import BaseStorage, NullStorage
+from .storage.base import BaseMailerStorage, NullMailerStorage
 
 
 class Broadcaster:
     bot: Bot
     dispatcher: Dispatcher
     context_key: str
-    storage: BaseStorage
+    storage: BaseMailerStorage
     logger: Logger
     event: EventManager
     pool: MailerPool
@@ -35,7 +35,7 @@ class Broadcaster:
         self,
         bot: Bot,
         dispatcher: Dispatcher,
-        storage: Optional[BaseStorage] = None,
+        storage: Optional[BaseMailerStorage] = None,
         *,
         context_key: str = "broadcaster",
         event_logging: bool = True,
@@ -44,7 +44,7 @@ class Broadcaster:
         self.bot = bot
         self.dispatcher = dispatcher
         self.context_key = context_key
-        self.storage = storage or NullStorage()
+        self.storage = storage or NullMailerStorage()
         self.event = EventManager(bot=bot, dispatcher=dispatcher)
         self.pool = MailerPool(
             bot=bot,

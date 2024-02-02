@@ -4,7 +4,7 @@ from typing import List
 from aiogram_broadcaster.data import Data
 
 
-class BaseStorage(ABC):
+class BaseMailerStorage(ABC):
     @abstractmethod
     async def get_mailer_ids(self) -> List[int]:
         pass
@@ -26,7 +26,7 @@ class BaseStorage(ABC):
         pass
 
 
-class NullStorage(BaseStorage):
+class NullMailerStorage(BaseMailerStorage):
     async def get_mailer_ids(self) -> List[int]:
         return []
 

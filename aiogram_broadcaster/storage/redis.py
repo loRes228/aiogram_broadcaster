@@ -4,7 +4,7 @@ from redis.asyncio import ConnectionPool, Redis
 
 from aiogram_broadcaster.data import Data
 
-from .base import BaseStorage
+from .base import BaseMailerStorage
 
 
 class StorageKey(NamedTuple):
@@ -12,7 +12,7 @@ class StorageKey(NamedTuple):
     settings: str
 
 
-class RedisStorage(BaseStorage):
+class RedisMailerStorage(BaseMailerStorage):
     redis: Redis
     key_prefix: str
 

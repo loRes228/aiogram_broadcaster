@@ -11,7 +11,7 @@ from .data import Data
 from .event import EventManager
 from .statistic import Statistic
 from .status import Status
-from .storage.base import BaseStorage
+from .storage.base import BaseMailerStorage
 
 
 if TYPE_CHECKING:
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class Mailer:
     bot: Bot
     data: Data
-    storage: BaseStorage
+    storage: BaseMailerStorage
     event: EventManager
     pool: "MailerPool"
     logger: Logger
@@ -52,7 +52,7 @@ class Mailer:
         *,
         bot: Bot,
         data: Data,
-        storage: BaseStorage,
+        storage: BaseMailerStorage,
         event: EventManager,
         pool: "MailerPool",
         delete_on_complete: bool,

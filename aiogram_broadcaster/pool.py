@@ -6,12 +6,12 @@ from aiogram import Bot
 from .data import Data
 from .event import EventManager
 from .mailer import Mailer
-from .storage.base import BaseStorage
+from .storage.base import BaseMailerStorage
 
 
 class MailerPool:
     bot: Bot
-    storage: BaseStorage
+    storage: BaseMailerStorage
     event: EventManager
     logger: Logger
     mailers: Dict[int, Mailer]
@@ -27,7 +27,7 @@ class MailerPool:
     def __init__(
         self,
         bot: Bot,
-        storage: BaseStorage,
+        storage: BaseMailerStorage,
         event: EventManager,
     ) -> None:
         self.bot = bot
