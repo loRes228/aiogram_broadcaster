@@ -21,7 +21,7 @@ async def on_complete(mailer: Mailer) -> None:
 
 async def on_success_sent(mailer: Mailer, chat_id: int) -> None:
     logger.info(
-        "Message successfully sent from mailer id=%s to chat id=%d.",
+        "Message successfully sent from mailer id=%d to chat id=%d.",
         mailer.id,
         chat_id,
     )
