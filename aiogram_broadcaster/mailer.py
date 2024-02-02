@@ -75,8 +75,8 @@ class Mailer:
 
     def __repr__(self) -> str:
         return "Mailer(id=%d, status=%s, chats_left=%d)" % (
-            self.id,
-            self.status.value,
+            self._id,
+            self._status.value,
             len(self.data.chat_ids),
         )
 
@@ -106,19 +106,19 @@ class Mailer:
         )
 
     async def run(self) -> None:
-        if self.status is not Status.STOPPED:
+        if self._status is not Status.STOPPED:
             return
         await self._prepare_run()
         if await self._broadcast():
             await self._process_complete()
 
     async def stop(self) -> None:
-        if self.status is not Status.STARTED:
+        if self._status is not Status.STARTED:
             return
         await self._stop()
 
     async def delete(self) -> None:
-        if not self.pool.get(id=self.id):
+        if not self.pool.get(id=self._id):
             return
         await self.stop()
         await self._delete()
@@ -134,7 +134,7 @@ class Mailer:
         await self.event.shutdown.trigger(mailer=self)
 
     async def _delete(self) -> None:
-        await self.pool.delete(id=self.id)
+        await self.pool.delete(id=self._id)
 
     async def _process_complete(self) -> None:
         self._status = Status.COMPLETED
@@ -191,7 +191,7 @@ class Mailer:
 
     async def _pop_chat(self) -> None:
         self.data.chat_ids.pop(0)
-        await self.storage.pop_chat(mailer_id=self.id)
+        await self.storage.pop_chat(mailer_id=self._id)
 
     async def _sleep(self) -> None:
         with suppress(TimeoutError):
