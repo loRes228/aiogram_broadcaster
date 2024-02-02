@@ -39,6 +39,7 @@ class Broadcaster:
         *,
         context_key: str = "broadcaster",
         event_logging: bool = True,
+        setup: bool = True,
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
@@ -52,6 +53,8 @@ class Broadcaster:
         )
         if event_logging:
             setup_event_logging(event=self.event)
+        if setup:
+            self._setup()
 
     def __getitem__(self, item: int) -> Mailer:
         if mailer := self.get(mailer_id=item):
@@ -97,6 +100,6 @@ class Broadcaster:
             delete_on_complete=delete_on_complete,
         )
 
-    def setup(self) -> None:
+    def _setup(self) -> None:
         self.dispatcher[self.context_key] = self
         self.dispatcher.startup.register(self.pool.create_all_from_storage)
