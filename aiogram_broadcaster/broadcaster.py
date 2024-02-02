@@ -1,4 +1,4 @@
-from logging import Logger, getLogger
+from logging import Logger
 from typing import List, Optional
 
 from aiogram import Bot, Dispatcher
@@ -6,12 +6,10 @@ from aiogram.types import Message
 
 from .data import ChatIds, Data, Interval, ReplyMarkup
 from .event import EventManager
+from .event_logs import setup_event_logging
 from .mailer import Mailer
 from .pool import MailerPool
 from .storage.base import BaseStorage, NullStorage
-
-
-DEFAULT_LOGGER_NAME = "aiogram.broadcaster"
 
 
 class Broadcaster:
@@ -38,21 +36,22 @@ class Broadcaster:
         bot: Bot,
         dispatcher: Dispatcher,
         storage: Optional[BaseStorage] = None,
-        logger: Optional[Logger] = None,
+        *,
         context_key: str = "broadcaster",
+        event_logging: bool = True,
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
         self.context_key = context_key
         self.storage = storage or NullStorage()
-        self.logger = logger or getLogger(name=DEFAULT_LOGGER_NAME)
         self.event = EventManager(bot=bot, dispatcher=dispatcher)
         self.pool = MailerPool(
             bot=bot,
             storage=self.storage,
             event=self.event,
-            logger=self.logger,
         )
+        if event_logging:
+            setup_event_logging(event=self.event)
 
     def __getitem__(self, item: int) -> Mailer:
         if mailer := self.get(mailer_id=item):

@@ -55,7 +55,6 @@ class Mailer:
         storage: BaseStorage,
         event: EventManager,
         pool: "MailerPool",
-        logger: Logger,
         delete_on_complete: bool,
         id_: Optional[int] = None,
     ) -> None:
@@ -64,7 +63,6 @@ class Mailer:
         self.storage = storage
         self.event = event
         self.pool = pool
-        self.logger = logger
         self.delete_on_complete = delete_on_complete
 
         self._id = id_ or id(self)
@@ -108,26 +106,21 @@ class Mailer:
         )
 
     async def run(self) -> None:
-        if self.status in {Status.STARTED, Status.COMPLETED}:
+        if self.status is not Status.STOPPED:
             return
-        self.logger.info("Run mailer id=%d.", self.id)
         await self._prepare_run()
         if await self._broadcast():
-            self.logger.info("Mailer id=%d completed.")
             await self._process_complete()
 
     async def stop(self) -> None:
-        if self.status in {Status.STOPPED, Status.COMPLETED}:
+        if self.status is not Status.STARTED:
             return
-        self.logger.info("Stop mailer id=%d.", self.id)
         await self._stop()
 
     async def delete(self) -> None:
         if not self.pool.get(id=self.id):
             return
-        if self.status is Status.STARTED:
-            await self.stop()
-        self.logger.info("Delete mailer id=%d.", self.id)
+        await self.stop()
         await self._delete()
 
     async def _prepare_run(self) -> None:
@@ -180,11 +173,6 @@ class Mailer:
         chat_id: int,
         error: TelegramAPIError,
     ) -> None:
-        self.logger.info(
-            "Failed to send message to chat id=%d, error: %s.",
-            chat_id,
-            error,
-        )
         self._failed_sent += 1
         await self.event.failed_sent.trigger(
             mailer=self,
@@ -194,10 +182,6 @@ class Mailer:
         )
 
     async def _handle_success_sent(self, chat_id: int) -> None:
-        self.logger.info(
-            "Successfully sent a message to chat id=%d.",
-            chat_id,
-        )
         self._success_sent += 1
         await self.event.success_sent.trigger(
             mailer=self,

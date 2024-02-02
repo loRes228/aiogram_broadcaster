@@ -29,12 +29,10 @@ class MailerPool:
         bot: Bot,
         storage: BaseStorage,
         event: EventManager,
-        logger: Logger,
     ) -> None:
         self.bot = bot
         self.storage = storage
         self.event = event
-        self.logger = logger
         self.mailers = {}
 
     def __len__(self) -> int:
@@ -63,7 +61,6 @@ class MailerPool:
             storage=self.storage,
             event=self.event,
             pool=self,
-            logger=self.logger,
             delete_on_complete=delete_on_complete,
             id_=id,
         )
