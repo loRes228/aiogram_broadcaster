@@ -6,7 +6,6 @@ from aiogram.types import Message
 
 from .data import ChatIds, Data, Interval, ReplyMarkup
 from .event import EventManager
-from .exceptions import MailerNotExistsError
 from .mailer import Mailer
 from .pool import MailerPool
 from .storage.base import BaseStorage, NullStorage
@@ -58,7 +57,7 @@ class Broadcaster:
     def __getitem__(self, item: int) -> Mailer:
         if mailer := self.get(mailer_id=item):
             return mailer
-        raise MailerNotExistsError
+        raise LookupError
 
     def __len__(self) -> int:
         return len(self.pool)

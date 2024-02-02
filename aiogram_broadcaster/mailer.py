@@ -9,12 +9,6 @@ from aiogram.types import Message
 
 from .data import Data
 from .event import EventManager
-from .exceptions import (
-    MailerAlreadyStartedError,
-    MailerAlreadyStoppedError,
-    MailerHasBeenCompletedError,
-    MailerHasBeenDeletedError,
-)
 from .statistic import Statistic
 from .status import Status
 from .storage.base import BaseStorage
@@ -114,10 +108,8 @@ class Mailer:
         )
 
     async def run(self) -> None:
-        if self.status is Status.COMPLETED:
-            raise MailerHasBeenCompletedError
-        if self.status is Status.STARTED:
-            raise MailerAlreadyStartedError
+        if self.status in {Status.STARTED, Status.COMPLETED}:
+            return
         self.logger.info("Run mailer id=%d.", self.id)
         await self._prepare_run()
         if await self._broadcast():
@@ -125,18 +117,17 @@ class Mailer:
             await self._process_complete()
 
     async def stop(self) -> None:
-        if self.status is Status.COMPLETED:
-            raise MailerHasBeenCompletedError
-        if self.status is Status.STOPPED:
-            raise MailerAlreadyStoppedError
+        if self.status in {Status.STOPPED, Status.COMPLETED}:
+            return
         self.logger.info("Stop mailer id=%d.", self.id)
         await self._stop()
 
     async def delete(self) -> None:
         if not self.pool.get(id=self.id):
-            raise MailerHasBeenDeletedError
+            return
+        if self.status is Status.STARTED:
+            await self.stop()
         self.logger.info("Delete mailer id=%d.", self.id)
-        await self._stop()
         await self._delete()
 
     async def _prepare_run(self) -> None:
@@ -154,7 +145,7 @@ class Mailer:
 
     async def _process_complete(self) -> None:
         self._status = Status.COMPLETED
-        self._stop_event.clear()
+        self._stop_event.set()
         await self.event.complete.trigger(mailer=self)
         if self.delete_on_complete:
             await self._delete()
@@ -192,7 +183,7 @@ class Mailer:
         self.logger.info(
             "Failed to send message to chat id=%d, error: %s.",
             chat_id,
-            type(error).__name__,
+            error,
         )
         self._failed_sent += 1
         await self.event.failed_sent.trigger(
