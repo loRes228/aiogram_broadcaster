@@ -1,4 +1,3 @@
-from logging import Logger
 from typing import List, Optional
 
 from aiogram import Bot, Dispatcher
@@ -16,8 +15,8 @@ class Broadcaster:
     bot: Bot
     dispatcher: Dispatcher
     context_key: str
+    run_on_startup: bool
     storage: BaseMailerStorage
-    logger: Logger
     event: EventManager
     pool: MailerPool
 
@@ -26,8 +25,8 @@ class Broadcaster:
         "context_key",
         "dispatcher",
         "event",
-        "logger",
         "pool",
+        "run_on_startup",
         "storage",
     )
 
@@ -38,12 +37,14 @@ class Broadcaster:
         storage: Optional[BaseMailerStorage] = None,
         *,
         context_key: str = "broadcaster",
+        run_on_startup: bool = False,
         event_logging: bool = True,
         setup: bool = True,
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
         self.context_key = context_key
+        self.run_on_startup = run_on_startup
         self.storage = storage or NullMailerStorage()
         self.event = EventManager(bot=bot, dispatcher=dispatcher)
         self.pool = MailerPool(
@@ -71,7 +72,7 @@ class Broadcaster:
         return "Broadcaster[%s]" % ", ".join(map(repr, self.mailers()))
 
     def mailers(self) -> List[Mailer]:
-        return self.pool.get_all()
+        return self.pool.get_mailers()
 
     def get(self, mailer_id: int) -> Optional[Mailer]:
         return self.pool.get(id=mailer_id)
@@ -103,4 +104,6 @@ class Broadcaster:
 
     def _setup(self) -> None:
         self.dispatcher[self.context_key] = self
-        self.dispatcher.startup.register(self.pool.create_all_from_storage)
+        self.dispatcher.startup.register(self.pool.create_mailers_from_storage)
+        if self.run_on_startup:
+            self.dispatcher.startup.register(self.pool.run_mailers)

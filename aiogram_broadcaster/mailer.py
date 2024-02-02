@@ -1,6 +1,5 @@
 from asyncio import Event, TimeoutError, wait_for
 from contextlib import suppress
-from logging import Logger
 from typing import TYPE_CHECKING, Optional
 
 from aiogram import Bot
@@ -12,6 +11,7 @@ from .event import EventManager
 from .statistic import Statistic
 from .status import Status
 from .storage.base import BaseMailerStorage
+from .task import MailerTask
 
 
 if TYPE_CHECKING:
@@ -24,11 +24,11 @@ class Mailer:
     storage: BaseMailerStorage
     event: EventManager
     pool: "MailerPool"
-    logger: Logger
     delete_on_complete: bool
     _id: int
     _status: Status
     _stop_event: Event
+    _task: MailerTask
     _success_sent: int
     _failed_sent: int
 
@@ -38,11 +38,11 @@ class Mailer:
         "_status",
         "_stop_event",
         "_success_sent",
+        "_task",
         "bot",
         "data",
         "delete_on_complete",
         "event",
-        "logger",
         "pool",
         "storage",
     )
@@ -68,6 +68,7 @@ class Mailer:
         self._id = id_ or id(self)
         self._status = Status.STOPPED if self.data.chat_ids else Status.COMPLETED
         self._stop_event = Event()
+        self._task = MailerTask()
         self._success_sent = 0
         self._failed_sent = 0
 
@@ -104,6 +105,12 @@ class Mailer:
             success=self._success_sent,
             failed=self._failed_sent,
         )
+
+    def start(self) -> None:
+        self._task.start(callback=self.run)
+
+    async def wait(self) -> None:
+        await self._task.wait()
 
     async def run(self) -> None:
         if self._status is not Status.STOPPED:

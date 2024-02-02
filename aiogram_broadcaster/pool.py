@@ -1,4 +1,3 @@
-from logging import Logger
 from typing import Dict, List, Optional
 
 from aiogram import Bot
@@ -13,19 +12,18 @@ class MailerPool:
     bot: Bot
     storage: BaseMailerStorage
     event: EventManager
-    logger: Logger
     mailers: Dict[int, Mailer]
 
     __slots__ = (
         "bot",
         "event",
-        "logger",
         "mailers",
         "storage",
     )
 
     def __init__(
         self,
+        *,
         bot: Bot,
         storage: BaseMailerStorage,
         event: EventManager,
@@ -38,7 +36,7 @@ class MailerPool:
     def __len__(self) -> int:
         return len(self.mailers)
 
-    def get_all(self) -> List[Mailer]:
+    def get_mailers(self) -> List[Mailer]:
         return list(self.mailers.values())
 
     def get(self, id: int) -> Optional[Mailer]:  # noqa: A002
@@ -70,7 +68,7 @@ class MailerPool:
             await self.storage.set_data(mailer_id=mailer.id, data=data)
         return mailer
 
-    async def create_all_from_storage(self) -> None:
+    async def create_mailers_from_storage(self) -> None:
         for mailer_id in await self.storage.get_mailer_ids():
             data = await self.storage.get_data(mailer_id=mailer_id)
             await self.create(
@@ -79,3 +77,7 @@ class MailerPool:
                 save_to_storage=False,
                 id=mailer_id,
             )
+
+    def run_mailers(self) -> None:
+        for mailer in self.get_mailers():
+            mailer.start()
