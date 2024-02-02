@@ -57,7 +57,7 @@ class Broadcaster:
     def __getitem__(self, item: int) -> Mailer:
         if mailer := self.get(mailer_id=item):
             return mailer
-        raise LookupError
+        raise KeyError
 
     def __len__(self) -> int:
         return len(self.pool)
