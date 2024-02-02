@@ -53,6 +53,7 @@ class MailerPool:
         *,
         data: Data,
         delete_on_complete: bool,
+        save_to_storage: bool,
         id: Optional[int] = None,  # noqa: A002
     ) -> Mailer:
         mailer = Mailer(
@@ -65,10 +66,16 @@ class MailerPool:
             id_=id,
         )
         self.mailers[mailer.id] = mailer
-        await self.storage.set_data(mailer_id=mailer.id, data=data)
+        if save_to_storage:
+            await self.storage.set_data(mailer_id=mailer.id, data=data)
         return mailer
 
     async def create_all_from_storage(self) -> None:
         for mailer_id in await self.storage.get_mailer_ids():
             data = await self.storage.get_data(mailer_id=mailer_id)
-            await self.create(data=data, delete_on_complete=False, id=mailer_id)
+            await self.create(
+                data=data,
+                delete_on_complete=False,
+                save_to_storage=False,
+                id=mailer_id,
+            )

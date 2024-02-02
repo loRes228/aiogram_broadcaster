@@ -98,6 +98,7 @@ class Broadcaster:
         return await self.pool.create(
             data=data,
             delete_on_complete=delete_on_complete,
+            save_to_storage=True,
         )
 
     def _setup(self) -> None:
