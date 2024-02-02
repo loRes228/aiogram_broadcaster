@@ -78,7 +78,6 @@ def main() -> None:
     dispatcher.include_router(router)
 
     broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher)
-    broadcaster.setup()
     broadcaster.event.complete.register(on_complete)
 
     dispatcher.run_polling(bot)
