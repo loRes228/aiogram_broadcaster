@@ -66,7 +66,7 @@ class Mailer:
         self.delete_on_complete = delete_on_complete
 
         self._id = id_ or id(self)
-        self._status = Status.STOPPED
+        self._status = Status.STOPPED if self.data.chat_ids else Status.COMPLETED
         self._stop_event = Event()
         self._success_sent = 0
         self._failed_sent = 0
