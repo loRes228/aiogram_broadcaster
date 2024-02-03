@@ -72,7 +72,7 @@ class Broadcaster:
         return "Broadcaster(total_mailers=%d)" % len(self)
 
     def __str__(self) -> str:
-        return "Broadcaster[%s]" % ", ".join(map(repr, self.mailers()))
+        return "Broadcaster[%s]" % ", ".join(map(repr, self))
 
     def mailers(self) -> List[Mailer]:
         return self.pool.get_mailers()
