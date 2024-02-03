@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
@@ -64,6 +64,9 @@ class Broadcaster:
 
     def __len__(self) -> int:
         return len(self.pool)
+
+    def __iter__(self) -> Iterator[Mailer]:
+        return iter(self.mailers())
 
     def __repr__(self) -> str:
         return "Broadcaster(total_mailers=%d)" % len(self)
