@@ -45,10 +45,10 @@ async def on_state_message(
         interval=10,
     )
     await message.answer(text="Run broadcasting...")
-    await mailer.run()
+    mailer.start()
 
 
-async def on_complete(mailer: Mailer) -> None:
+async def notify_complete(mailer: Mailer) -> None:
     statistic = mailer.statistic()
     await mailer.message.reply(
         text=(
@@ -68,7 +68,7 @@ def main() -> None:
     dispatcher.include_router(router)
 
     broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher)
-    broadcaster.event.complete.register(on_complete)
+    broadcaster.event.complete.register(notify_complete)
 
     dispatcher.run_polling(bot)
 
