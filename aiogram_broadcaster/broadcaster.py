@@ -39,7 +39,7 @@ class Broadcaster:
         context_key: str = "broadcaster",
         run_on_startup: bool = False,
         event_logging: bool = True,
-        aut0_setup: bool = True,
+        auto_setup: bool = True,
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
@@ -54,7 +54,7 @@ class Broadcaster:
         )
         if event_logging:
             setup_event_logging(event=self.event)
-        if aut0_setup:
+        if auto_setup:
             self.setup()
 
     def __getitem__(self, item: int) -> Mailer:
