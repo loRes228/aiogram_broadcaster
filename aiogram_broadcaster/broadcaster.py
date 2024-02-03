@@ -38,7 +38,7 @@ class Broadcaster:
         *,
         context_key: str = "broadcaster",
         run_on_startup: bool = False,
-        auto_setup: bool = True,
+        auto_setup: bool = False,
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
