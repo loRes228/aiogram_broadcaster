@@ -34,16 +34,15 @@ class Data(BaseModel):
         interval: Interval,
         dynamic_interval: bool,
     ) -> "Data":
-        chat_ids = set(chat_ids)
+        chat_ids = list(set(chat_ids))
         total_chats = len(chat_ids)
-        interval = (
-            interval.total_seconds()  # fmt: skip
-            if isinstance(interval, timedelta)
-            else float(interval)
+        delay = validate_delay(
+            interval=interval,
+            dynamic=dynamic_interval,
+            total_chats=total_chats,
         )
-        delay = (interval / total_chats) if dynamic_interval else interval
         return Data(
-            chat_ids=list(chat_ids),
+            chat_ids=chat_ids,
             settings=SettingsData(
                 message=message,
                 reply_markup=reply_markup,
@@ -64,3 +63,19 @@ class Data(BaseModel):
             chat_ids=chat_ids,
             settings=SettingsData.model_validate_json(settings),
         )
+
+
+def validate_delay(
+    interval: Interval,
+    *,
+    dynamic: bool,
+    total_chats: int,
+) -> float:
+    interval = (
+        interval.total_seconds()  # fmt: skip
+        if isinstance(interval, timedelta)
+        else float(interval)
+    )
+    if dynamic:
+        return dynamic / total_chats
+    return interval
