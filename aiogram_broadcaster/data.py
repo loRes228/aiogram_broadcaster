@@ -1,19 +1,23 @@
 from datetime import timedelta
-from typing import Iterable, List, Optional, Sequence, Union
+from typing import Iterable, List, Sequence, Union
 
-from aiogram.types import InlineKeyboardMarkup, Message
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    Message,
+    ReplyKeyboardMarkup,
+)
 from pydantic import BaseModel
 
 
 ChatIdType = Union[int, str]
 ChatIdsType = Union[Iterable[ChatIdType], Sequence[ChatIdType]]
-ReplyMarkupType = Optional[InlineKeyboardMarkup]
 IntervalType = Union[float, int, timedelta]
+MarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 
 
 class SettingsData(BaseModel):
     message: Message
-    reply_markup: ReplyMarkupType
+    reply_markup: MarkupType
     disable_notification: bool
     delay: float
     total_chats: int
@@ -29,7 +33,7 @@ class Data(BaseModel):
         *,
         chat_ids: ChatIdsType,
         message: Message,
-        reply_markup: ReplyMarkupType,
+        reply_markup: MarkupType,
         disable_notification: bool,
         interval: IntervalType,
         dynamic_interval: bool,

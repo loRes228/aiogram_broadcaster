@@ -3,7 +3,7 @@ from typing import Iterator, List, Optional
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
-from .data import ChatIdsType, Data, IntervalType, ReplyMarkupType
+from .data import ChatIdsType, Data, IntervalType, MarkupType
 from .event_logs import setup_event_logging
 from .event_manager import EventManager
 from .mailer import Mailer
@@ -86,7 +86,7 @@ class Broadcaster:
         *,
         interval: IntervalType,
         message: Message,
-        reply_markup: ReplyMarkupType = None,
+        reply_markup: MarkupType = None,
         disable_notification: bool = False,
         dynamic_interval: bool = True,
         delete_on_complete: bool = False,
