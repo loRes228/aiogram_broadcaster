@@ -38,7 +38,6 @@ class Broadcaster:
         *,
         context_key: str = "broadcaster",
         run_on_startup: bool = False,
-        event_logging: bool = True,
         auto_setup: bool = True,
     ) -> None:
         self.bot = bot
@@ -52,10 +51,9 @@ class Broadcaster:
             storage=self.storage,
             event=self.event,
         )
-        if event_logging:
-            setup_event_logging(event=self.event)
         if auto_setup:
             self.setup()
+        setup_event_logging(event=self.event)
 
     def __repr__(self) -> str:
         return "Broadcaster(total_mailers=%d)" % len(self)
