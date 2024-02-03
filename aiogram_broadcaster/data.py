@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 ChatIdType = Union[int, str]
 ChatIdsType = Union[Iterable[ChatIdType], Sequence[ChatIdType]]
-IntervalType = Union[float, int, timedelta]
+IntervalType = Union[float, timedelta]
 MarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 
 
@@ -63,11 +63,8 @@ def validate_delay(
     dynamic: bool,
     total_chats: int,
 ) -> float:
-    interval = (
-        interval.total_seconds()  # fmt: skip
-        if isinstance(interval, timedelta)
-        else float(interval)
-    )
+    if isinstance(interval, timedelta):
+        interval = interval.total_seconds()
     if dynamic:
-        return dynamic / total_chats
+        return interval / total_chats
     return interval
