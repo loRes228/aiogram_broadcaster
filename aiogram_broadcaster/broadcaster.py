@@ -57,6 +57,12 @@ class Broadcaster:
         if auto_setup:
             self.setup()
 
+    def __repr__(self) -> str:
+        return "Broadcaster(total_mailers=%d)" % len(self)
+
+    def __str__(self) -> str:
+        return "Broadcaster[%s]" % ", ".join(map(repr, self))
+
     def __getitem__(self, item: int) -> Mailer:
         if mailer := self.get(mailer_id=item):
             return mailer
@@ -65,17 +71,11 @@ class Broadcaster:
     def __contains__(self, item: Mailer) -> bool:
         return item in self.mailers()
 
-    def __len__(self) -> int:
-        return len(self.pool)
-
     def __iter__(self) -> Iterator[Mailer]:
         return iter(self.mailers())
 
-    def __repr__(self) -> str:
-        return "Broadcaster(total_mailers=%d)" % len(self)
-
-    def __str__(self) -> str:
-        return "Broadcaster[%s]" % ", ".join(map(repr, self))
+    def __len__(self) -> int:
+        return len(self.pool)
 
     def mailers(self) -> List[Mailer]:
         return self.pool.get_mailers()
