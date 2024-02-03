@@ -5,15 +5,15 @@ from aiogram.types import InlineKeyboardMarkup, Message
 from pydantic import BaseModel
 
 
-ChatId = Union[int, str]
-ChatIds = Union[Iterable[ChatId], Sequence[ChatId]]
-ReplyMarkup = Optional[InlineKeyboardMarkup]
-Interval = Union[float, int, timedelta]
+ChatIdType = Union[int, str]
+ChatIdsType = Union[Iterable[ChatIdType], Sequence[ChatIdType]]
+ReplyMarkupType = Optional[InlineKeyboardMarkup]
+IntervalType = Union[float, int, timedelta]
 
 
 class SettingsData(BaseModel):
     message: Message
-    reply_markup: ReplyMarkup
+    reply_markup: ReplyMarkupType
     disable_notification: bool
     delay: float
     total_chats: int
@@ -27,11 +27,11 @@ class Data(BaseModel):
     def build(
         cls,
         *,
-        chat_ids: ChatIds,
+        chat_ids: ChatIdsType,
         message: Message,
-        reply_markup: ReplyMarkup,
+        reply_markup: ReplyMarkupType,
         disable_notification: bool,
-        interval: Interval,
+        interval: IntervalType,
         dynamic_interval: bool,
     ) -> "Data":
         chat_ids = list(set(chat_ids))
@@ -66,7 +66,7 @@ class Data(BaseModel):
 
 
 def validate_delay(
-    interval: Interval,
+    interval: IntervalType,
     *,
     dynamic: bool,
     total_chats: int,
