@@ -56,18 +56,6 @@ class Data(BaseModel):
             ),
         )
 
-    @classmethod
-    def build_from_json(
-        cls,
-        *,
-        chat_ids: List[int],
-        settings: str,
-    ) -> "Data":
-        return Data(
-            chat_ids=chat_ids,
-            settings=SettingsData.model_validate_json(settings),
-        )
-
 
 def validate_delay(
     interval: IntervalType,

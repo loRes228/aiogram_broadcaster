@@ -2,7 +2,7 @@ from typing import List, NamedTuple, Union
 
 from redis.asyncio import ConnectionPool, Redis
 
-from aiogram_broadcaster.data import Data
+from aiogram_broadcaster.data import Data, SettingsData
 
 from .base import BaseMailerStorage
 
@@ -46,7 +46,7 @@ class RedisMailerStorage(BaseMailerStorage):
         key = self.build_key(mailer_id=mailer_id)
         chats = await self.redis.lrange(name=key.chats, start=0, end=-1)  # type: ignore[misc]
         settings = await self.redis.get(name=key.settings)
-        return Data.build_from_json(chat_ids=chats, settings=settings)
+        return Data(chat_ids=chats, settings=SettingsData.model_validate_json(settings))
 
     async def delete_data(self, mailer_id: int) -> None:
         key = self.build_key(mailer_id=mailer_id)
