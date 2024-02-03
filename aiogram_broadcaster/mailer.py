@@ -7,11 +7,11 @@ from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message
 
 from .data import Data
-from .event import EventManager
+from .event_manager import EventManager
 from .statistic import Statistic
 from .status import Status
 from .storage.base import BaseMailerStorage
-from .task import MailerTask
+from .task_manager import TaskManager
 
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ class Mailer:
     _id: int
     _status: Status
     _stop_event: Event
-    _task: MailerTask
+    _task: TaskManager
     _success_sent: int
     _failed_sent: int
 
@@ -68,7 +68,7 @@ class Mailer:
         self._id = id_ or id(self)
         self._status = Status.STOPPED if self.data.chat_ids else Status.COMPLETED
         self._stop_event = Event()
-        self._task = MailerTask()
+        self._task = TaskManager()
         self._success_sent = 0
         self._failed_sent = 0
 

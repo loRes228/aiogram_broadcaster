@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from asyncio import Task
 
 
-class MailerTask:
+class TaskManager:
     task: Optional["Task[Any]"]
     waited: bool
 

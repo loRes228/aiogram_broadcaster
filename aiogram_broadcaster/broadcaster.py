@@ -4,8 +4,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
 from .data import ChatIds, Data, Interval, ReplyMarkup
-from .event import EventManager
 from .event_logs import setup_event_logging
+from .event_manager import EventManager
 from .mailer import Mailer
 from .pool import MailerPool
 from .storage.base import BaseMailerStorage, NullMailerStorage

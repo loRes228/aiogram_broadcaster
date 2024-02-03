@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from .event import EventManager
+from .event_manager import EventManager
 from .mailer import Mailer
 
 

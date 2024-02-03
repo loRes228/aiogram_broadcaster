@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from aiogram import Bot
 
 from .data import Data
-from .event import EventManager
+from .event_manager import EventManager
 from .mailer import Mailer
 from .storage.base import BaseMailerStorage
 
