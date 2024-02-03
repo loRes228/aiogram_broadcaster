@@ -4,7 +4,7 @@ from .event_manager import EventManager
 from .mailer import Mailer
 
 
-logger = getLogger(name="aiogram.broadcaster")
+logger = getLogger(name="broadcaster")
 
 
 async def on_startup(mailer: Mailer) -> None:
