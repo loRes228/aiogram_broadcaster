@@ -18,14 +18,14 @@ class Broadcaster:
     run_on_startup: bool
     storage: BaseMailerStorage
     event: EventManager
-    pool: MailerPool
+    mailer_pool: MailerPool
 
     __slots__ = (
         "bot",
         "context_key",
         "dispatcher",
         "event",
-        "pool",
+        "mailer_pool",
         "run_on_startup",
         "storage",
     )
@@ -47,7 +47,7 @@ class Broadcaster:
         self.run_on_startup = run_on_startup
         self.storage = storage or NullMailerStorage()
         self.event = EventManager(bot=bot, dispatcher=dispatcher)
-        self.pool = MailerPool(
+        self.mailer_pool = MailerPool(
             bot=bot,
             storage=self.storage,
             event=self.event,
@@ -64,26 +64,26 @@ class Broadcaster:
         return "Broadcaster[%s]" % ", ".join(map(repr, self))
 
     def __getitem__(self, item: int) -> Mailer:
-        if mailer := self.get(mailer_id=item):
+        if mailer := self.get_mailer(mailer_id=item):
             return mailer
         raise KeyError
 
     def __contains__(self, item: Mailer) -> bool:
-        return item in self.mailers()
+        return item in self.get_mailers()
 
     def __iter__(self) -> Iterator[Mailer]:
-        return iter(self.mailers())
+        return iter(self.get_mailers())
 
     def __len__(self) -> int:
-        return len(self.pool)
+        return len(self.mailer_pool)
 
-    def mailers(self) -> List[Mailer]:
-        return self.pool.get_mailers()
+    def get_mailers(self) -> List[Mailer]:
+        return self.mailer_pool.get_all()
 
-    def get(self, mailer_id: int) -> Optional[Mailer]:
-        return self.pool.get(id=mailer_id)
+    def get_mailer(self, mailer_id: int) -> Optional[Mailer]:
+        return self.mailer_pool.get(id=mailer_id)
 
-    async def create(
+    async def create_mailer(
         self,
         chat_ids: ChatIdsType,
         *,
@@ -102,7 +102,7 @@ class Broadcaster:
             interval=interval,
             dynamic_interval=dynamic_interval,
         )
-        return await self.pool.create(
+        return await self.mailer_pool.create(
             data=data,
             delete_on_complete=delete_on_complete,
             save_to_storage=True,
@@ -110,6 +110,6 @@ class Broadcaster:
 
     def setup(self) -> None:
         self.dispatcher[self.context_key] = self
-        self.dispatcher.startup.register(self.pool.create_mailers_from_storage)
+        self.dispatcher.startup.register(self.mailer_pool.create_all_from_storage)
         if self.run_on_startup:
-            self.dispatcher.startup.register(self.pool.run_mailers)
+            self.dispatcher.startup.register(self.mailer_pool.run_all)
