@@ -39,7 +39,7 @@ class Broadcaster:
         context_key: str = "broadcaster",
         run_on_startup: bool = False,
         event_logging: bool = True,
-        setup: bool = True,
+        aut0_setup: bool = True,
     ) -> None:
         self.bot = bot
         self.dispatcher = dispatcher
@@ -54,13 +54,16 @@ class Broadcaster:
         )
         if event_logging:
             setup_event_logging(event=self.event)
-        if setup:
-            self._setup()
+        if aut0_setup:
+            self.setup()
 
     def __getitem__(self, item: int) -> Mailer:
         if mailer := self.get(mailer_id=item):
             return mailer
         raise KeyError
+
+    def __contains__(self, item: Mailer) -> bool:
+        return item in self.mailers()
 
     def __len__(self) -> int:
         return len(self.pool)
@@ -105,7 +108,7 @@ class Broadcaster:
             save_to_storage=True,
         )
 
-    def _setup(self) -> None:
+    def setup(self) -> None:
         self.dispatcher[self.context_key] = self
         self.dispatcher.startup.register(self.pool.create_mailers_from_storage)
         if self.run_on_startup:
