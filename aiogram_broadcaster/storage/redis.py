@@ -22,14 +22,13 @@ class RedisMailerStorage(BaseMailerStorage):
     )
 
     def __init__(self, redis: Union[Redis, ConnectionPool], key_prefix: str = "BCR") -> None:
-        self.redis = (
-            Redis(connection_pool=redis)  # fmt: skip
-            if isinstance(redis, ConnectionPool)
-            else redis
-        )
+        if isinstance(redis, ConnectionPool):
+            redis = Redis(connection_pool=redis)
+        self.redis = redis
+        self.key_prefix = key_prefix
+
         if not self.redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
             raise ValueError("The 'decode_responses' must be enabled in the Redis client.")
-        self.key_prefix = key_prefix
 
     async def get_mailer_ids(self) -> List[int]:
         keys = await self.redis.keys(pattern=f"{self.key_prefix}:*:*")
