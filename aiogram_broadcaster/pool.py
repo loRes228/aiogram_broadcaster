@@ -12,12 +12,12 @@ class MailerPool:
     bot: Bot
     storage: BaseMailerStorage
     event: EventManager
-    mailers: Dict[int, Mailer]
+    _mailers: Dict[int, Mailer]
 
     __slots__ = (
+        "_mailers",
         "bot",
         "event",
-        "mailers",
         "storage",
     )
 
@@ -31,19 +31,19 @@ class MailerPool:
         self.bot = bot
         self.storage = storage
         self.event = event
-        self.mailers = {}
+        self._mailers = {}
 
     def __len__(self) -> int:
-        return len(self.mailers)
+        return len(self._mailers)
 
     def get_all(self) -> List[Mailer]:
-        return list(self.mailers.values())
+        return list(self._mailers.values())
 
     def get(self, id: int) -> Optional[Mailer]:  # noqa: A002
-        return self.mailers.get(id)
+        return self._mailers.get(id)
 
     async def delete(self, id: int) -> None:  # noqa: A002
-        del self.mailers[id]
+        del self._mailers[id]
         await self.storage.delete_data(mailer_id=id)
 
     async def create(
@@ -63,7 +63,7 @@ class MailerPool:
             delete_on_complete=delete_on_complete,
             id_=id,
         )
-        self.mailers[mailer.id] = mailer
+        self._mailers[mailer.id] = mailer
         if save_to_storage:
             await self.storage.set_data(mailer_id=mailer.id, data=data)
         return mailer
