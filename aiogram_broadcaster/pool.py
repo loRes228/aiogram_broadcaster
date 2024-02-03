@@ -78,6 +78,6 @@ class MailerPool:
                 id=mailer_id,
             )
 
-    def run_mailers(self) -> None:
+    async def run_mailers(self) -> None:
         for mailer in self.get_mailers():
             mailer.start()
