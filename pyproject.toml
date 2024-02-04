@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "aiogram-broadcaster"
 dynamic = ["version"]
-description = "Aiogram broadcaster with storage in Redis"
+description = "A lightweight aiogram-based library for broadcasting Telegram messages."
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
