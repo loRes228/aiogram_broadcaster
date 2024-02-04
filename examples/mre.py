@@ -39,7 +39,7 @@ async def on_state_message(
     broadcaster: Broadcaster,
 ) -> Any:
     await state.clear()
-    mailer = await broadcaster.create(
+    mailer = await broadcaster.create_mailer(
         chat_ids=CHATS_IDS_TO_MAILING,
         message=message,
         interval=10,
@@ -67,7 +67,7 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher)
+    broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher, auto_setup=True)
     broadcaster.event.complete.register(notify_complete)
 
     dispatcher.run_polling(bot)
