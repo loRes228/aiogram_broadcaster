@@ -94,7 +94,7 @@ class Broadcaster:
         message: Message,
         reply_markup: MarkupType = None,
         disable_notification: bool = False,
-        dynamic_interval: bool = True,
+        dynamic_interval: bool = False,
         delete_on_complete: bool = False,
         **kwargs: Any,
     ) -> Mailer:
