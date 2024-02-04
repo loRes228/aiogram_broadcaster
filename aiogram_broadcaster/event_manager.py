@@ -8,8 +8,6 @@ from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 if TYPE_CHECKING:
     from asyncio import Task
 
-    from .mailer import Mailer
-
 
 class Callback(NamedTuple):
     callback: CallableObject
@@ -50,18 +48,13 @@ class EventObserver:
 
     async def trigger(
         self,
-        mailer: "Mailer",
         *,
         as_task: bool = False,
         **kwargs: Any,
     ) -> None:
         if not self.callbacks:
             return
-        kwargs.update(
-            mailer=mailer,
-            bot=self.bot,
-            **self.dispatcher.workflow_data,
-        )
+        kwargs.update(bot=self.bot, **self.dispatcher.workflow_data)
         for callback in self.callbacks:
             if callback.as_task or as_task:
                 task = create_task(callback.callback.call(**kwargs))

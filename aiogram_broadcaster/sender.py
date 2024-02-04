@@ -96,8 +96,8 @@ class Sender:
     ) -> None:
         self.failed_sent += 1
         await self.event.failed_sent.trigger(
-            mailer=self.mailer,
             as_task=True,
+            mailer=self.mailer,
             error=error,
             chat_id=chat_id,
         )
@@ -105,8 +105,8 @@ class Sender:
     async def handle_success_sent(self, chat_id: int) -> None:
         self.success_sent += 1
         await self.event.success_sent.trigger(
-            mailer=self.mailer,
             as_task=True,
+            mailer=self.mailer,
             chat_id=chat_id,
         )
 
