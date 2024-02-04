@@ -100,7 +100,7 @@ class Mailer:
         )
 
     def start(self) -> None:
-        self._task.start(callback=self.run)
+        self._task.start(self.run())
 
     async def wait(self) -> None:
         await self._task.wait()

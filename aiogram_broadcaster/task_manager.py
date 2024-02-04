@@ -1,7 +1,5 @@
 from asyncio import create_task
-from typing import TYPE_CHECKING, Any, Optional
-
-from aiogram.dispatcher.event.handler import CallbackType
+from typing import TYPE_CHECKING, Any, Coroutine, Optional
 
 
 if TYPE_CHECKING:
@@ -21,10 +19,10 @@ class TaskManager:
         self.task = None
         self.waited = False
 
-    def start(self, callback: CallbackType) -> None:
+    def start(self, coroutine: Coroutine[Any, Any, Any], /) -> None:
         if self.task:
             return
-        self.task = create_task(callback())
+        self.task = create_task(coroutine)
         self.task.add_done_callback(self._on_task_done)
 
     async def wait(self) -> None:
