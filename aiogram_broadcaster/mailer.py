@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from aiogram import Bot
 from aiogram.types import Message
@@ -21,6 +21,7 @@ class Mailer:
     event: EventManager
     pool: "MailerPool"
     delete_on_complete: bool
+    kwargs: Dict[str, Any]
     _id: int
     _status: Status
     _task: TaskManager
@@ -34,6 +35,7 @@ class Mailer:
         "data",
         "delete_on_complete",
         "event",
+        "kwargs",
         "pool",
     )
 
@@ -47,11 +49,13 @@ class Mailer:
         pool: "MailerPool",
         delete_on_complete: bool,
         id_: Optional[int] = None,
+        **kwargs: Any,
     ) -> None:
         self.data = data
         self.event = event
         self.pool = pool
         self.delete_on_complete = delete_on_complete
+        self.kwargs = kwargs
 
         self._id = id_ or id(self)
         self._status = Status.STOPPED if self.data.chat_ids else Status.COMPLETED
@@ -62,6 +66,7 @@ class Mailer:
             data=data,
             storage=storage,
             event=event,
+            **kwargs,
         )
 
     def __repr__(self) -> str:
@@ -122,17 +127,17 @@ class Mailer:
 
     async def _prepare_run(self) -> None:
         self._status = Status.STARTED
-        await self.event.startup.trigger(mailer=self)
+        await self.event.startup.trigger(mailer=self, **self.kwargs)
 
     async def _stop(self) -> None:
         self._status = Status.STOPPED
         self._sender.stop()
-        await self.event.shutdown.trigger(mailer=self)
+        await self.event.shutdown.trigger(mailer=self, **self.kwargs)
 
     async def _process_complete(self) -> None:
         self._status = Status.COMPLETED
         self._sender.stop()
-        await self.event.complete.trigger(mailer=self)
+        await self.event.complete.trigger(mailer=self, **self.kwargs)
         if self.delete_on_complete:
             await self._delete()
 

@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from aiogram import Bot
 
@@ -53,6 +53,7 @@ class MailerPool:
         delete_on_complete: bool,
         save_to_storage: bool,
         id: Optional[int] = None,  # noqa: A002
+        **kwargs: Any,
     ) -> Mailer:
         mailer = Mailer(
             bot=self.bot,
@@ -62,6 +63,7 @@ class MailerPool:
             pool=self,
             delete_on_complete=delete_on_complete,
             id_=id,
+            **kwargs,
         )
         self._mailers[mailer.id] = mailer
         if save_to_storage:

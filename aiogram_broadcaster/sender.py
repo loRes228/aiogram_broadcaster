@@ -1,6 +1,6 @@
 from asyncio import Event, TimeoutError, wait_for
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
@@ -21,6 +21,7 @@ class Sender:
     data: Data
     storage: BaseMailerStorage
     event: EventManager
+    kwargs: Dict[str, Any]
     stop_event: Event
     success_sent: int
     failed_sent: int
@@ -30,6 +31,7 @@ class Sender:
         "data",
         "event",
         "failed_sent",
+        "kwargs",
         "mailer",
         "stop_event",
         "storage",
@@ -43,12 +45,14 @@ class Sender:
         data: Data,
         storage: BaseMailerStorage,
         event: EventManager,
+        **kwargs: Any,
     ) -> None:
         self.bot = bot
         self.mailer = mailer
         self.data = data
         self.storage = storage
         self.event = event
+        self.kwargs = kwargs
 
         self.stop_event = Event()
         self.success_sent = 0
@@ -100,6 +104,7 @@ class Sender:
             mailer=self.mailer,
             chat_id=chat_id,
             error=error,
+            **self.kwargs,
         )
 
     async def handle_success_sent(self, chat_id: int) -> None:
@@ -108,6 +113,7 @@ class Sender:
             as_task=True,
             mailer=self.mailer,
             chat_id=chat_id,
+            **self.kwargs,
         )
 
     async def pop_chat(self) -> None:

@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional
+from typing import Any, Iterator, List, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
@@ -12,7 +12,6 @@ from .storage.base import BaseMailerStorage, NullMailerStorage
 
 
 class Broadcaster:
-    bot: Bot
     dispatcher: Dispatcher
     context_key: str
     run_on_startup: bool
@@ -21,7 +20,6 @@ class Broadcaster:
     mailer_pool: MailerPool
 
     __slots__ = (
-        "bot",
         "context_key",
         "dispatcher",
         "event",
@@ -39,18 +37,25 @@ class Broadcaster:
         context_key: str = "broadcaster",
         run_on_startup: bool = False,
         auto_setup: bool = False,
+        **kwargs: Any,
     ) -> None:
-        self.bot = bot
         self.dispatcher = dispatcher
         self.context_key = context_key
         self.run_on_startup = run_on_startup
+
         self.storage = storage or NullMailerStorage()
-        self.event = EventManager(bot=bot, dispatcher=dispatcher)
+        self.event = EventManager(
+            bot=bot,
+            dispatcher=dispatcher,
+            **dispatcher.workflow_data,
+            **kwargs,
+        )
         self.mailer_pool = MailerPool(
             bot=bot,
             storage=self.storage,
             event=self.event,
         )
+
         if auto_setup:
             self.setup()
         setup_event_logging(event=self.event)
@@ -91,6 +96,7 @@ class Broadcaster:
         disable_notification: bool = False,
         dynamic_interval: bool = True,
         delete_on_complete: bool = False,
+        **kwargs: Any,
     ) -> Mailer:
         data = Data.build(
             chat_ids=chat_ids,
@@ -104,6 +110,7 @@ class Broadcaster:
             data=data,
             delete_on_complete=delete_on_complete,
             save_to_storage=True,
+            **kwargs,
         )
 
     def setup(self) -> None:
