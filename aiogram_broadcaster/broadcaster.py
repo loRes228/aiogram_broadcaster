@@ -110,7 +110,7 @@ class Broadcaster:
         return await self.mailer_pool.create(
             data=data,
             save_to_storage=True,
-            **kwargs,
+            kwargs=kwargs,
         )
 
     def setup(self) -> None:

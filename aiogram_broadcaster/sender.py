@@ -45,7 +45,7 @@ class Sender:
         data: Data,
         storage: BaseMailerStorage,
         event: EventManager,
-        **kwargs: Any,
+        kwargs: Dict[str, Any],
     ) -> None:
         self.bot = bot
         self.mailer = mailer
@@ -101,7 +101,6 @@ class Sender:
         self.failed_sent += 1
         await self.event.failed_sent.trigger(
             as_task=True,
-            mailer=self.mailer,
             chat_id=chat_id,
             error=error,
             **self.kwargs,
@@ -111,7 +110,6 @@ class Sender:
         self.success_sent += 1
         await self.event.success_sent.trigger(
             as_task=True,
-            mailer=self.mailer,
             chat_id=chat_id,
             **self.kwargs,
         )

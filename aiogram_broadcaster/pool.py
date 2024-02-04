@@ -52,7 +52,7 @@ class MailerPool:
         data: Data,
         save_to_storage: bool,
         id: Optional[int] = None,  # noqa: A002
-        **kwargs: Any,
+        kwargs: Optional[Dict[str, Any]] = None,
     ) -> Mailer:
         mailer = Mailer(
             bot=self.bot,
@@ -61,7 +61,7 @@ class MailerPool:
             event=self.event,
             pool=self,
             id_=id,
-            **kwargs,
+            kwargs=kwargs or {},
         )
         self._mailers[mailer.id] = mailer
         if save_to_storage:

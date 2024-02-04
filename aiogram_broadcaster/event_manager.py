@@ -25,7 +25,7 @@ class EventObserver:
         "tasks",
     )
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, kwargs: Dict[str, Any]) -> None:
         self.kwargs = kwargs
         self.callbacks = []
         self.tasks = set()
@@ -80,4 +80,4 @@ class EventManager:
 
     def __init__(self, **kwargs: Any) -> None:
         for trigger in self.__slots__:
-            setattr(self, trigger, EventObserver(**kwargs))
+            setattr(self, trigger, EventObserver(kwargs=kwargs))
