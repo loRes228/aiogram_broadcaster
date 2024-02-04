@@ -43,6 +43,7 @@ async def on_state_message(
         chat_ids=CHATS_IDS_TO_MAILING,
         message=message,
         interval=10,
+        delete_on_complete=True,
     )
     await message.answer(text="Run broadcasting...")
     mailer.start()
