@@ -100,7 +100,6 @@ class Sender:
     ) -> None:
         self.failed_sent += 1
         await self.event.failed_sent.trigger(
-            as_task=True,
             chat_id=chat_id,
             error=error,
             **self.kwargs,
@@ -109,7 +108,6 @@ class Sender:
     async def handle_success_sent(self, chat_id: int) -> None:
         self.success_sent += 1
         await self.event.success_sent.trigger(
-            as_task=True,
             chat_id=chat_id,
             **self.kwargs,
         )
