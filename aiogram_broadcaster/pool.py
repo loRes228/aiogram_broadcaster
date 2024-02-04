@@ -50,7 +50,6 @@ class MailerPool:
         self,
         *,
         data: Data,
-        delete_on_complete: bool,
         save_to_storage: bool,
         id: Optional[int] = None,  # noqa: A002
         **kwargs: Any,
@@ -61,7 +60,6 @@ class MailerPool:
             storage=self.storage,
             event=self.event,
             pool=self,
-            delete_on_complete=delete_on_complete,
             id_=id,
             **kwargs,
         )
@@ -75,7 +73,6 @@ class MailerPool:
             data = await self.storage.get_data(mailer_id=mailer_id)
             await self.create(
                 data=data,
-                delete_on_complete=False,
                 save_to_storage=False,
                 id=mailer_id,
             )

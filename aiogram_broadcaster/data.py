@@ -21,6 +21,7 @@ class SettingsData(BaseModel):
     disable_notification: bool
     delay: float
     total_chats: int
+    delete_on_complete: bool
 
 
 class Data(BaseModel):
@@ -37,6 +38,7 @@ class Data(BaseModel):
         disable_notification: bool,
         interval: IntervalType,
         dynamic_interval: bool,
+        delete_on_complete: bool,
     ) -> "Data":
         chat_ids = list(set(chat_ids))
         total_chats = len(chat_ids)
@@ -53,6 +55,7 @@ class Data(BaseModel):
                 disable_notification=disable_notification,
                 delay=delay,
                 total_chats=total_chats,
+                delete_on_complete=delete_on_complete,
             ),
         )
 

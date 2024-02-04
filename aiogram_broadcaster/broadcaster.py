@@ -105,10 +105,10 @@ class Broadcaster:
             disable_notification=disable_notification,
             interval=interval,
             dynamic_interval=dynamic_interval,
+            delete_on_complete=delete_on_complete,
         )
         return await self.mailer_pool.create(
             data=data,
-            delete_on_complete=delete_on_complete,
             save_to_storage=True,
             **kwargs,
         )

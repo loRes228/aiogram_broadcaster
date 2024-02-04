@@ -20,7 +20,6 @@ class Mailer:
     data: Data
     event: EventManager
     pool: "MailerPool"
-    delete_on_complete: bool
     kwargs: Dict[str, Any]
     _id: int
     _status: Status
@@ -33,7 +32,6 @@ class Mailer:
         "_status",
         "_task",
         "data",
-        "delete_on_complete",
         "event",
         "kwargs",
         "pool",
@@ -47,14 +45,12 @@ class Mailer:
         storage: BaseMailerStorage,
         event: EventManager,
         pool: "MailerPool",
-        delete_on_complete: bool,
         id_: Optional[int] = None,
         **kwargs: Any,
     ) -> None:
         self.data = data
         self.event = event
         self.pool = pool
-        self.delete_on_complete = delete_on_complete
         self.kwargs = kwargs
 
         self._id = id_ or id(self)
@@ -138,7 +134,7 @@ class Mailer:
         self._status = Status.COMPLETED
         self._sender.stop()
         await self.event.complete.trigger(mailer=self, **self.kwargs)
-        if self.delete_on_complete:
+        if self.data.settings.delete_on_complete:
             await self._delete()
 
     async def _delete(self) -> None:
