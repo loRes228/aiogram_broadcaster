@@ -79,5 +79,5 @@ class EventManager:
     )
 
     def __init__(self, **kwargs: Any) -> None:
-        for trigger in self.__slots__:
-            setattr(self, trigger, EventObserver(kwargs=kwargs))
+        for event in self.__slots__:
+            setattr(self, event, EventObserver(kwargs=kwargs))
