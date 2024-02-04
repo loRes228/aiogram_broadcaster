@@ -122,7 +122,6 @@ class Mailer:
 
     async def _prepare_run(self) -> None:
         self._status = Status.STARTED
-        self._sender.stop()
         await self.event.startup.trigger(mailer=self)
 
     async def _stop(self) -> None:
