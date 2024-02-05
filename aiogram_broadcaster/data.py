@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Iterable, List, Sequence, Union
+from typing import Any, Dict, Iterable, List, Sequence, Union
 
 from aiogram import Bot
 from aiogram.types import (
@@ -8,6 +8,9 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
 )
 from pydantic import BaseModel
+from typing_extensions import assert_never
+
+from .strategy import Strategy
 
 
 ChatIdType = Union[int, str]
@@ -17,16 +20,26 @@ MarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 
 
 class MessageData(BaseModel):
+    strategy: Strategy
     object: Message
     reply_markup: MarkupType
     disable_notification: bool
 
     async def send(self, bot: Bot, chat_id: int) -> None:
-        await self.object.as_(bot=bot).send_copy(
-            chat_id=chat_id,
-            disable_notification=self.disable_notification,
-            reply_markup=self.reply_markup,
-        )
+        message = self.object.as_(bot=bot)
+        kwargs: Dict[str, Any] = {
+            "chat_id": chat_id,
+            "disable_notification": self.disable_notification,
+            "reply_markup": self.reply_markup,
+        }
+        if self.strategy == Strategy.SEND:
+            await message.send_copy(**kwargs)
+        elif self.strategy == Strategy.COPY:
+            await message.copy_to(**kwargs)
+        elif self.strategy == Strategy.FORWARD:
+            await message.forward(**kwargs)
+        else:
+            assert_never(self.strategy)
 
 
 class SettingsData(BaseModel):
@@ -45,14 +58,15 @@ class Data(BaseModel):
         cls,
         *,
         chat_ids: ChatIdsType,
-        message: Message,
-        reply_markup: MarkupType,
-        disable_notification: bool,
         interval: IntervalType,
         dynamic_interval: bool,
         delete_on_complete: bool,
+        strategy: Union[str, Strategy],
+        message: Message,
+        reply_markup: MarkupType,
+        disable_notification: bool,
     ) -> "Data":
-        chat_ids = list(set(chat_ids))
+        chat_ids = set(chat_ids)
         total_chats = len(chat_ids)
         delay = validate_delay(
             interval=interval,
@@ -66,6 +80,7 @@ class Data(BaseModel):
                 total_chats=total_chats,
                 delete_on_complete=delete_on_complete,
                 message=MessageData(
+                    strategy=strategy,
                     object=message,
                     reply_markup=reply_markup,
                     disable_notification=disable_notification,

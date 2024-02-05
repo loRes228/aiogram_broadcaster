@@ -1,4 +1,4 @@
-from typing import Any, Iterator, List, Optional
+from typing import Any, Iterator, List, Optional, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
@@ -8,6 +8,7 @@ from .event_manager import EventManager
 from .mailer import Mailer
 from .pool import MailerPool
 from .storage.base import BaseMailerStorage, NullMailerStorage
+from .strategy import Strategy
 
 
 class Broadcaster:
@@ -92,18 +93,20 @@ class Broadcaster:
         message: Message,
         reply_markup: MarkupType = None,
         disable_notification: bool = False,
+        strategy: Union[str, Strategy] = Strategy.SEND,
         dynamic_interval: bool = False,
         delete_on_complete: bool = False,
         **kwargs: Any,
     ) -> Mailer:
         data = Data.build(
             chat_ids=chat_ids,
-            message=message,
-            reply_markup=reply_markup,
-            disable_notification=disable_notification,
             interval=interval,
             dynamic_interval=dynamic_interval,
             delete_on_complete=delete_on_complete,
+            strategy=strategy,
+            message=message,
+            reply_markup=reply_markup,
+            disable_notification=disable_notification,
         )
         return await self.mailer_pool.create(
             data=data,
