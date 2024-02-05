@@ -104,6 +104,8 @@ class Mailer:
         )
 
     def start(self) -> None:
+        if self._status is not Status.STOPPED:
+            return
         self._task.start(self.run())
 
     async def wait(self) -> None:

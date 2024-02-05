@@ -7,30 +7,30 @@ if TYPE_CHECKING:
 
 
 class TaskManager:
-    task: Optional["Task[Any]"]
-    waited: bool
+    _task: Optional["Task[Any]"]
+    _waited: bool
 
     __slots__ = (
-        "task",
-        "waited",
+        "_task",
+        "_waited",
     )
 
     def __init__(self) -> None:
-        self.task = None
-        self.waited = False
+        self._task = None
+        self._waited = False
 
     def start(self, coroutine: Coroutine[Any, Any, Any], /) -> None:
-        if self.task:
+        if self._task:
             return
-        self.task = create_task(coroutine)
-        self.task.add_done_callback(self._on_task_done)
+        self._task = create_task(coroutine)
+        self._task.add_done_callback(self._on_task_done)
 
     async def wait(self) -> None:
-        if not self.task or self.waited:
+        if not self._task or self._waited:
             return
-        self.waited = True
-        await self.task
+        self._waited = True
+        await self._task
 
     def _on_task_done(self, _: "Task[Any]") -> None:
-        self.task = None
-        self.waited = False
+        self._task = None
+        self._waited = False
