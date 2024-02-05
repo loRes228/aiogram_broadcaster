@@ -88,7 +88,7 @@ class Sender:
 
     async def handle_retry_after(self, chat_id: int, delay: float) -> None:
         logger.info(
-            "Retry after %d seconds for message sent from mailer id=%d to chat id=%d.",
+            "Retry after %.2f seconds for message sent from mailer id=%d to chat id=%d.",
             delay,
             self.mailer.id,
             chat_id,
