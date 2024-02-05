@@ -1,9 +1,8 @@
 from asyncio import Event, TimeoutError, wait_for
-from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramAPIError
+from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 from aiogram.types import Message
 
 from .data import Data
@@ -73,7 +72,7 @@ class Sender:
             await self.send(chat_id=chat_id)
             await self.pop_chat()
             if not is_last_chat:
-                await self.sleep()
+                await self.sleep(delay=self.data.settings.delay)
         else:
             return True
         return False
@@ -88,10 +87,16 @@ class Sender:
                 disable_notification=self.data.settings.disable_notification,
                 reply_markup=self.data.settings.reply_markup,
             )
+        except TelegramRetryAfter as error:
+            await self.handle_retry_after(chat_id=chat_id, delay=error.retry_after)
         except TelegramAPIError as error:
             await self.handle_failed_sent(chat_id=chat_id, error=error)
         else:
             await self.handle_success_sent(chat_id=chat_id)
+
+    async def handle_retry_after(self, chat_id: int, delay: float) -> None:
+        if await self.sleep(delay=delay):
+            await self.send(chat_id=chat_id)
 
     async def handle_failed_sent(
         self,
@@ -116,9 +121,13 @@ class Sender:
         self.data.chat_ids.pop(0)
         await self.storage.pop_chat(mailer_id=self.mailer.id)
 
-    async def sleep(self) -> None:
-        with suppress(TimeoutError):
+    async def sleep(self, delay: float) -> bool:
+        try:
             await wait_for(
                 fut=self.stop_event.wait(),
-                timeout=self.data.settings.delay,
+                timeout=delay,
             )
+        except TimeoutError:
+            return True
+        else:
+            return False
