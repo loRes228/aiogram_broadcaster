@@ -87,6 +87,12 @@ class Sender:
             await self.handle_success_sent(chat_id=chat_id)
 
     async def handle_retry_after(self, chat_id: int, delay: float) -> None:
+        logger.info(
+            "Retry after %d seconds for message sent from mailer id=%d to chat id=%d.",
+            delay,
+            self.mailer.id,
+            chat_id,
+        )
         if await self.sleep(delay=delay):
             await self.send(chat_id=chat_id)
 
@@ -102,7 +108,7 @@ class Sender:
             **self.kwargs,
         )
         logger.info(
-            "Failed to send message from mailer id=%d to chat id=%d. Error: %s",
+            "Failed to send message from mailer id=%d to chat id=%d. Error: %s.",
             self.mailer.id,
             chat_id,
             error,
