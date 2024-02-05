@@ -4,11 +4,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
 from .data import ChatIdsType, Data, IntervalType, MarkupType
+from .enums import Strategy
 from .event_manager import EventManager
 from .mailer import Mailer
-from .pool import MailerPool
+from .mailer.pool import MailerPool
 from .storage.base import BaseMailerStorage, NullMailerStorage
-from .strategy import Strategy
 
 
 class Broadcaster:

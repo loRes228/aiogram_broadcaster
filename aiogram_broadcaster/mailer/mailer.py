@@ -3,14 +3,15 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 from aiogram import Bot
 from aiogram.types import Message
 
-from .data import Data
-from .event_manager import EventManager
-from .logger import logger
+from aiogram_broadcaster.data import Data
+from aiogram_broadcaster.enums import Status
+from aiogram_broadcaster.event_manager import EventManager
+from aiogram_broadcaster.logger import logger
+from aiogram_broadcaster.statistic import Statistic
+from aiogram_broadcaster.storage.base import BaseMailerStorage
+
 from .sender import Sender
-from .statistic import Statistic
-from .status import Status
-from .storage.base import BaseMailerStorage
-from .task_manager import TaskManager
+from .task import TaskManager
 
 
 if TYPE_CHECKING:

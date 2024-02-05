@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Any, Dict
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
-from .data import Data
-from .event_manager import EventManager
-from .logger import logger
-from .storage.base import BaseMailerStorage
+from aiogram_broadcaster.data import Data
+from aiogram_broadcaster.event_manager import EventManager
+from aiogram_broadcaster.logger import logger
+from aiogram_broadcaster.storage.base import BaseMailerStorage
 
 
 if TYPE_CHECKING:

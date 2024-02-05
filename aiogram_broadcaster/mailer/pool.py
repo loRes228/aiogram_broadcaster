@@ -2,10 +2,11 @@ from typing import Any, Dict, List, Optional
 
 from aiogram import Bot
 
-from .data import Data
-from .event_manager import EventManager
+from aiogram_broadcaster.data import Data
+from aiogram_broadcaster.event_manager import EventManager
+from aiogram_broadcaster.storage.base import BaseMailerStorage
+
 from .mailer import Mailer
-from .storage.base import BaseMailerStorage
 
 
 class MailerPool:

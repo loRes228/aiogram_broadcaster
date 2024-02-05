@@ -10,7 +10,7 @@ from aiogram.types import (
 from pydantic import BaseModel
 from typing_extensions import assert_never
 
-from .strategy import Strategy
+from .enums import Strategy
 
 
 ChatIdType = Union[int, str]
