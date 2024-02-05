@@ -4,7 +4,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
 from .data import ChatIdsType, Data, IntervalType, MarkupType
-from .event_logs import setup_event_logging
 from .event_manager import EventManager
 from .mailer import Mailer
 from .pool import MailerPool
@@ -58,7 +57,6 @@ class Broadcaster:
 
         if auto_setup:
             self.setup()
-        setup_event_logging(event=self.event)
 
     def __repr__(self) -> str:
         return "Broadcaster(total_mailers=%d)" % len(self)

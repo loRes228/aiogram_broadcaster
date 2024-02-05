@@ -5,6 +5,7 @@ from aiogram.types import Message
 
 from .data import Data
 from .event_manager import EventManager
+from .logger import logger
 from .sender import Sender
 from .statistic import Statistic
 from .status import Status
@@ -129,11 +130,13 @@ class Mailer:
     async def _prepare_run(self) -> None:
         self._status = Status.STARTED
         await self.event.startup.trigger(**self.kwargs)
+        logger.info("Mailer id=%d is starting.", self._id)
 
     async def _stop(self) -> None:
         self._status = Status.STOPPED
         self._sender.stop()
         await self.event.shutdown.trigger(**self.kwargs)
+        logger.info("Mailer id=%d is stopping.", self._id)
 
     async def _process_complete(self) -> None:
         self._status = Status.COMPLETED
@@ -141,6 +144,7 @@ class Mailer:
         await self.event.complete.trigger(**self.kwargs)
         if self.data.settings.delete_on_complete:
             await self._delete()
+        logger.info("Mailer id=%d has completed successfully.", self._id)
 
     async def _delete(self) -> None:
         await self.pool.delete(id=self._id)

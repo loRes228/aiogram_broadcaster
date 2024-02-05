@@ -6,6 +6,7 @@ from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
 from .data import Data
 from .event_manager import EventManager
+from .logger import logger
 from .storage.base import BaseMailerStorage
 
 
@@ -100,12 +101,23 @@ class Sender:
             error=error,
             **self.kwargs,
         )
+        logger.info(
+            "Failed to send message from mailer id=%d to chat id=%d. Error: %s",
+            self.mailer.id,
+            chat_id,
+            error,
+        )
 
     async def handle_success_sent(self, chat_id: int) -> None:
         self.success_sent += 1
         await self.event.success_sent.trigger(
             chat_id=chat_id,
             **self.kwargs,
+        )
+        logger.info(
+            "Message successfully sent from mailer id=%d to chat id=%d.",
+            self.mailer.id,
+            chat_id,
         )
 
     async def pop_chat(self) -> None:
