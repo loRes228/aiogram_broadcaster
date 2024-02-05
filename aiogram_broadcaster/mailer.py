@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 
 class Mailer:
+    bot: Bot
     data: Data
     event: EventManager
     pool: "MailerPool"
@@ -31,6 +32,7 @@ class Mailer:
         "_sender",
         "_status",
         "_task",
+        "bot",
         "data",
         "event",
         "kwargs",
@@ -48,6 +50,7 @@ class Mailer:
         id_: Optional[int] = None,
         kwargs: Dict[str, Any],
     ) -> None:
+        self.bot = bot
         self.data = data
         self.event = event
         self.pool = pool
@@ -90,7 +93,7 @@ class Mailer:
 
     @property
     def message(self) -> Message:
-        return self._sender.message
+        return self.data.settings.message.object.as_(bot=self.bot)
 
     def statistic(self) -> Statistic:
         return Statistic(

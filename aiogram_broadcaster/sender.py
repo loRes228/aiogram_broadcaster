@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Any, Dict
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
-from aiogram.types import Message
 
 from .data import Data
 from .event_manager import EventManager
@@ -59,10 +58,6 @@ class Sender:
 
         self.stop_event.set()
 
-    @property
-    def message(self) -> Message:
-        return self.data.settings.message.as_(bot=self.bot)
-
     async def start(self) -> bool:
         self.stop_event.clear()
         for chat_id in self.data.chat_ids[:]:
@@ -82,11 +77,7 @@ class Sender:
 
     async def send(self, chat_id: int) -> None:
         try:
-            await self.message.send_copy(
-                chat_id=chat_id,
-                disable_notification=self.data.settings.disable_notification,
-                reply_markup=self.data.settings.reply_markup,
-            )
+            await self.data.settings.message.send(bot=self.bot, chat_id=chat_id)
         except TelegramRetryAfter as error:
             await self.handle_retry_after(chat_id=chat_id, delay=error.retry_after)
         except TelegramAPIError as error:

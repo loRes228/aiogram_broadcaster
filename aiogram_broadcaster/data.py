@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Iterable, List, Sequence, Union
 
+from aiogram import Bot
 from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
@@ -15,13 +16,24 @@ IntervalType = Union[float, timedelta]
 MarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 
 
-class SettingsData(BaseModel):
-    message: Message
+class MessageData(BaseModel):
+    object: Message
     reply_markup: MarkupType
     disable_notification: bool
+
+    async def send(self, bot: Bot, chat_id: int) -> None:
+        await self.object.as_(bot=bot).send_copy(
+            chat_id=chat_id,
+            disable_notification=self.disable_notification,
+            reply_markup=self.reply_markup,
+        )
+
+
+class SettingsData(BaseModel):
     delay: float
     total_chats: int
     delete_on_complete: bool
+    message: MessageData
 
 
 class Data(BaseModel):
@@ -50,12 +62,14 @@ class Data(BaseModel):
         return Data(
             chat_ids=chat_ids,
             settings=SettingsData(
-                message=message,
-                reply_markup=reply_markup,
-                disable_notification=disable_notification,
                 delay=delay,
                 total_chats=total_chats,
                 delete_on_complete=delete_on_complete,
+                message=MessageData(
+                    object=message,
+                    reply_markup=reply_markup,
+                    disable_notification=disable_notification,
+                ),
             ),
         )
 
