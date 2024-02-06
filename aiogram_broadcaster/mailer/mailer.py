@@ -4,7 +4,7 @@ from aiogram import Bot
 from aiogram.types import Message
 
 from aiogram_broadcaster.data import Data
-from aiogram_broadcaster.enums import Status
+from aiogram_broadcaster.enums import Status, Strategy
 from aiogram_broadcaster.event_manager import EventManager
 from aiogram_broadcaster.logger import logger
 from aiogram_broadcaster.statistic import Statistic
@@ -75,7 +75,7 @@ class Mailer:
     def __repr__(self) -> str:
         return "Mailer(id=%d, status=%s, chats_left=%d)" % (
             self._id,
-            self._status.value,
+            self._status.name.lower(),
             len(self.data.chat_ids),
         )
 
@@ -90,8 +90,16 @@ class Mailer:
         return self._id
 
     @property
+    def interval(self) -> float:
+        return self.data.settings.delay
+
+    @property
     def status(self) -> Status:
         return self._status
+
+    @property
+    def strategy(self) -> Strategy:
+        return self.data.settings.message.strategy
 
     @property
     def message(self) -> Message:

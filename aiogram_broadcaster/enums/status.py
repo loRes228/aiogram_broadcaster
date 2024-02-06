@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import Enum, auto
 
 
-class Status(str, Enum):
-    STARTED = "started"
-    STOPPED = "stopped"
-    COMPLETED = "completed"
+class Status(Enum):
+    STARTED = auto()
+    STOPPED = auto()
+    COMPLETED = auto()

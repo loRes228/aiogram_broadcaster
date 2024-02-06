@@ -1,4 +1,4 @@
-from typing import Any, Iterator, List, Optional, Union
+from typing import Any, Iterator, List, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
@@ -93,7 +93,7 @@ class Broadcaster:
         message: Message,
         reply_markup: MarkupType = None,
         disable_notification: bool = False,
-        strategy: Union[str, Strategy] = Strategy.SEND,
+        strategy: Strategy = Strategy.SEND,
         dynamic_interval: bool = False,
         delete_on_complete: bool = False,
         **kwargs: Any,

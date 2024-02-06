@@ -32,11 +32,11 @@ class MessageData(BaseModel):
             "disable_notification": self.disable_notification,
             "reply_markup": self.reply_markup,
         }
-        if self.strategy == Strategy.SEND:
+        if self.strategy is Strategy.SEND:
             await message.send_copy(**kwargs)
-        elif self.strategy == Strategy.COPY:
+        elif self.strategy is Strategy.COPY:
             await message.copy_to(**kwargs)
-        elif self.strategy == Strategy.FORWARD:
+        elif self.strategy is Strategy.FORWARD:
             await message.forward(**kwargs)
         else:
             assert_never(self.strategy)
@@ -61,7 +61,7 @@ class Data(BaseModel):
         interval: IntervalType,
         dynamic_interval: bool,
         delete_on_complete: bool,
-        strategy: Union[str, Strategy],
+        strategy: Strategy,
         message: Message,
         reply_markup: MarkupType,
         disable_notification: bool,

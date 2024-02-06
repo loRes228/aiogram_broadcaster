@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import Enum, auto
 
 
-class Strategy(str, Enum):
-    SEND = "send"
-    COPY = "copy"
-    FORWARD = "forward"
+class Strategy(Enum):
+    SEND = auto()
+    COPY = auto()
+    FORWARD = auto()
