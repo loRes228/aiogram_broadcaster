@@ -1,11 +1,10 @@
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Tuple
 
-from .storage.base import BaseMailerStorage
-
 
 if TYPE_CHECKING:
     from .settings import ChatsSettings
+    from .storage.base import BaseMailerStorage
 
 
 # Enum values are strings to prevent `ValidationError` when retrieving data from Redis.
@@ -17,7 +16,7 @@ class ChatState(str, Enum):
 
 class ChatManager:
     mailer_id: int
-    storage: BaseMailerStorage
+    storage: "BaseMailerStorage"
     settings: "ChatsSettings"
 
     __slots__ = (
@@ -29,7 +28,7 @@ class ChatManager:
     def __init__(
         self,
         mailer_id: int,
-        storage: BaseMailerStorage,
+        storage: "BaseMailerStorage",
         settings: "ChatsSettings",
     ) -> None:
         self.mailer_id = mailer_id
