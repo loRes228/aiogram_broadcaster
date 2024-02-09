@@ -67,32 +67,3 @@ class BaseMailerStorage(ABC):
     @abstractmethod
     async def set_chat_state(self, mailer_id: int, chat: int, state: ChatState) -> None:
         pass
-
-
-class NullMailerStorage(BaseMailerStorage):
-    async def get_mailer_ids(self) -> Tuple[int, ...]:
-        return ()
-
-    async def delete(self, mailer_id: int) -> None:
-        pass
-
-    async def get_chats(self, mailer_id: int) -> ChatsSettings:  # type: ignore[empty-body]
-        pass
-
-    async def get_mailer(self, mailer_id: int) -> MailerSettings:  # type: ignore[empty-body]
-        pass
-
-    async def get_message(self, mailer_id: int) -> MessageSettings:  # type: ignore[empty-body]
-        pass
-
-    async def set_chats(self, mailer_id: int, settings: ChatsSettings) -> None:
-        pass
-
-    async def set_mailer(self, mailer_id: int, settings: MailerSettings) -> None:
-        pass
-
-    async def set_message(self, mailer_id: int, settings: MessageSettings) -> None:
-        pass
-
-    async def set_chat_state(self, mailer_id: int, chat: int, state: ChatState) -> None:
-        pass

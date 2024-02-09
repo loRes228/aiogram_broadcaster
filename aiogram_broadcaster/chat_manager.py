@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ class ChatState(str, Enum):
 
 class ChatManager:
     mailer_id: int
-    storage: "BaseMailerStorage"
+    storage: Optional["BaseMailerStorage"]
     settings: "ChatsSettings"
 
     __slots__ = (
@@ -28,7 +28,7 @@ class ChatManager:
     def __init__(
         self,
         mailer_id: int,
-        storage: "BaseMailerStorage",
+        storage: Optional["BaseMailerStorage"],
         settings: "ChatsSettings",
     ) -> None:
         self.mailer_id = mailer_id
@@ -50,8 +50,9 @@ class ChatManager:
 
     async def set_state(self, chat: int, state: ChatState) -> None:
         self.settings.chats[chat] = state
-        await self.storage.set_chat_state(
-            mailer_id=self.mailer_id,
-            chat=chat,
-            state=state,
-        )
+        if self.storage:
+            await self.storage.set_chat_state(
+                mailer_id=self.mailer_id,
+                chat=chat,
+                state=state,
+            )

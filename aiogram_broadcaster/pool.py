@@ -8,13 +8,13 @@ from .event_manager import EventManager
 from .mailer import Mailer
 from .messenger import Messenger
 from .settings import Settings
-from .storage.base import BaseMailerStorage, NullMailerStorage
+from .storage.base import BaseMailerStorage
 from .task_manager import TaskManager
 
 
 class MailerPool:
     bot: Bot
-    storage: BaseMailerStorage
+    storage: Optional[BaseMailerStorage]
     event_manager: EventManager
     _mailers: Dict[int, Mailer]
 
@@ -32,7 +32,7 @@ class MailerPool:
         event_manager: EventManager,
     ) -> None:
         self.bot = bot
-        self.storage = storage or NullMailerStorage()
+        self.storage = storage
         self.event_manager = event_manager
         self._mailers = {}
 
@@ -47,7 +47,8 @@ class MailerPool:
 
     async def delete(self, mailer_id: int) -> None:
         del self._mailers[mailer_id]
-        await self.storage.delete(mailer_id=mailer_id)
+        if self.storage:
+            await self.storage.delete(mailer_id=mailer_id)
 
     async def create(
         self,
@@ -80,7 +81,7 @@ class MailerPool:
             data=data,
         )
         self._mailers[mailer_id] = mailer
-        if save_to_storage:
+        if save_to_storage and self.storage:
             await self.storage.set(
                 mailer_id=mailer_id,
                 settings=settings,
@@ -88,6 +89,8 @@ class MailerPool:
         return mailer
 
     async def create_all_from_storage(self) -> None:
+        if not self.storage:
+            return
         for mailer_id in await self.storage.get_mailer_ids():
             settings = await self.storage.get(mailer_id=mailer_id)
             await self.create(
