@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Tuple
 
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class BaseMailerStorage(ABC):
     @abstractmethod
-    async def get_mailer_ids(self) -> List[int]:
+    async def get_mailer_ids(self) -> Tuple[int, ...]:
         pass
 
     @abstractmethod
@@ -59,8 +59,8 @@ class BaseMailerStorage(ABC):
 
 
 class NullMailerStorage(BaseMailerStorage):
-    async def get_mailer_ids(self) -> List[int]:
-        return []
+    async def get_mailer_ids(self) -> Tuple[int, ...]:
+        return ()
 
     async def delete(self, mailer_id: int) -> None:
         pass
