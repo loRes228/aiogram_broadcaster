@@ -9,7 +9,7 @@ from .enums import Strategy
 
 
 ChatIdType = Union[int, str]
-ChatIdsType = Union[Iterable[ChatIdType], Sequence[ChatIdType], Iterator[ChatIdType]]
+ChatIdsType = Union[Iterable[ChatIdType], Iterator[ChatIdType], Sequence[ChatIdType]]
 IntervalType = Union[float, timedelta]
 ReplyMarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 

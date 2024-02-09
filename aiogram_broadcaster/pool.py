@@ -47,7 +47,7 @@ class MailerPool:
 
     async def delete(self, mailer_id: int) -> None:
         del self._mailers[mailer_id]
-        await self.storage.delete_settings(mailer_id=mailer_id)
+        await self.storage.delete(mailer_id=mailer_id)
 
     async def create(
         self,
@@ -81,7 +81,7 @@ class MailerPool:
         )
         self._mailers[mailer_id] = mailer
         if save_to_storage:
-            await self.storage.set_settings(
+            await self.storage.set(
                 mailer_id=mailer_id,
                 settings=settings,
             )
@@ -89,7 +89,7 @@ class MailerPool:
 
     async def create_all_from_storage(self) -> None:
         for mailer_id in await self.storage.get_mailer_ids():
-            settings = await self.storage.get_settings(mailer_id=mailer_id)
+            settings = await self.storage.get(mailer_id=mailer_id)
             await self.create(
                 settings=settings,
                 save_to_storage=False,
