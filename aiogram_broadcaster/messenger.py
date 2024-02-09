@@ -33,7 +33,7 @@ class Messenger:
     def message(self) -> Message:
         return self.settings.message.as_(bot=self.bot)
 
-    async def send(self, chat_id: int) -> Any:
+    async def send(self, chat_id: int) -> None:
         kwargs: Dict[str, Any] = {
             "chat_id": chat_id,
             "reply_markup": self.settings.reply_markup,
