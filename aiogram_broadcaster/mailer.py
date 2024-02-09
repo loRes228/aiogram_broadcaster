@@ -120,14 +120,14 @@ class Mailer:
         await self._task_manager.wait()
 
     async def run(self) -> None:
-        if self._status != Status.STOPPED:
+        if self.status != Status.STOPPED:
             return
         await self._prepare_run()
         if await self._sender.start():
             await self._process_complete()
 
     async def stop(self) -> None:
-        if self._status != Status.STARTED:
+        if self.status != Status.STARTED:
             return
         await self._stop()
 
@@ -141,18 +141,18 @@ class Mailer:
         await self._mailer_pool.delete(mailer_id=self.id)
 
     async def _prepare_run(self) -> None:
-        logger.info("Mailer id=%d is starting.", self._id)
+        logger.info("Mailer id=%d is starting.", self.id)
         self._status = Status.STARTED
         await self._event_manager.startup.trigger(**self._data)
 
     async def _stop(self) -> None:
-        logger.info("Mailer id=%d is stopping.", self._id)
+        logger.info("Mailer id=%d is stopping.", self.id)
         self._status = Status.STOPPED
         self._sender.stop()
         await self._event_manager.shutdown.trigger(**self._data)
 
     async def _process_complete(self) -> None:
-        logger.info("Mailer id=%d has completed successfully.", self._id)
+        logger.info("Mailer id=%d has completed successfully.", self.id)
         self._status = Status.COMPLETED
         self._sender.stop()
         await self._event_manager.complete.trigger(**self._data)
