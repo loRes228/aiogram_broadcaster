@@ -26,10 +26,10 @@ class KeyBuilder:
         pattern = (self.prefix, "*", "*")
         return self.seperator.join(pattern)
 
-    def extract_mailer_ids(self, raw_keys: List[str]) -> Tuple[int, ...]:
+    def extract_mailer_ids(self, keys: List[str]) -> Tuple[int, ...]:
         mailer_ids = set()
-        for raw_key in raw_keys:
-            _, mailer_id, _ = raw_key.split(self.seperator)
+        for key in keys:
+            _, mailer_id, _ = key.split(self.seperator)
             mailer_ids.add(int(mailer_id))
         return tuple(mailer_ids)
 
@@ -88,7 +88,7 @@ class RedisMailerStorage(BaseMailerStorage):
         keys = await self.redis.keys(pattern=self.key_builder.pattern)
         if not keys:
             return ()
-        return self.key_builder.extract_mailer_ids(raw_keys=keys)
+        return self.key_builder.extract_mailer_ids(keys=keys)
 
     async def delete(self, mailer_id: int) -> None:
         keys = self.key_builder.build_keys(mailer_id=mailer_id)

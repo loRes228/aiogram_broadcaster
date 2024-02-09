@@ -42,13 +42,13 @@ class Settings(BaseModel):
         *,
         chat_ids: ChatIdsType,
         message: Message,
-        reply_markup: ReplyMarkupType = None,
-        disable_notification: bool = False,
-        protect_content: bool = False,
-        strategy: Strategy = Strategy.SEND,
-        interval: IntervalType = 1,
-        dynamic_interval: bool = False,
-        delete_on_complete: bool = False,
+        reply_markup: ReplyMarkupType,
+        disable_notification: bool,
+        protect_content: bool,
+        strategy: Strategy,
+        interval: IntervalType,
+        dynamic_interval: bool,
+        delete_on_complete: bool,
     ) -> "Settings":
         if isinstance(interval, timedelta):
             interval = interval.total_seconds()
