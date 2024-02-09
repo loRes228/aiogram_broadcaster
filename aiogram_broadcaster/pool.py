@@ -77,7 +77,7 @@ class MailerPool:
             chat_manager=chat_manager,
             event_manager=self.event_manager,
             messenger=messenger,
-            settings=settings,
+            settings=settings.mailer,
             data=data,
         )
         self._mailers[mailer_id] = mailer

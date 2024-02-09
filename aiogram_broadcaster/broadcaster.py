@@ -96,6 +96,7 @@ class Broadcaster:
         strategy: Strategy = Strategy.SEND,
         interval: IntervalType = 1,
         dynamic_interval: bool = False,
+        disable_events: bool = False,
         delete_on_complete: bool = False,
         **data: Any,
     ) -> Mailer:
@@ -108,6 +109,7 @@ class Broadcaster:
             strategy=strategy,
             interval=interval,
             dynamic_interval=dynamic_interval,
+            disable_events=disable_events,
             delete_on_complete=delete_on_complete,
         )
         return await self.mailer_pool.create(

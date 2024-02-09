@@ -8,8 +8,7 @@ from .chat_manager import ChatState
 from .enums import Strategy
 
 
-ChatIdType = Union[int, str]
-ChatIdsType = Union[Iterable[ChatIdType], Iterator[ChatIdType], Sequence[ChatIdType]]
+ChatIdsType = Union[Iterable[int], Iterator[int], Sequence[int]]
 IntervalType = Union[float, timedelta]
 ReplyMarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 
@@ -21,6 +20,7 @@ class ChatsSettings(BaseModel):
 class MailerSettings(BaseModel):
     strategy: Strategy = Strategy.SEND
     delay: float = 1
+    disable_events: bool = False
     delete_on_complete: bool = False
 
 
@@ -48,6 +48,7 @@ class Settings(BaseModel):
         strategy: Strategy,
         interval: IntervalType,
         dynamic_interval: bool,
+        disable_events: bool,
         delete_on_complete: bool,
     ) -> "Settings":
         if isinstance(interval, timedelta):
@@ -63,6 +64,7 @@ class Settings(BaseModel):
             mailer=MailerSettings(
                 strategy=strategy,
                 delay=delay,
+                disable_events=disable_events,
                 delete_on_complete=delete_on_complete,
             ),
             message=MessageSettings(

@@ -8,7 +8,7 @@ from .event_manager import EventManager
 from .logger import logger
 from .messenger import Messenger
 from .sender import Sender
-from .settings import Settings
+from .settings import MailerSettings
 from .statistic import Statistic
 from .task_manager import TaskManager
 
@@ -24,7 +24,7 @@ class Mailer:
     _chat_manager: ChatManager
     _event_manager: EventManager
     _messenger: Messenger
-    _settings: Settings
+    _settings: MailerSettings
     _status: Status
     _data: Dict[str, Any]
     _sender: Sender
@@ -50,7 +50,7 @@ class Mailer:
         chat_manager: ChatManager,
         event_manager: EventManager,
         messenger: Messenger,
-        settings: Settings,
+        settings: MailerSettings,
         data: Dict[str, Any],
     ) -> None:
         self._id = id
@@ -75,7 +75,7 @@ class Mailer:
             chat_manager=chat_manager,
             event_manager=event_manager,
             messenger=messenger,
-            settings=settings.mailer,
+            settings=settings,
             data=self._data,
         )
 
@@ -94,7 +94,7 @@ class Mailer:
 
     @property
     def interval(self) -> float:
-        return self._settings.mailer.delay
+        return self._settings.delay
 
     @property
     def status(self) -> Status:
@@ -102,7 +102,7 @@ class Mailer:
 
     @property
     def strategy(self) -> Strategy:
-        return self._settings.mailer.strategy
+        return self._settings.strategy
 
     @property
     def message(self) -> Message:
@@ -144,18 +144,21 @@ class Mailer:
         logger.info("Mailer id=%d is starting.", self.id)
         self._data.update(data)
         self._status = Status.STARTED
-        await self._event_manager.startup.trigger(**self._data)
+        if not self._settings.disable_events:
+            await self._event_manager.startup.trigger(**self._data)
 
     async def _stop(self) -> None:
         logger.info("Mailer id=%d is stopping.", self.id)
         self._status = Status.STOPPED
         self._sender.stop()
-        await self._event_manager.shutdown.trigger(**self._data)
+        if not self._settings.disable_events:
+            await self._event_manager.shutdown.trigger(**self._data)
 
     async def _process_complete(self) -> None:
         logger.info("Mailer id=%d has completed successfully.", self.id)
         self._status = Status.COMPLETED
         self._sender.stop()
-        await self._event_manager.complete.trigger(**self._data)
-        if self._settings.mailer.delete_on_complete:
+        if not self._settings.disable_events:
+            await self._event_manager.complete.trigger(**self._data)
+        if self._settings.delete_on_complete:
             await self._delete()

@@ -106,11 +106,12 @@ class Sender:
             chat=chat_id,
             state=ChatState.FAILED,
         )
-        await self.event_manager.failed_sent.trigger(
-            chat_id=chat_id,
-            error=error,
-            **self.data,
-        )
+        if not self.settings.disable_events:
+            await self.event_manager.failed_sent.trigger(
+                chat_id=chat_id,
+                error=error,
+                **self.data,
+            )
 
     async def handle_success_sent(self, chat_id: int) -> None:
         logger.info(
@@ -122,10 +123,11 @@ class Sender:
             chat=chat_id,
             state=ChatState.SUCCESS,
         )
-        await self.event_manager.success_sent.trigger(
-            chat_id=chat_id,
-            **self.data,
-        )
+        if not self.settings.disable_events:
+            await self.event_manager.success_sent.trigger(
+                chat_id=chat_id,
+                **self.data,
+            )
 
     async def sleep(self, delay: float) -> bool:
         try:
