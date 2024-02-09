@@ -50,12 +50,11 @@ class Settings(BaseModel):
         dynamic_interval: bool = False,
         delete_on_complete: bool = False,
     ) -> "Settings":
-        chat_ids = set(chat_ids)
-        chats = dict.fromkeys(chat_ids, ChatState.PENDING)
-
         if isinstance(interval, timedelta):
             interval = interval.total_seconds()
-        delay = interval / len(chat_ids) if dynamic_interval else interval
+
+        chats = dict.fromkeys(chat_ids, ChatState.PENDING)
+        delay = interval / len(chats) if dynamic_interval else interval
 
         return Settings(
             chats=ChatsSettings(
