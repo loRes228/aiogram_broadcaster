@@ -24,7 +24,7 @@ class KeyBuilder:
 
     @property
     def pattern(self) -> str:
-        pattern = [self.prefix, "*", "*"]
+        pattern = (self.prefix, "*", "*")
         return self.seperator.join(pattern)
 
     def extract_mailer_ids(self, raw_keys: List[str]) -> List[int]:
@@ -45,7 +45,7 @@ class KeyBuilder:
         mailer_id: int,
         part: Literal["chats", "mailer", "message"],
     ) -> str:
-        key = [self.prefix, str(mailer_id), part]
+        key = (self.prefix, str(mailer_id), part)
         return self.seperator.join(key)
 
 
