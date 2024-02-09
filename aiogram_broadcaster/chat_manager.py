@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Tuple
 
 from .storage.base import BaseMailerStorage
 
@@ -42,12 +42,12 @@ class ChatManager:
     def get_chats_count(self, state: ChatState) -> int:
         return len(self.get_chats(state=state))
 
-    def get_chats(self, state: ChatState) -> List[int]:
-        return [
+    def get_chats(self, state: ChatState) -> Tuple[int, ...]:
+        return tuple(
             chat  # fmt: skip
             for chat, chat_state in self.settings.chats.items()
             if chat_state == state
-        ]
+        )
 
     async def set_state(self, chat: int, state: ChatState) -> None:
         self.settings.chats[chat] = state
