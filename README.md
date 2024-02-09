@@ -52,7 +52,6 @@ async def on_state_message(
     mailer = await broadcaster.create_mailer(
         chat_ids=CHATS_IDS_TO_MAILING,
         message=message,
-        interval=10,
         delete_on_complete=True,
     )
     await message.answer(text="Run broadcasting...")
@@ -64,10 +63,9 @@ async def notify_complete(mailer: Mailer) -> None:
     await mailer.message.reply(
         text=(
             "Successful!\n"
-            f"Total chats: {statistic.total_chats}\n"
-            f"Success sent: {statistic.success}\n"
-            f"Failed sent: {statistic.failed}\n"
-            f"Rate: %{statistic.ratio:.2f}"
+            f"Total chats: {statistic.total} | {statistic.total_ratio:.2f}%\n"
+            f"Success sent: {statistic.success} | {statistic.success_ratio:.2f}%\n"
+            f"Failed sent: {statistic.failed} | {statistic.failed_ratio:.2f}%"
         ),
     )
 

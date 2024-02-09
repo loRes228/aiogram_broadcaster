@@ -5,41 +5,33 @@ from aiogram.dispatcher.event.bases import CancelHandler, SkipHandler
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 
 
-class Callback(NamedTuple):
-    callback: CallableObject
-    kwargs: Dict[str, Any]
-
-    async def call(self, **kwargs: Any) -> None:
-        await self.callback.call(**self.kwargs, **kwargs)
+class CallbackObject(NamedTuple):
+    callable: CallableObject
+    data: Dict[str, Any]
 
 
 class EventObserver:
-    kwargs: Dict[str, Any]
-    callbacks: List[Callback]
+    callbacks: List[CallbackObject]
 
-    __slots__ = (
-        "callbacks",
-        "kwargs",
-    )
+    __slots__ = ("callbacks",)
 
-    def __init__(self, kwargs: Dict[str, Any]) -> None:
-        self.kwargs = kwargs
+    def __init__(self) -> None:
         self.callbacks = []
 
-    def register(self, callback: CallbackType, **kwargs: Any) -> None:
+    def register(self, callback: CallbackType, **data: Any) -> None:
         self.callbacks.append(
-            Callback(
-                callback=CallableObject(callback=callback),
-                kwargs=kwargs,
+            CallbackObject(
+                callable=CallableObject(callback=callback),
+                data=data,
             ),
         )
 
-    async def trigger(self, **kwargs: Any) -> None:
+    async def trigger(self, **data: Any) -> None:
         if not self.callbacks:
             return
         with suppress(SkipHandler, CancelHandler):
             for callback in self.callbacks:
-                await callback.call(**self.kwargs, **kwargs)
+                await callback.callable.call(**callback.data, **data)
 
 
 class EventManager:
@@ -57,6 +49,6 @@ class EventManager:
         "success_sent",
     )
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self) -> None:
         for event in self.__slots__:
-            setattr(self, event, EventObserver(kwargs=kwargs))
+            setattr(self, event, EventObserver())

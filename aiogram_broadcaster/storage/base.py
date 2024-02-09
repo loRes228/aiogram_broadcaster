@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import TYPE_CHECKING, List
 
-from aiogram_broadcaster.data import Data
+
+if TYPE_CHECKING:
+    from aiogram_broadcaster.chat_manager import ChatState
+    from aiogram_broadcaster.settings import Settings
 
 
 class BaseMailerStorage(ABC):
@@ -10,19 +13,28 @@ class BaseMailerStorage(ABC):
         pass
 
     @abstractmethod
-    async def set_data(self, mailer_id: int, data: Data) -> None:
+    async def delete_settings(self, mailer_id: int) -> None:
         pass
 
     @abstractmethod
-    async def get_data(self, mailer_id: int) -> Data:
+    async def get_settings(self, mailer_id: int) -> "Settings":
         pass
 
     @abstractmethod
-    async def delete_data(self, mailer_id: int) -> None:
+    async def set_settings(
+        self,
+        mailer_id: int,
+        settings: "Settings",
+    ) -> None:
         pass
 
     @abstractmethod
-    async def pop_chat(self, mailer_id: int) -> None:
+    async def set_chat_state(
+        self,
+        mailer_id: int,
+        chat: int,
+        state: "ChatState",
+    ) -> None:
         pass
 
 
@@ -30,14 +42,23 @@ class NullMailerStorage(BaseMailerStorage):
     async def get_mailer_ids(self) -> List[int]:
         return []
 
-    async def set_data(self, mailer_id: int, data: Data) -> None:
+    async def delete_settings(self, mailer_id: int) -> None:
         pass
 
-    async def get_data(self, mailer_id: int) -> Data:  # type: ignore[empty-body]
+    async def get_settings(self, mailer_id: int) -> "Settings":  # type: ignore[empty-body]
         pass
 
-    async def delete_data(self, mailer_id: int) -> None:
+    async def set_settings(
+        self,
+        mailer_id: int,
+        settings: "Settings",
+    ) -> None:
         pass
 
-    async def pop_chat(self, mailer_id: int) -> None:
+    async def set_chat_state(
+        self,
+        mailer_id: int,
+        chat: int,
+        state: "ChatState",
+    ) -> None:
         pass

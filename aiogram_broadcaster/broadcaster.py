@@ -1,31 +1,31 @@
-from typing import Any, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
-from .data import ChatIdsType, Data, IntervalType, MarkupType
 from .enums import Strategy
 from .event_manager import EventManager
 from .mailer import Mailer
-from .mailer.pool import MailerPool
-from .storage.base import BaseMailerStorage, NullMailerStorage
+from .pool import MailerPool
+from .settings import ChatIdsType, IntervalType, ReplyMarkupType, Settings
+from .storage.base import BaseMailerStorage
 
 
 class Broadcaster:
     dispatcher: Dispatcher
     context_key: str
     run_on_startup: bool
-    storage: BaseMailerStorage
     event: EventManager
     mailer_pool: MailerPool
+    data: Dict[str, Any]
 
     __slots__ = (
         "context_key",
+        "data",
         "dispatcher",
         "event",
         "mailer_pool",
         "run_on_startup",
-        "storage",
     )
 
     def __init__(
@@ -37,24 +37,24 @@ class Broadcaster:
         context_key: str = "broadcaster",
         run_on_startup: bool = False,
         auto_setup: bool = False,
-        **kwargs: Any,
+        **data: Any,
     ) -> None:
         self.dispatcher = dispatcher
         self.context_key = context_key
         self.run_on_startup = run_on_startup
 
-        self.storage = storage or NullMailerStorage()
-        self.event = EventManager(
-            bot=bot,
-            dispatcher=dispatcher,
-            **dispatcher.workflow_data,
-            **kwargs,
-        )
+        self.event = EventManager()
         self.mailer_pool = MailerPool(
             bot=bot,
-            storage=self.storage,
-            event=self.event,
+            storage=storage,
+            event_manager=self.event,
         )
+
+        self.data = {
+            "bot": bot,
+            **dispatcher.workflow_data,
+            **data,
+        }
 
         if auto_setup:
             self.setup()
@@ -83,35 +83,38 @@ class Broadcaster:
         return self.mailer_pool.get_all()
 
     def get_mailer(self, mailer_id: int) -> Optional[Mailer]:
-        return self.mailer_pool.get(id=mailer_id)
+        return self.mailer_pool.get(mailer_id=mailer_id)
 
     async def create_mailer(
         self,
         chat_ids: ChatIdsType,
-        *,
-        interval: IntervalType,
         message: Message,
-        reply_markup: MarkupType = None,
+        *,
+        reply_markup: ReplyMarkupType = None,
         disable_notification: bool = False,
+        protect_content: bool = False,
         strategy: Strategy = Strategy.SEND,
+        interval: IntervalType = 1,
         dynamic_interval: bool = False,
         delete_on_complete: bool = False,
-        **kwargs: Any,
+        **data: Any,
     ) -> Mailer:
-        data = Data.build(
+        settings = Settings.build(
             chat_ids=chat_ids,
-            interval=interval,
-            dynamic_interval=dynamic_interval,
-            delete_on_complete=delete_on_complete,
-            strategy=strategy,
             message=message,
             reply_markup=reply_markup,
             disable_notification=disable_notification,
+            protect_content=protect_content,
+            strategy=strategy,
+            interval=interval,
+            dynamic_interval=dynamic_interval,
+            delete_on_complete=delete_on_complete,
         )
         return await self.mailer_pool.create(
-            data=data,
+            settings=settings,
             save_to_storage=True,
-            kwargs=kwargs,
+            **self.data,
+            **data,
         )
 
     def setup(self) -> None:
