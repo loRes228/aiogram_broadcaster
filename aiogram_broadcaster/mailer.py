@@ -111,18 +111,18 @@ class Mailer:
     def statistic(self) -> Statistic:
         return Statistic.from_chat_manager(self._chat_manager)
 
-    def start(self) -> None:
+    def start(self, **data: Any) -> None:
         if self.status != Status.STOPPED:
             return
-        self._task_manager.start(self.run())
+        self._task_manager.start(self.run(**data))
 
     async def wait(self) -> None:
         await self._task_manager.wait()
 
-    async def run(self) -> None:
+    async def run(self, **data: Any) -> None:
         if self.status != Status.STOPPED:
             return
-        await self._prepare_run()
+        await self._prepare_run(data=data)
         if await self._sender.start():
             await self._process_complete()
 
@@ -140,8 +140,9 @@ class Mailer:
     async def _delete(self) -> None:
         await self._mailer_pool.delete(mailer_id=self.id)
 
-    async def _prepare_run(self) -> None:
+    async def _prepare_run(self, data: Dict[str, Any]) -> None:
         logger.info("Mailer id=%d is starting.", self.id)
+        self._data.update(data)
         self._status = Status.STARTED
         await self._event_manager.startup.trigger(**self._data)
 
