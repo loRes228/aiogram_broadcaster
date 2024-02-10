@@ -1,8 +1,15 @@
 from contextlib import suppress
-from typing import Any, Dict, List, NamedTuple
+from typing import Any, Dict, List, NamedTuple, NoReturn
 
-from aiogram.dispatcher.event.bases import CancelHandler, SkipHandler
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
+
+
+class SkipEvent(Exception):  # noqa: N818
+    pass
+
+
+def skip_event() -> NoReturn:
+    raise SkipEvent
 
 
 class CallbackObject(NamedTuple):
@@ -29,7 +36,7 @@ class EventObserver:
     async def trigger(self, **data: Any) -> None:
         if not self.callbacks:
             return
-        with suppress(SkipHandler, CancelHandler):
+        with suppress(SkipEvent):
             for callback in self.callbacks:
                 await callback.callable.call(**callback.data, **data)
 
