@@ -54,7 +54,7 @@ class Sender:
 
     async def start(self) -> bool:
         self.stop_event.clear()
-        chats = self.chat_manager.get_chats(state=ChatState.PENDING)
+        chats = self.chat_manager.get_chats_by_state(state=ChatState.PENDING)
         return await self.broadcast(chat_ids=chats)
 
     async def broadcast(self, chat_ids: Tuple[int, ...]) -> bool:
@@ -103,7 +103,7 @@ class Sender:
             chat_id,
             error,
         )
-        await self.chat_manager.set_state(
+        await self.chat_manager.set_chat_state(
             chat=chat_id,
             state=ChatState.FAILED,
         )
@@ -124,7 +124,7 @@ class Sender:
             self.mailer_id,
             chat_id,
         )
-        await self.chat_manager.set_state(
+        await self.chat_manager.set_chat_state(
             chat=chat_id,
             state=ChatState.SUCCESS,
         )

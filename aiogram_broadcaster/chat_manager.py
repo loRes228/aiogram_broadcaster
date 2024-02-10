@@ -35,20 +35,20 @@ class ChatManager:
         self.storage = storage
         self.settings = settings
 
-    def has_chats(self, state: ChatState) -> bool:
+    def has_chats_with_state(self, state: ChatState) -> bool:
         return state in self.settings.chats.values()
 
-    def get_chats_count(self, state: ChatState) -> int:
-        return len(self.get_chats(state=state))
+    def get_chats_count_with_state(self, state: ChatState) -> int:
+        return len(self.get_chats_by_state(state=state))
 
-    def get_chats(self, state: ChatState) -> Tuple[int, ...]:
+    def get_chats_by_state(self, state: ChatState) -> Tuple[int, ...]:
         return tuple(
             chat  # fmt: skip
             for chat, chat_state in self.settings.chats.items()
             if chat_state == state
         )
 
-    async def set_state(self, chat: int, state: ChatState) -> None:
+    async def set_chat_state(self, chat: int, state: ChatState) -> None:
         self.settings.chats[chat] = state
         if self.storage:
             await self.storage.set_chat_state(

@@ -63,7 +63,7 @@ class Mailer:
 
         self._status = (
             Status.STOPPED  # fmt: skip
-            if chat_manager.has_chats(state=ChatState.PENDING)
+            if chat_manager.has_chats_with_state(state=ChatState.PENDING)
             else Status.COMPLETED
         )
 

@@ -90,11 +90,11 @@ class RedisMailerStorage(BaseMailerStorage):
             return ()
         return self.key_builder.extract_mailer_ids(keys=keys)
 
-    async def delete(self, mailer_id: int) -> None:
+    async def delete_settings(self, mailer_id: int) -> None:
         keys = self.key_builder.build_keys(mailer_id=mailer_id)
         await self.redis.delete(*keys)
 
-    async def get_chats(self, mailer_id: int) -> ChatsSettings:
+    async def get_chats_settings(self, mailer_id: int) -> ChatsSettings:
         key = self.key_builder.build(
             mailer_id=mailer_id,
             part="chats",
@@ -102,7 +102,7 @@ class RedisMailerStorage(BaseMailerStorage):
         chats = await self.redis.hgetall(name=key)  # type: ignore[misc]
         return ChatsSettings(chats=chats)
 
-    async def get_mailer(self, mailer_id: int) -> MailerSettings:
+    async def get_mailer_settings(self, mailer_id: int) -> MailerSettings:
         key = self.key_builder.build(
             mailer_id=mailer_id,
             part="mailer",
@@ -110,7 +110,7 @@ class RedisMailerStorage(BaseMailerStorage):
         mailer = await self.redis.get(name=key)
         return MailerSettings.model_validate_json(json_data=mailer)
 
-    async def get_message(self, mailer_id: int) -> MessageSettings:
+    async def get_message_settings(self, mailer_id: int) -> MessageSettings:
         key = self.key_builder.build(
             mailer_id=mailer_id,
             part="message",
@@ -118,7 +118,7 @@ class RedisMailerStorage(BaseMailerStorage):
         message = await self.redis.get(name=key)
         return MessageSettings.model_validate_json(json_data=message)
 
-    async def set_chats(self, mailer_id: int, settings: ChatsSettings) -> None:
+    async def set_chats_settings(self, mailer_id: int, settings: ChatsSettings) -> None:
         key = self.key_builder.build(
             mailer_id=mailer_id,
             part="chats",
@@ -128,7 +128,7 @@ class RedisMailerStorage(BaseMailerStorage):
             mapping=settings.chats,
         )
 
-    async def set_mailer(self, mailer_id: int, settings: MailerSettings) -> None:
+    async def set_mailer_settings(self, mailer_id: int, settings: MailerSettings) -> None:
         key = self.key_builder.build(
             mailer_id=mailer_id,
             part="mailer",
@@ -142,7 +142,7 @@ class RedisMailerStorage(BaseMailerStorage):
             ),
         )
 
-    async def set_message(self, mailer_id: int, settings: MessageSettings) -> None:
+    async def set_message_settings(self, mailer_id: int, settings: MessageSettings) -> None:
         key = self.key_builder.build(
             mailer_id=mailer_id,
             part="message",

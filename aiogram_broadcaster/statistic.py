@@ -11,9 +11,9 @@ class Statistic(NamedTuple):
     @classmethod
     def from_chat_manager(cls, chat_manager: ChatManager, /) -> "Statistic":
         return Statistic(
-            pending=chat_manager.get_chats_count(state=ChatState.PENDING),
-            success=chat_manager.get_chats_count(state=ChatState.SUCCESS),
-            failed=chat_manager.get_chats_count(state=ChatState.FAILED),
+            pending=chat_manager.get_chats_count_with_state(state=ChatState.PENDING),
+            success=chat_manager.get_chats_count_with_state(state=ChatState.SUCCESS),
+            failed=chat_manager.get_chats_count_with_state(state=ChatState.FAILED),
         )
 
     @property
