@@ -46,6 +46,8 @@ class MailerPool:
         return self._mailers.get(mailer_id)
 
     async def delete(self, mailer_id: int) -> None:
+        if not self.get(mailer_id=mailer_id):
+            return
         del self._mailers[mailer_id]
         if self.storage:
             await self.storage.delete_settings(mailer_id=mailer_id)
