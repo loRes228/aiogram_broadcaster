@@ -111,6 +111,9 @@ class Mailer:
     def statistic(self) -> Statistic:
         return Statistic.from_chat_manager(self._chat_manager)
 
+    async def send(self, chat_id: int) -> None:
+        await self._sender.send(chat_id=chat_id)
+
     def start(self, **data: Any) -> None:
         if self.status != Status.STOPPED:
             return
