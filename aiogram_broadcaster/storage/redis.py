@@ -76,13 +76,13 @@ class RedisMailerStorage(BaseMailerStorage):
         cls,
         url: str,
         connection_kwargs: Optional[Dict[str, Any]] = None,
-        **kwargs: Any,
+        key_builder: Optional[KeyBuilder] = None,
     ) -> "RedisMailerStorage":
         if not connection_kwargs:
             connection_kwargs = {}
         connection_kwargs["decode_responses"] = True
         pool = ConnectionPool.from_url(url=url, **connection_kwargs)
-        return RedisMailerStorage(redis=pool, **kwargs)
+        return RedisMailerStorage(redis=pool, key_builder=key_builder)
 
     async def get_mailer_ids(self) -> Tuple[int, ...]:
         keys = await self.redis.keys(pattern=self.key_builder.pattern)
