@@ -21,6 +21,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.mailer import Mailer
+from aiogram_broadcaster.storage.redis import RedisMailerStorage
 
 TOKEN = "1234:Abc"  # noqa: S105
 CHATS_IDS_TO_MAILING = [123, 456, 789]
@@ -76,7 +77,13 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot=bot, dispatcher=dispatcher, auto_setup=True)
+    storage = RedisMailerStorage.from_url("redis://localhost:6379")
+    broadcaster = Broadcaster(
+        bot=bot,
+        dispatcher=dispatcher,
+        storage=storage,
+        auto_setup=True,
+    )
     broadcaster.event.complete.register(notify_complete)
 
     dispatcher.run_polling(bot)
