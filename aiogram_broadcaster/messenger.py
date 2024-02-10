@@ -33,7 +33,7 @@ class Messenger:
     def message(self) -> Message:
         return self.settings.message.as_(bot=self.bot)
 
-    async def send(self, chat_id: int) -> None:
+    async def send(self, chat_id: int) -> Message:
         kwargs: Dict[str, Any] = {
             "chat_id": chat_id,
             "reply_markup": self.settings.reply_markup,
@@ -42,10 +42,10 @@ class Messenger:
         }
         if self.strategy == Strategy.SEND:
             kwargs.pop("protect_content")
-            await self.message.send_copy(**kwargs)
-        elif self.strategy == Strategy.COPY:
+            return await self.message.send_copy(**kwargs)
+        if self.strategy == Strategy.COPY:
             await self.message.copy_to(**kwargs)
-        elif self.strategy == Strategy.FORWARD:
-            await self.message.forward(**kwargs)
-        else:
-            assert_never(self.strategy)
+            return self.message
+        if self.strategy == Strategy.FORWARD:
+            return await self.message.forward(**kwargs)
+        assert_never(self.strategy)

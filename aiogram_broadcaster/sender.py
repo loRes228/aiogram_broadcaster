@@ -2,6 +2,7 @@ from asyncio import Event, TimeoutError, wait_for
 from typing import Any, Dict, Tuple
 
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
+from aiogram.types import Message
 
 from .chat_manager import ChatManager, ChatState
 from .event_manager import EventManager
@@ -69,13 +70,13 @@ class Sender:
 
     async def send(self, chat_id: int) -> None:
         try:
-            await self.messenger.send(chat_id=chat_id)
+            message = await self.messenger.send(chat_id=chat_id)
         except TelegramRetryAfter as error:
             await self.handle_retry_after(chat_id=chat_id, delay=error.retry_after)
         except TelegramAPIError as error:
             await self.handle_failed_sent(chat_id=chat_id, error=error)
         else:
-            await self.handle_success_sent(chat_id=chat_id)
+            await self.handle_success_sent(chat_id=chat_id, message=message)
 
     async def handle_retry_after(
         self,
@@ -113,7 +114,11 @@ class Sender:
                 **self.data,
             )
 
-    async def handle_success_sent(self, chat_id: int) -> None:
+    async def handle_success_sent(
+        self,
+        chat_id: int,
+        message: Message,
+    ) -> None:
         logger.info(
             "Message successfully sent from mailer id=%d to chat id=%d.",
             self.mailer_id,
@@ -126,6 +131,7 @@ class Sender:
         if not self.settings.disable_events:
             await self.event_manager.success_sent.trigger(
                 chat_id=chat_id,
+                message=message,
                 **self.data,
             )
 
