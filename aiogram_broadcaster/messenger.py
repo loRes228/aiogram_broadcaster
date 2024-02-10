@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from aiogram import Bot
 from aiogram.types import Message
@@ -34,12 +34,14 @@ class Messenger:
         return self.settings.message.as_(bot=self.bot)
 
     async def send(self, chat_id: int) -> Message:
-        kwargs: Dict[str, Any] = {
-            "chat_id": chat_id,
-            "reply_markup": self.settings.reply_markup,
-            "disable_notification": self.settings.disable_notification,
-            "protect_content": self.settings.protect_content,
-        }
+        return await self.strategy_send(
+            chat_id=chat_id,
+            reply_markup=self.settings.reply_markup,
+            disable_notification=self.settings.disable_notification,
+            protect_content=self.settings.protect_content,
+        )
+
+    async def strategy_send(self, **kwargs: Any) -> Message:
         if self.strategy == Strategy.SEND:
             kwargs.pop("protect_content")
             return await self.message.send_copy(**kwargs)
