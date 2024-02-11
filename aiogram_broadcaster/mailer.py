@@ -119,10 +119,10 @@ class Mailer:
         return await self._messenger.send(chat_id=chat_id)
 
     async def add_chats(self, chat_ids: ChatIdsType) -> bool:
-        is_added = await self._chat_manager.add_chats(chat_ids=chat_ids)
-        if is_added and self.status == Status.COMPLETED:
+        has_difference = await self._chat_manager.add_chats(chat_ids=chat_ids)
+        if has_difference and self.status == Status.COMPLETED:
             self._status = Status.STOPPED
-        return is_added
+        return has_difference
 
     def start(self, **data: Any) -> None:
         if self.status != Status.STOPPED:
