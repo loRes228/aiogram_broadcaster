@@ -72,7 +72,7 @@ class ChatManager:
         self.settings.chats[to_state].add(chat)
 
     def _resolve_chat_state(self, chat: int) -> ChatState:
-        for state, state_chats in self.settings.chats.items():
-            if chat in state_chats:
+        for state, chats in self.settings.chats.items():
+            if chat in chats:
                 return state
         raise LookupError
