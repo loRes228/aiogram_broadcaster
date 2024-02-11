@@ -52,8 +52,8 @@ class Statistic(NamedTuple):
     def failed_ratio(self) -> float:
         return self._calculate_ratio(self.failed_count)
 
-    def _calculate_ratio(self, count: int) -> float:
-        return (count / self.total_count) * 100
+    def _calculate_ratio(self, value: int) -> float:
+        return (value / self.total_count) * 100
 
     def __repr__(self) -> str:
         return (
