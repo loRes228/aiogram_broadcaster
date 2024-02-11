@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import timedelta
-from typing import DefaultDict, Dict, Iterable, Iterator, Sequence, Set, Union
+from typing import DefaultDict, Dict, Iterable, Set, Union
 
 from aiogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardMarkup
 from pydantic import BaseModel, ConfigDict
@@ -9,7 +9,7 @@ from .chat_manager import ChatState
 from .enums import Strategy
 
 
-ChatIdsType = Union[Iterable[int], Iterator[int], Sequence[int]]
+ChatIdsType = Iterable[int]
 ChatsType = DefaultDict[ChatState, Set[int]]
 IntervalType = Union[float, timedelta]
 ReplyMarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
