@@ -116,15 +116,6 @@ class Mailer:
     async def send(self, chat_id: int) -> Message:
         return await self._messenger.send(chat_id=chat_id)
 
-    async def reset_chats(self) -> None:
-        await self._chat_manager.set_chats_state(state=ChatState.PENDING)
-
-    async def add_chats(self, chat_ids: ChatIdsType) -> bool:
-        has_difference = await self._chat_manager.add_chats(chat_ids=chat_ids)
-        if has_difference and self.status == Status.COMPLETED:
-            self._status = Status.STOPPED
-        return has_difference
-
     def start(self, **data: Any) -> None:
         if self.status != Status.STOPPED:
             return
@@ -150,6 +141,15 @@ class Mailer:
             return
         await self.stop()
         await self._delete()
+
+    async def reset_chats(self) -> None:
+        await self._chat_manager.set_chats_state(state=ChatState.PENDING)
+
+    async def add_chats(self, chat_ids: ChatIdsType) -> bool:
+        has_difference = await self._chat_manager.add_chats(chat_ids=chat_ids)
+        if has_difference and self.status == Status.COMPLETED:
+            self._status = Status.STOPPED
+        return has_difference
 
     async def _delete(self) -> None:
         await self._mailer_pool.delete(mailer_id=self.id)
