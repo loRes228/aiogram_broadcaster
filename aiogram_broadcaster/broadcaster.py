@@ -46,15 +46,11 @@ class Broadcaster:
         self.event = EventManager()
         self.mailer_pool = MailerPool(
             bot=bot,
+            dispatcher=dispatcher,
             storage=storage,
             event_manager=self.event,
-        )
-
-        self.data = {
-            "bot": bot,
-            **dispatcher.workflow_data,
             **data,
-        }
+        )
 
         if auto_setup:
             self.setup()
@@ -115,7 +111,6 @@ class Broadcaster:
         return await self.mailer_pool.create(
             settings=settings,
             save_to_storage=True,
-            **self.data,
             **data,
         )
 

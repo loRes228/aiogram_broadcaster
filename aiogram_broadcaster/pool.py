@@ -1,7 +1,7 @@
 from random import getrandbits
 from typing import Any, Dict, List, Optional
 
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
 
 from .chat_manager import ChatManager
 from .event_manager import EventManager
@@ -14,13 +14,17 @@ from .task_manager import TaskManager
 
 class MailerPool:
     bot: Bot
+    dispatcher: Dispatcher
     storage: Optional[BaseMailerStorage]
     event_manager: EventManager
+    data: Dict[str, Any]
     _mailers: Dict[int, Mailer]
 
     __slots__ = (
         "_mailers",
         "bot",
+        "data",
+        "dispatcher",
         "event_manager",
         "storage",
     )
@@ -28,12 +32,16 @@ class MailerPool:
     def __init__(
         self,
         bot: Bot,
+        dispatcher: Dispatcher,
         storage: Optional[BaseMailerStorage],
         event_manager: EventManager,
+        **data: Any,
     ) -> None:
         self.bot = bot
+        self.dispatcher = dispatcher
         self.storage = storage
         self.event_manager = event_manager
+        self.data = data
         self._mailers = {}
 
     def __len__(self) -> int:
@@ -60,6 +68,12 @@ class MailerPool:
         defined_id: Optional[int] = None,
         **data: Any,
     ) -> Mailer:
+        data.update(
+            bot=self.bot,
+            dispatcher=self.dispatcher,
+            **self.data,
+            **self.dispatcher.workflow_data,
+        )
         mailer_id = defined_id or getrandbits(50)
         task_manager = TaskManager()
         chat_manager = ChatManager(
