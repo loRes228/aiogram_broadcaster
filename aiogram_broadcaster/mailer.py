@@ -8,7 +8,7 @@ from .event_manager import EventManager
 from .logger import logger
 from .messenger import Messenger
 from .sender import Sender
-from .settings import MailerSettings
+from .settings import ChatIdsType, MailerSettings
 from .statistic import Statistic
 from .task_manager import TaskManager
 
@@ -63,7 +63,7 @@ class Mailer:
 
         self._status = (
             Status.STOPPED  # fmt: skip
-            if chat_manager.has_chats_with_state(state=ChatState.PENDING)
+            if chat_manager[ChatState.PENDING]
             else Status.COMPLETED
         )
 
@@ -111,8 +111,14 @@ class Mailer:
     def statistic(self) -> Statistic:
         return Statistic.from_chat_manager(self._chat_manager)
 
-    async def send(self, chat_id: int) -> None:
-        await self._messenger.send(chat_id=chat_id)
+    async def send(self, chat_id: int) -> Message:
+        return await self._messenger.send(chat_id=chat_id)
+
+    async def add_chats(self, chat_ids: ChatIdsType) -> bool:
+        is_added = await self._chat_manager.add_chats(chat_ids=chat_ids)
+        if is_added and self.status == Status.COMPLETED:
+            self._status = Status.STOPPED
+        return is_added
 
     def start(self, **data: Any) -> None:
         if self.status != Status.STOPPED:

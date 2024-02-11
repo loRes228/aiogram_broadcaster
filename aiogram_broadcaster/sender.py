@@ -1,5 +1,5 @@
 from asyncio import Event, TimeoutError, wait_for
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
 
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 from aiogram.types import Message
@@ -54,15 +54,12 @@ class Sender:
 
     async def start(self) -> bool:
         self.stop_event.clear()
-        chats = self.chat_manager.get_chats_by_state(state=ChatState.PENDING)
-        return await self.broadcast(chat_ids=chats)
-
-    async def broadcast(self, chat_ids: Tuple[int, ...]) -> bool:
-        for chat_id in chat_ids:
+        while self.chat_manager[ChatState.PENDING]:
             if self.stop_event.is_set():
                 break
+            chat_id = self.chat_manager.get_chat(state=ChatState.PENDING)
             await self.send(chat_id=chat_id)
-            if chat_id != chat_ids[-1]:
+            if len(self.chat_manager[ChatState.PENDING]) > 0:
                 await self.sleep(delay=self.settings.delay)
         else:
             return True

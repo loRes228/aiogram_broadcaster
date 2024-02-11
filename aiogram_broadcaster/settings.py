@@ -1,20 +1,37 @@
+from collections import defaultdict
 from datetime import timedelta
-from typing import Dict, Iterable, Iterator, Sequence, Union
+from typing import DefaultDict, Dict, Iterable, Iterator, Sequence, Set, Union
 
 from aiogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardMarkup
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from .chat_manager import ChatState
 from .enums import Strategy
 
 
 ChatIdsType = Union[Iterable[int], Iterator[int], Sequence[int]]
+ChatsType = DefaultDict[ChatState, Set[int]]
 IntervalType = Union[float, timedelta]
 ReplyMarkupType = Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, None]
 
 
 class ChatsSettings(BaseModel):
-    chats: Dict[int, ChatState]
+    model_config = ConfigDict(validate_assignment=True)
+    chats: ChatsType
+
+    @classmethod
+    def from_raw_mapping(cls, mapping: Dict[int, str]) -> "ChatsSettings":
+        chats: ChatsType = defaultdict(set)
+        for chat, chat_state in mapping.items():
+            chats[ChatState(chat_state)].add(chat)
+        return ChatsSettings(chats=chats)
+
+    def to_raw_mapping(self) -> Dict[int, str]:
+        return {
+            chat: str(state.value)  # fmt: skip
+            for state, chats in self.chats.items()
+            for chat in chats
+        }
 
 
 class MailerSettings(BaseModel):
@@ -54,10 +71,7 @@ class Settings(BaseModel):
         if isinstance(interval, timedelta):
             interval = interval.total_seconds()
 
-        chats = dict.fromkeys(
-            chat_ids,
-            ChatState.PENDING,
-        )
+        chats = set(chat_ids)
         delay = (
             interval / len(chats)  # fmt: skip
             if dynamic_interval
@@ -66,7 +80,7 @@ class Settings(BaseModel):
 
         return Settings(
             chats=ChatsSettings(
-                chats=chats,
+                chats={ChatState.PENDING: chats},
             ),
             mailer=MailerSettings(
                 strategy=strategy,
