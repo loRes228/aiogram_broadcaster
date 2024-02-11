@@ -57,15 +57,7 @@ async def append_chats(mailer: Mailer) -> None:
 
 
 async def notify_complete(mailer: Mailer) -> None:
-    statistic = mailer.statistic()
-    await mailer.message.reply(
-        text=(
-            "Successful!\n"
-            f"Total chats: {statistic.total} | {statistic.total_ratio:.2f}%\n"
-            f"Success sent: {statistic.success} | {statistic.success_ratio:.2f}%\n"
-            f"Failed sent: {statistic.failed} | {statistic.failed_ratio:.2f}%"
-        ),
-    )
+    await mailer.message.reply(text=str(mailer.statistic()))
 
 
 def main() -> None:

@@ -80,17 +80,15 @@ class Mailer:
         )
 
     def __repr__(self) -> str:
-        return "Mailer(id=%d, status=%s, strategy=%s)" % (
+        return "Mailer(id=%d, status=%s, strategy=%s, interval=%.2f)" % (
             self.id,
             self.status.name.lower(),
             self.strategy.name.lower(),
+            self.interval,
         )
 
     def __str__(self) -> str:
-        return ", ".join(
-            f"{key}={value}"  # fmt: skip
-            for key, value in self.statistic()._asdict().items()
-        )
+        return repr(self.statistic())
 
     @property
     def id(self) -> int:
