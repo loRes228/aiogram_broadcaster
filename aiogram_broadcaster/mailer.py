@@ -80,7 +80,11 @@ class Mailer:
         )
 
     def __repr__(self) -> str:
-        return "Mailer(id=%d, status=%s)" % (self.id, self.status)
+        return "Mailer(id=%d, status=%s, strategy=%s)" % (
+            self.id,
+            self.status.name.lower(),
+            self.strategy.name.lower(),
+        )
 
     def __str__(self) -> str:
         return ", ".join(
