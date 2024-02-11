@@ -58,10 +58,10 @@ class Statistic(NamedTuple):
     def __repr__(self) -> str:
         return (
             "Statistic("
-            f"total_count={self.total_count},"
-            f"sends_count={self.sends_count},"
-            f"pending_count={self.pending_count},"
-            f"success_count={self.success_count},"
+            f"total_count={self.total_count}, "
+            f"sends_count={self.sends_count}, "
+            f"pending_count={self.pending_count}, "
+            f"success_count={self.success_count}, "
             f"failed_count={self.failed_count}"
             ")"
         )
