@@ -100,7 +100,7 @@ class RedisMailerStorage(BaseMailerStorage):
             part="chats",
         )
         chats = await self.redis.hgetall(name=key)  # type: ignore[misc]
-        return ChatsSettings.from_raw_mapping(mapping=chats)
+        return ChatsSettings.from_mapping(mapping=chats)
 
     async def get_mailer_settings(self, mailer_id: int) -> MailerSettings:
         key = self.key_builder.build(
@@ -125,7 +125,7 @@ class RedisMailerStorage(BaseMailerStorage):
         )
         await self.redis.hset(  # type: ignore[misc]
             name=key,
-            mapping=settings.to_raw_mapping(),
+            mapping=settings.to_mapping(),
         )
 
     async def set_mailer_settings(self, mailer_id: int, settings: MailerSettings) -> None:

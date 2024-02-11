@@ -20,13 +20,13 @@ class ChatsSettings(BaseModel):
     chats: ChatsType
 
     @classmethod
-    def from_raw_mapping(cls, mapping: Dict[int, str]) -> "ChatsSettings":
+    def from_mapping(cls, mapping: Dict[int, str]) -> "ChatsSettings":
         chats: ChatsType = defaultdict(set)
         for chat, chat_state in mapping.items():
             chats[ChatState(chat_state)].add(chat)
         return ChatsSettings(chats=chats)
 
-    def to_raw_mapping(self) -> Dict[int, str]:
+    def to_mapping(self) -> Dict[int, str]:
         return {
             chat: str(state.value)  # fmt: skip
             for state, chats in self.chats.items()
