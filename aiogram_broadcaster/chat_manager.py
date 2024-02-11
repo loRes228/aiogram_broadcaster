@@ -41,16 +41,6 @@ class ChatManager:
     def get_chat(self, state: ChatState) -> int:
         return self.settings.chats[state].copy().pop()
 
-    async def set_chats_state(self, state: ChatState) -> None:
-        exists_chats = self._get_exists_chats()
-        self.settings.chats.clear()
-        self.settings.chats[state] = exists_chats
-        if self.storage:
-            await self.storage.set_chats_settings(
-                mailer_id=self.mailer_id,
-                settings=self.settings,
-            )
-
     async def add_chats(self, chat_ids: "ChatIdsType") -> bool:
         difference = self._get_difference(chats=set(chat_ids))
         if not difference:
@@ -70,6 +60,16 @@ class ChatManager:
                 mailer_id=self.mailer_id,
                 chat=chat,
                 state=state,
+            )
+
+    async def set_chats_state(self, state: ChatState) -> None:
+        exists_chats = self._get_exists_chats()
+        self.settings.chats.clear()
+        self.settings.chats[state] = exists_chats
+        if self.storage:
+            await self.storage.set_chats_settings(
+                mailer_id=self.mailer_id,
+                settings=self.settings,
             )
 
     def _get_difference(self, chats: Set[int]) -> Set[int]:
