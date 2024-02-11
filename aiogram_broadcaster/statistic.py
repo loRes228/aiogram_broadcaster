@@ -38,19 +38,22 @@ class Statistic(NamedTuple):
 
     @property
     def sends_ratio(self) -> float:
-        return (self.sends_count / self.total_count) * 100
+        return self._calculate_ratio(self.sends_count)
 
     @property
     def pending_ratio(self) -> float:
-        return (self.pending_count / self.total_count) * 100
+        return self._calculate_ratio(self.pending_count)
 
     @property
     def success_ratio(self) -> float:
-        return (self.success_count / self.total_count) * 100
+        return self._calculate_ratio(self.success_count)
 
     @property
     def failed_ratio(self) -> float:
-        return (self.failed_count / self.total_count) * 100
+        return self._calculate_ratio(self.failed_count)
+
+    def _calculate_ratio(self, count: int) -> float:
+        return (count / self.total_count) * 100
 
     def __repr__(self) -> str:
         return (
