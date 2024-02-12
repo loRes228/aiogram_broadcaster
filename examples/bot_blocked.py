@@ -55,7 +55,7 @@ async def on_state_message(
     mailer.start()
 
 
-async def on_failed_sent(error: Exception, chat_id: int) -> None:
+async def on_bot_blocked(error: Exception, chat_id: int) -> None:
     if isinstance(error, TelegramForbiddenError):
         ACTIVE_CHATS_IDS_TO_MAILING[chat_id] = False
 
@@ -77,7 +77,7 @@ def main() -> None:
         storage=storage,
         auto_setup=True,
     )
-    broadcaster.event.failed_sent.register(on_failed_sent)
+    broadcaster.event.failed_sent.register(on_bot_blocked)
     broadcaster.event.complete.register(notify_complete)
 
     dispatcher.run_polling(bot)
