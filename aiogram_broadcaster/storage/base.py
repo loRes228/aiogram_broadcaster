@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Set
 
 from aiogram_broadcaster.chat_manager import ChatState
 from aiogram_broadcaster.settings import (
@@ -33,7 +33,7 @@ class BaseMailerStorage(ABC):
         )
 
     @abstractmethod
-    async def get_mailer_ids(self) -> Tuple[int, ...]:
+    async def get_mailer_ids(self) -> Set[int]:
         pass
 
     @abstractmethod

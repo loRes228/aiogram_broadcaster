@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
 
 from redis.asyncio import ConnectionPool, Redis
 
@@ -26,12 +26,12 @@ class KeyBuilder:
         pattern = (self.prefix, "*", "*")
         return self.seperator.join(pattern)
 
-    def extract_mailer_ids(self, keys: List[str]) -> Tuple[int, ...]:
+    def extract_mailer_ids(self, keys: List[str]) -> Set[int]:
         mailer_ids = set()
         for key in keys:
             _, mailer_id, _ = key.split(self.seperator)
             mailer_ids.add(int(mailer_id))
-        return tuple(mailer_ids)
+        return mailer_ids
 
     def build_keys(self, mailer_id: int) -> Tuple[str, ...]:
         return tuple(
@@ -84,10 +84,10 @@ class RedisMailerStorage(BaseMailerStorage):
         pool = ConnectionPool.from_url(url=url, **connection_kwargs)
         return RedisMailerStorage(redis=pool, key_builder=key_builder)
 
-    async def get_mailer_ids(self) -> Tuple[int, ...]:
+    async def get_mailer_ids(self) -> Set[int]:
         keys = await self.redis.keys(pattern=self.key_builder.pattern)
         if not keys:
-            return ()
+            return set()
         return self.key_builder.extract_mailer_ids(keys=keys)
 
     async def delete_settings(self, mailer_id: int) -> None:
