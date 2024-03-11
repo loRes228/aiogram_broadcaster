@@ -14,53 +14,40 @@ import sys
 from typing import Any
 
 from aiogram import Bot, Dispatcher, Router
-from aiogram.filters import Command, StateFilter
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.contents import MessageSendContent
+from aiogram_broadcaster.event import EventRouter
 from aiogram_broadcaster.mailer import Mailer
-from aiogram_broadcaster.storage.redis import RedisMailerStorage
+from aiogram_broadcaster.storage.redis import RedisBCRStorage
 
 TOKEN = "1234:Abc"  # noqa: S105
-CHATS_IDS_TO_MAILING = [61043901, 78238238, 78378343, 98765431, 12345678]
+USER_IDS = {78238238, 78378343, 98765431, 12345678}
+OWNER_ID = 61043901
 
 router = Router(name=__name__)
+event = EventRouter()
 
 
-class MailingState(StatesGroup):
-    MESSAGE = State()
-
-
-@router.message(Command("mailing"))
-async def on_command_mailing(
-    message: Message,
-    state: FSMContext,
-) -> Any:
-    await state.clear()
-    await state.set_state(state=MailingState.MESSAGE)
-    return await message.answer(text="Send a message:")
-
-
-@router.message(StateFilter(MailingState.MESSAGE))
-async def on_state_message(
-    message: Message,
-    state: FSMContext,
-    broadcaster: Broadcaster,
-) -> Any:
-    await state.clear()
-    mailer = await broadcaster.create_mailer(
-        chat_ids=CHATS_IDS_TO_MAILING,
-        message=message,
-        delete_on_complete=True,
-    )
-    await message.answer(text="Run broadcasting...")
+@router.message()
+async def on_any_message(message: Message, broadcaster: Broadcaster) -> Any:
+    content = MessageSendContent(message=message)
+    mailer = await broadcaster.create_mailer(content=content, chats=USER_IDS)
     mailer.start()
+    await message.answer(text="Run broadcasting...")
 
 
-async def notify_complete(mailer: Mailer) -> None:
-    await mailer.message.reply(text=str(mailer.statistic()))
+@event.completed()
+async def notify_complete(mailer: Mailer, bot: Bot) -> None:
+    text = (
+        f"Broadcasting has been completed!\n"
+        f"Mailer ID: {mailer.id} | Bot ID: {bot.id}\n"
+        f"Total chats: {mailer.statistic.total_count}\n"
+        f"Failed chats: {mailer.statistic.failed_count}\n"
+        f"Success chats: {mailer.statistic.success_count}\n"
+    )
+    await bot.send_message(chat_id=OWNER_ID, text=text)
 
 
 def main() -> None:
@@ -69,19 +56,14 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    storage = RedisMailerStorage.from_url("redis://localhost:6379")
-    broadcaster = Broadcaster(
-        bot=bot,
-        dispatcher=dispatcher,
-        storage=storage,
-        auto_setup=True,
-    )
-    broadcaster.event.complete.register(notify_complete)
+    bcr_storage = RedisBCRStorage.from_url("redis://localhost:6379")
+    broadcaster = Broadcaster(bot, storage=bcr_storage)
+    broadcaster.include_event(event=event)
+    broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)
 
 
 if __name__ == "__main__":
     main()
-
 ```

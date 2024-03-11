@@ -1,18 +1,18 @@
-from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
+from typing import Any, Iterable, List, Literal, Optional, Set, Union
 
 from redis.asyncio import ConnectionPool, Redis
 
-from aiogram_broadcaster.chat_manager import ChatState
-from aiogram_broadcaster.settings import (
-    ChatsSettings,
-    MailerSettings,
-    MessageSettings,
-)
+from aiogram_broadcaster.contents import BaseContent
+from aiogram_broadcaster.mailer.chat_manager import ChatManager, ChatState
+from aiogram_broadcaster.mailer.settings import MailerSettings
 
-from .base import BaseMailerStorage
+from .base import BaseBCRStorage
 
 
 class KeyBuilder:
+    prefix: str
+    seperator: str
+
     def __init__(
         self,
         prefix: str = "bcr",
@@ -26,143 +26,108 @@ class KeyBuilder:
         pattern = (self.prefix, "*", "*")
         return self.seperator.join(pattern)
 
-    def extract_mailer_ids(self, keys: List[str]) -> Set[int]:
+    def extract_mailer_ids(self, keys: Iterable[str]) -> Set[int]:
         mailer_ids = set()
         for key in keys:
             _, mailer_id, _ = key.split(self.seperator)
             mailer_ids.add(int(mailer_id))
         return mailer_ids
 
-    def build_keys(self, mailer_id: int) -> Tuple[str, ...]:
-        return tuple(
+    def build_keys(self, mailer_id: int) -> List[str]:
+        return [
             self.build(mailer_id=mailer_id, part=part)  # type: ignore[arg-type]
-            for part in ("chats", "mailer", "message")
-        )
+            for part in ["content", "chats", "settings", "bot"]
+        ]
 
     def build(
         self,
         mailer_id: int,
-        part: Literal["chats", "mailer", "message"],
+        part: Literal["content", "chats", "settings", "bot"],
     ) -> str:
-        key = (self.prefix, str(mailer_id), part)
-        return self.seperator.join(key)
+        pattern = (self.prefix, mailer_id, part)
+        return self.seperator.join(map(str, pattern))
 
 
-class RedisMailerStorage(BaseMailerStorage):
-    key_builder: KeyBuilder
+class RedisBCRStorage(BaseBCRStorage):
     redis: Redis
-
-    __slots__ = (
-        "key_builder",
-        "redis",
-    )
+    key_builder: KeyBuilder
 
     def __init__(
         self,
         redis: Union[Redis, ConnectionPool],
         key_builder: Optional[KeyBuilder] = None,
     ) -> None:
-        self.key_builder = key_builder or KeyBuilder()
-
         if isinstance(redis, ConnectionPool):
             redis = Redis(connection_pool=redis)
         self.redis = redis
+        self.key_builder = key_builder or KeyBuilder()
 
-        if not redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
-            raise ValueError("The 'decode_responses' must be enabled in the Redis client.")
+        if not self.redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
+            raise RuntimeError("'decode_responses' must be set to True in the Redis client.")
 
     @classmethod
     def from_url(
         cls,
         url: str,
-        connection_kwargs: Optional[Dict[str, Any]] = None,
         key_builder: Optional[KeyBuilder] = None,
-    ) -> "RedisMailerStorage":
-        if not connection_kwargs:
-            connection_kwargs = {}
+        **connection_kwargs: Any,
+    ) -> "RedisBCRStorage":
         connection_kwargs["decode_responses"] = True
-        pool = ConnectionPool.from_url(url=url, **connection_kwargs)
-        return RedisMailerStorage(redis=pool, key_builder=key_builder)
+        redis = Redis.from_url(url=url, **connection_kwargs)
+        return RedisBCRStorage(redis=redis, key_builder=key_builder)
 
     async def get_mailer_ids(self) -> Set[int]:
         keys = await self.redis.keys(pattern=self.key_builder.pattern)
-        if not keys:
-            return set()
         return self.key_builder.extract_mailer_ids(keys=keys)
 
-    async def delete_settings(self, mailer_id: int) -> None:
+    async def delete(self, mailer_id: int) -> None:
         keys = self.key_builder.build_keys(mailer_id=mailer_id)
         await self.redis.delete(*keys)
 
-    async def get_chats_settings(self, mailer_id: int) -> ChatsSettings:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="chats",
-        )
-        chats = await self.redis.hgetall(name=key)  # type: ignore[misc]
-        return ChatsSettings.from_mapping(mapping=chats)
+    async def migrate_keys(self, old_mailer_id: int, new_mailer_id: int) -> None:
+        old_keys = self.key_builder.build_keys(mailer_id=old_mailer_id)
+        new_keys = self.key_builder.build_keys(mailer_id=new_mailer_id)
+        for old_key, new_key in zip(old_keys, new_keys):
+            await self.redis.rename(src=old_key, dst=new_key)
 
-    async def get_mailer_settings(self, mailer_id: int) -> MailerSettings:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="mailer",
-        )
-        mailer = await self.redis.get(name=key)
-        return MailerSettings.model_validate_json(json_data=mailer)
+    async def get_content(self, mailer_id: int) -> BaseContent:
+        key = self.key_builder.build(mailer_id=mailer_id, part="content")
+        data = await self.redis.get(name=key)
+        return BaseContent.model_validate_json(json_data=data)
 
-    async def get_message_settings(self, mailer_id: int) -> MessageSettings:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="message",
-        )
-        message = await self.redis.get(name=key)
-        return MessageSettings.model_validate_json(json_data=message)
+    async def set_content(self, mailer_id: int, content: BaseContent) -> None:
+        key = self.key_builder.build(mailer_id=mailer_id, part="content")
+        data = content.model_dump_json(exclude_defaults=True)
+        await self.redis.set(name=key, value=data)
 
-    async def set_chats_settings(self, mailer_id: int, settings: ChatsSettings) -> None:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="chats",
-        )
-        await self.redis.hset(  # type: ignore[misc]
-            name=key,
-            mapping=settings.to_mapping(),
-        )
+    async def get_chats(self, mailer_id: int) -> ChatManager:
+        key = self.key_builder.build(mailer_id=mailer_id, part="chats")
+        data = await self.redis.hgetall(name=key)  # type: ignore[misc]
+        return ChatManager.from_mapping(mapping=data, mailer_id=mailer_id, storage=self)
 
-    async def set_mailer_settings(self, mailer_id: int, settings: MailerSettings) -> None:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="mailer",
-        )
-        await self.redis.set(
-            name=key,
-            value=settings.model_dump_json(
-                exclude_unset=True,
-                exclude_defaults=True,
-                exclude_none=True,
-            ),
-        )
-
-    async def set_message_settings(self, mailer_id: int, settings: MessageSettings) -> None:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="message",
-        )
-        await self.redis.set(
-            name=key,
-            value=settings.model_dump_json(
-                exclude_unset=True,
-                exclude_defaults=True,
-                exclude_none=True,
-            ),
-        )
+    async def set_chats(self, mailer_id: int, chats: ChatManager) -> None:
+        key = self.key_builder.build(mailer_id=mailer_id, part="chats")
+        data = chats.to_dict()
+        await self.redis.hset(name=key, mapping=data)  # type: ignore[misc]
 
     async def set_chat_state(self, mailer_id: int, chat: int, state: ChatState) -> None:
-        key = self.key_builder.build(
-            mailer_id=mailer_id,
-            part="chats",
-        )
-        await self.redis.hset(  # type: ignore[misc]
-            name=key,
-            key=str(chat),
-            value=str(state.value),
-        )
+        key = self.key_builder.build(mailer_id=mailer_id, part="chats")
+        await self.redis.hset(name=key, key=str(chat), value=str(state.value))  # type: ignore[misc]
+
+    async def get_settings(self, mailer_id: int) -> MailerSettings:
+        key = self.key_builder.build(mailer_id=mailer_id, part="settings")
+        data = await self.redis.get(name=key)
+        return MailerSettings.model_validate_json(json_data=data)
+
+    async def set_settings(self, mailer_id: int, settings: MailerSettings) -> None:
+        key = self.key_builder.build(mailer_id=mailer_id, part="settings")
+        data = settings.model_dump_json(exclude_defaults=True)
+        await self.redis.set(name=key, value=data)
+
+    async def get_bot(self, mailer_id: int) -> int:
+        key = self.key_builder.build(mailer_id=mailer_id, part="bot")
+        return int(await self.redis.get(name=key))
+
+    async def set_bot(self, mailer_id: int, bot: int) -> None:
+        key = self.key_builder.build(mailer_id=mailer_id, part="bot")
+        await self.redis.set(name=key, value=bot)

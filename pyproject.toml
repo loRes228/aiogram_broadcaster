@@ -14,7 +14,7 @@ authors = [
 ]
 dependencies = [
     "redis>=5.0.0",
-    "aiogram>=3.0.0"
+    "aiogram>=3.4.0"
 ]
 
 [project.urls]
@@ -22,8 +22,8 @@ Source = "https://github.com/loRes228/aiogram_broadcaster"
 
 [project.optional-dependencies]
 dev = [
-    "mypy>=1.8.0",
-    "ruff>=0.2.0"
+    "mypy>=1.9.0",
+    "ruff>=0.3.2"
 ]
 
 [tool.hatch.version]

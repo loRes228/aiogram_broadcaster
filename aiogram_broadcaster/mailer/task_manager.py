@@ -10,14 +10,17 @@ class TaskManager:
     _task: Optional["Task[Any]"]
     _waited: bool
 
-    __slots__ = (
-        "_task",
-        "_waited",
-    )
-
     def __init__(self) -> None:
         self._task = None
         self._waited = False
+
+    @property
+    def started(self) -> bool:
+        return self._task is not None
+
+    @property
+    def waited(self) -> bool:
+        return self._waited
 
     def start(self, coroutine: Coroutine[Any, Any, Any], /) -> None:
         if self._task:
