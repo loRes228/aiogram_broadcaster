@@ -5,6 +5,7 @@ from aiogram.methods import SendVoice, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -14,7 +15,7 @@ from .base import BaseContent
 
 
 class VoiceContent(BaseContent):
-    voice: str
+    voice: Union[InputFile, str]
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
@@ -48,7 +49,7 @@ class VoiceContent(BaseContent):
         def __init__(
             self,
             *,
-            voice: str,
+            voice: Union[InputFile, str],
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,

@@ -5,6 +5,7 @@ from aiogram.methods import SendAudio, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -14,13 +15,14 @@ from .base import BaseContent
 
 
 class AudioContent(BaseContent):
-    audio: str
+    audio: Union[InputFile, str]
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
     duration: Optional[int] = None
     performer: Optional[str] = None
     title: Optional[str] = None
+    thumbnail: Optional[InputFile] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: Optional[
@@ -42,6 +44,7 @@ class AudioContent(BaseContent):
             duration=self.duration,
             performer=self.performer,
             title=self.title,
+            thumbnail=self.thumbnail,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
@@ -52,13 +55,14 @@ class AudioContent(BaseContent):
         def __init__(
             self,
             *,
-            audio: str,
+            audio: Union[InputFile, str],
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,
             duration: Optional[int] = ...,
             performer: Optional[str] = ...,
             title: Optional[str] = ...,
+            thumbnail: Optional[InputFile] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
             reply_markup: Optional[

@@ -84,12 +84,6 @@ class RedisBCRStorage(BaseBCRStorage):
         keys = self.key_builder.build_keys(mailer_id=mailer_id)
         await self.redis.delete(*keys)
 
-    async def migrate_keys(self, old_mailer_id: int, new_mailer_id: int) -> None:
-        old_keys = self.key_builder.build_keys(mailer_id=old_mailer_id)
-        new_keys = self.key_builder.build_keys(mailer_id=new_mailer_id)
-        for old_key, new_key in zip(old_keys, new_keys):
-            await self.redis.rename(src=old_key, dst=new_key)
-
     async def get_content(self, mailer_id: int) -> BaseContent:
         key = self.key_builder.build(mailer_id=mailer_id, part="content")
         data = await self.redis.get(name=key)
@@ -126,7 +120,8 @@ class RedisBCRStorage(BaseBCRStorage):
 
     async def get_bot(self, mailer_id: int) -> int:
         key = self.key_builder.build(mailer_id=mailer_id, part="bot")
-        return int(await self.redis.get(name=key))
+        data = await self.redis.get(name=key)
+        return int(data)
 
     async def set_bot(self, mailer_id: int, bot: int) -> None:
         key = self.key_builder.build(mailer_id=mailer_id, part="bot")

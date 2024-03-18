@@ -8,12 +8,14 @@ from pydantic import ConfigDict, SerializeAsAny
 from .contents import BaseContent
 
 
-class BaseLanguageGetter(ABC):  # noqa: B024
+class BaseLanguageGetter(ABC):
+    _callback: CallableObject
+
     def __init__(self) -> None:
-        self.callback = CallableObject(callback=self.__call__)
+        self._callback = CallableObject(callback=self.__call__)
 
     async def get_language(self, **kwargs: Any) -> Optional[str]:
-        language = await self.callback.call(**kwargs)
+        language = await self._callback.call(**kwargs)
         return cast(Optional[str], language)
 
     if TYPE_CHECKING:

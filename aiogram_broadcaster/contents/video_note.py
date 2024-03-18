@@ -5,6 +5,7 @@ from aiogram.methods import SendVideoNote, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
 )
@@ -13,9 +14,10 @@ from .base import BaseContent
 
 
 class VideoNoteContent(BaseContent):
-    video_note: str
+    video_note: Union[InputFile, str]
     duration: Optional[int] = None
     length: Optional[int] = None
+    thumbnail: Optional[InputFile] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: Optional[
@@ -33,6 +35,7 @@ class VideoNoteContent(BaseContent):
             video_note=self.video_note,
             duration=self.duration,
             length=self.length,
+            thumbnail=self.thumbnail,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
@@ -43,9 +46,10 @@ class VideoNoteContent(BaseContent):
         def __init__(
             self,
             *,
-            video_note: str,
+            video_note: Union[InputFile, str],
             duration: Optional[int] = ...,
             length: Optional[int] = ...,
+            thumbnail: Optional[InputFile] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
             reply_markup: Optional[

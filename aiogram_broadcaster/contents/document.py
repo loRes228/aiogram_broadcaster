@@ -5,6 +5,7 @@ from aiogram.methods import SendDocument, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -14,7 +15,8 @@ from .base import BaseContent
 
 
 class DocumentContent(BaseContent):
-    document: str
+    document: Union[InputFile, str]
+    thumbnail: Optional[InputFile] = None
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
@@ -34,6 +36,7 @@ class DocumentContent(BaseContent):
         return SendDocument(
             chat_id=chat_id,
             document=self.document,
+            thumbnail=self.thumbnail,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -48,7 +51,8 @@ class DocumentContent(BaseContent):
         def __init__(
             self,
             *,
-            document: str,
+            document: Union[InputFile, str],
+            thumbnail: Optional[InputFile] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,

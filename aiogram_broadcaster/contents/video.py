@@ -5,6 +5,7 @@ from aiogram.methods import SendVideo, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -14,10 +15,11 @@ from .base import BaseContent
 
 
 class VideoContent(BaseContent):
-    video: str
+    video: Union[InputFile, str]
     duration: Optional[int] = None
     width: Optional[int] = None
     height: Optional[int] = None
+    thumbnail: Optional[InputFile] = None
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
@@ -41,6 +43,7 @@ class VideoContent(BaseContent):
             duration=self.duration,
             width=self.width,
             height=self.height,
+            thumbnail=self.thumbnail,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -56,10 +59,11 @@ class VideoContent(BaseContent):
         def __init__(
             self,
             *,
-            video: str,
+            video: Union[InputFile, str],
             duration: Optional[int] = ...,
             width: Optional[int] = ...,
             height: Optional[int] = ...,
+            thumbnail: Optional[InputFile] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,

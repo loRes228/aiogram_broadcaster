@@ -77,7 +77,9 @@ select = [
     "RUF" # Ruff-specific rules
 ]
 ignore = [
+    "PLR0904", # too-many-public-methods
     "UP006", # non-pep585-annotation
+    "UP007", # non-pep604-annotation
     "ANN401", # any-type
     "PLR6301", # no-self-use
     "PLR0913", # too-many-arguments

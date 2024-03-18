@@ -48,7 +48,7 @@ class BaseContent(BaseModel, ABC):
             return cls.__validators__[validator].model_validate(__value)
         return __handler(__value)
 
-    @model_serializer(mode="wrap", when_used="json", return_type=Any)
+    @model_serializer(mode="wrap", return_type=Any)
     def _serialize(self, handler: SerializerFunctionWrapHandler) -> Any:
         data = handler(self)
         data[VALIDATOR_KEY] = type(self).__name__

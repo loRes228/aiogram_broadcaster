@@ -47,10 +47,6 @@ class BaseBCRStorage(ABC):
         pass
 
     @abstractmethod
-    async def migrate_keys(self, old_mailer_id: int, new_mailer_id: int) -> None:
-        pass
-
-    @abstractmethod
     async def get_content(self, mailer_id: int) -> BaseContent:
         pass
 

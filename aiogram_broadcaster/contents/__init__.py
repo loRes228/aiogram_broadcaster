@@ -9,6 +9,7 @@ from .from_chat_copy import FromChatCopyContent
 from .from_chat_forward import FromChatForwardContent
 from .game import GameContent
 from .location import LocationContent
+from .media_group import MediaGroupContent
 from .message_copy import MessageCopyContent
 from .message_forward import MessageForwardContent
 from .message_send import MessageSendContent
@@ -34,6 +35,7 @@ __all__ = (
     "FromChatForwardContent",
     "GameContent",
     "LocationContent",
+    "MediaGroupContent",
     "MessageCopyContent",
     "MessageForwardContent",
     "MessageSendContent",

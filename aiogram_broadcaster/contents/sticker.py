@@ -5,6 +5,7 @@ from aiogram.methods import SendSticker, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
 )
@@ -13,7 +14,7 @@ from .base import BaseContent
 
 
 class StickerContent(BaseContent):
-    sticker: str
+    sticker: Union[InputFile, str]
     emoji: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
@@ -41,7 +42,7 @@ class StickerContent(BaseContent):
         def __init__(
             self,
             *,
-            sticker: str,
+            sticker: Union[InputFile, str],
             emoji: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,

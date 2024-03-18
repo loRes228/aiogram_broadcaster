@@ -5,6 +5,7 @@ from aiogram.methods import SendPhoto, TelegramMethod
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputFile,
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -14,7 +15,7 @@ from .base import BaseContent
 
 
 class PhotoContent(BaseContent):
-    photo: str
+    photo: Union[InputFile, str]
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
@@ -48,7 +49,7 @@ class PhotoContent(BaseContent):
         def __init__(
             self,
             *,
-            photo: str,
+            photo: Union[InputFile, str],
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,

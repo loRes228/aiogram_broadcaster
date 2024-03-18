@@ -4,12 +4,14 @@ from .chat_manager import ChatManager, ChatState
 
 
 class MailerStatistic:
+    _chat_manager: ChatManager
+
     def __init__(self, chat_manager: ChatManager) -> None:
         self._chat_manager = chat_manager
 
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}("
+            f"MailerStatistic("
             f"total_count={self.total_count}"
             f"pending_count={self.pending_count}"
             f"success_count={self.success_count}"
