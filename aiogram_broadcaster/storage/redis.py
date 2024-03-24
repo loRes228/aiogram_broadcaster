@@ -3,7 +3,7 @@ from typing import Any, Iterable, List, Literal, Optional, Set, Union
 from redis.asyncio import ConnectionPool, Redis
 
 from aiogram_broadcaster.contents import BaseContent
-from aiogram_broadcaster.mailer.chat_manager import ChatManager, ChatState
+from aiogram_broadcaster.mailer.chat_engine import ChatEngine, ChatState
 from aiogram_broadcaster.mailer.settings import MailerSettings
 
 from .base import BaseBCRStorage
@@ -94,12 +94,12 @@ class RedisBCRStorage(BaseBCRStorage):
         data = content.model_dump_json(exclude_defaults=True)
         await self.redis.set(name=key, value=data)
 
-    async def get_chats(self, mailer_id: int) -> ChatManager:
+    async def get_chats(self, mailer_id: int) -> ChatEngine:
         key = self.key_builder.build(mailer_id=mailer_id, part="chats")
         data = await self.redis.hgetall(name=key)  # type: ignore[misc]
-        return ChatManager.from_mapping(mapping=data, mailer_id=mailer_id, storage=self)
+        return ChatEngine.from_mapping(mapping=data, mailer_id=mailer_id, storage=self)
 
-    async def set_chats(self, mailer_id: int, chats: ChatManager) -> None:
+    async def set_chats(self, mailer_id: int, chats: ChatEngine) -> None:
         key = self.key_builder.build(mailer_id=mailer_id, part="chats")
         data = chats.to_dict()
         await self.redis.hset(name=key, mapping=data)  # type: ignore[misc]

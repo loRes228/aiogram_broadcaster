@@ -2,25 +2,23 @@ from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendMediaGroup, TelegramMethod
-from aiogram.types import (
-    InputMediaAudio,
-    InputMediaDocument,
-    InputMediaPhoto,
-    InputMediaVideo,
-)
+from aiogram.types import InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo
 
 from aiogram_broadcaster.contents import BaseContent
 
 
-class MediaGroupContent(BaseContent):
-    media: List[
-        Union[
-            InputMediaAudio,
-            InputMediaDocument,
-            InputMediaPhoto,
-            InputMediaVideo,
-        ]
+MediaType = List[
+    Union[
+        InputMediaAudio,
+        InputMediaDocument,
+        InputMediaPhoto,
+        InputMediaVideo,
     ]
+]
+
+
+class MediaGroupContent(BaseContent):
+    media: MediaType
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
 
@@ -37,14 +35,7 @@ class MediaGroupContent(BaseContent):
         def __init__(
             self,
             *,
-            media: List[
-                Union[
-                    InputMediaAudio,
-                    InputMediaDocument,
-                    InputMediaPhoto,
-                    InputMediaVideo,
-                ]
-            ],
+            media: MediaType,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
         ) -> None: ...

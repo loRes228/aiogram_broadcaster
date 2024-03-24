@@ -5,7 +5,7 @@ from typing import Any
 from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster import Broadcaster, DefaultMailerProperties
 from aiogram_broadcaster.contents import MessageSendContent
 from aiogram_broadcaster.event import EventRouter
 from aiogram_broadcaster.mailer import Mailer
@@ -47,8 +47,9 @@ def main() -> None:
     dispatcher.include_router(router)
 
     bcr_storage = RedisBCRStorage.from_url("redis://localhost:6379")
-    broadcaster = Broadcaster(bot, storage=bcr_storage)
-    broadcaster.include_event(event=event)
+    default = DefaultMailerProperties(destroy_on_complete=True)
+    broadcaster = Broadcaster(bot, storage=bcr_storage, default=default)
+    broadcaster.event.include(event)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)

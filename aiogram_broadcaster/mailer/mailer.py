@@ -1,17 +1,17 @@
 from asyncio import Event, TimeoutError, wait_for
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, Set
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
 from aiogram_broadcaster.contents import BaseContent
-from aiogram_broadcaster.event import EventRouter
+from aiogram_broadcaster.event import EventManager
 from aiogram_broadcaster.l10n import BaseLanguageGetter
 from aiogram_broadcaster.logger import logger
 from aiogram_broadcaster.placeholder import PlaceholderWizard
 from aiogram_broadcaster.storage.base import BaseBCRStorage
 
-from .chat_manager import ChatManager, ChatState
+from .chat_engine import ChatEngine, ChatState
 from .settings import MailerSettings
 from .statistic import MailerStatistic
 from .status import MailerStatus
@@ -21,16 +21,15 @@ from .tasks import TaskManager
 class Mailer:
     _id: int
     _settings: MailerSettings
-    _chat_manager: ChatManager
+    _chat_engine: ChatEngine
     _content: BaseContent
-    _event: EventRouter
+    _event: EventManager
     _language_getter: Optional[BaseLanguageGetter]
-    _placeholder_wizard: PlaceholderWizard
+    _placeholder: PlaceholderWizard
     _storage: Optional[BaseBCRStorage]
     _mailer_container: Dict[int, "Mailer"]
     _bot: Bot
     _kwargs: Dict[str, Any]
-    _deleted: bool
     _status: MailerStatus
     _statistic: MailerStatistic
     _task: TaskManager
@@ -41,11 +40,11 @@ class Mailer:
         *,
         id: int,  # noqa: A002
         settings: MailerSettings,
-        chat_manager: ChatManager,
+        chat_engine: ChatEngine,
         content: BaseContent,
-        event: EventRouter,
+        event: EventManager,
         language_getter: Optional[BaseLanguageGetter],
-        placeholder_wizard: PlaceholderWizard,
+        placeholder: PlaceholderWizard,
         storage: Optional[BaseBCRStorage],
         mailer_container: Dict[int, "Mailer"],
         bot: Bot,
@@ -53,11 +52,11 @@ class Mailer:
     ) -> None:
         self._id = id
         self._settings = settings
-        self._chat_manager = chat_manager
+        self._chat_engine = chat_engine
         self._content = content
         self._event = event
         self._language_getter = language_getter
-        self._placeholder_wizard = placeholder_wizard
+        self._placeholder = placeholder
         self._storage = storage
         self._mailer_container = mailer_container
         self._bot = bot
@@ -68,7 +67,7 @@ class Mailer:
         )
 
         self._status = self._resolve_status()
-        self._statistic = MailerStatistic(chat_manager=self._chat_manager)
+        self._statistic = MailerStatistic(chat_engine=self._chat_engine)
         self._task = TaskManager()
         self._stop_event = Event()
         self._stop_event.set()
@@ -77,7 +76,7 @@ class Mailer:
         return (
             f"Mailer("
             f"id={self._id}, "
-            f"status={self._status.name.lower()}, "
+            f"status={self._status.name.lower()!r}, "
             f"interval={self._settings.interval:.2f}, "
             f"total_chats={len(self)}"
             ")"
@@ -91,14 +90,11 @@ class Mailer:
             return False
         return hash(self) == hash(other)
 
-    def __ne__(self, other: object) -> bool:
-        return not self == other
-
     def __hash__(self) -> int:
         return hash(self._id)
 
     def __len__(self) -> int:
-        return len(self._chat_manager)
+        return len(self._chat_engine)
 
     @property
     def id(self) -> int:
@@ -124,8 +120,8 @@ class Mailer:
     def bot(self) -> Bot:
         return self._bot
 
-    async def add_chats(self, chats: Iterable[int]) -> bool:
-        has_difference = await self._chat_manager.add_chats(
+    async def add_chats(self, chats: Iterable[int]) -> Set[int]:
+        has_difference = await self._chat_engine.add_chats(
             chats=chats,
             state=ChatState.PENDING,
         )
@@ -219,11 +215,11 @@ class Mailer:
         logger.info("Mailer id=%d destroyed.", self._id)
 
     async def _broadcast(self) -> bool:
-        async for chat in self._chat_manager.iterate_chats(state=ChatState.PENDING):
+        async for chat in self._chat_engine.iterate_chats(state=ChatState.PENDING):
             if self._stop_event.is_set():
                 return False
             await self._send(chat_id=chat)
-            if not self._chat_manager.get_chats(ChatState.PENDING):
+            if not self._chat_engine.get_chats(ChatState.PENDING):
                 return True
             if not self._settings.interval:
                 continue
@@ -238,10 +234,11 @@ class Mailer:
             **self._kwargs,
         )
         if self._settings.exclude_placeholders is not True:
-            method = await self._placeholder_wizard.render(
+            method = await self._placeholder.render(
                 model=method,
-                kwargs={"chat_id": chat_id, **self._kwargs},
                 exclude=self._settings.exclude_placeholders,
+                chat_id=chat_id,
+                **self._kwargs,
             )
         return await method.as_(bot=self._bot)
 
@@ -275,7 +272,7 @@ class Mailer:
             chat_id,
             error,
         )
-        await self._chat_manager.set_chat_state(
+        await self._chat_engine.set_chat_state(
             chat=chat_id,
             state=ChatState.FAILED,
         )
@@ -292,7 +289,7 @@ class Mailer:
             self._id,
             chat_id,
         )
-        await self._chat_manager.set_chat_state(
+        await self._chat_engine.set_chat_state(
             chat=chat_id,
             state=ChatState.SUCCESS,
         )
@@ -315,6 +312,6 @@ class Mailer:
             return False
 
     def _resolve_status(self) -> MailerStatus:
-        if self._chat_manager.get_chats(ChatState.PENDING):
+        if self._chat_engine.get_chats(ChatState.PENDING):
             return MailerStatus.STOPPED
         return MailerStatus.COMPLETED

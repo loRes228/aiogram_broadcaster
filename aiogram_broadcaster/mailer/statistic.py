@@ -1,13 +1,13 @@
 from typing import Set
 
-from .chat_manager import ChatManager, ChatState
+from .chat_engine import ChatEngine, ChatState
 
 
 class MailerStatistic:
-    _chat_manager: ChatManager
+    _chat_engine: ChatEngine
 
-    def __init__(self, chat_manager: ChatManager) -> None:
-        self._chat_manager = chat_manager
+    def __init__(self, chat_engine: ChatEngine) -> None:
+        self._chat_engine = chat_engine
 
     def __repr__(self) -> str:
         return (
@@ -31,23 +31,23 @@ class MailerStatistic:
 
     @property
     def total_chats(self) -> Set[int]:
-        return self._chat_manager.get_chats()
+        return self._chat_engine.get_chats()
 
     @property
     def pending_chats(self) -> Set[int]:
-        return self._chat_manager.get_chats(ChatState.PENDING)
+        return self._chat_engine.get_chats(ChatState.PENDING)
 
     @property
     def success_chats(self) -> Set[int]:
-        return self._chat_manager.get_chats(ChatState.SUCCESS)
+        return self._chat_engine.get_chats(ChatState.SUCCESS)
 
     @property
     def failed_chats(self) -> Set[int]:
-        return self._chat_manager.get_chats(ChatState.FAILED)
+        return self._chat_engine.get_chats(ChatState.FAILED)
 
     @property
     def sends_chats(self) -> Set[int]:
-        return self._chat_manager.get_chats(ChatState.SUCCESS, ChatState.FAILED)
+        return self._chat_engine.get_chats(ChatState.SUCCESS, ChatState.FAILED)
 
     @property
     def total_count(self) -> int:

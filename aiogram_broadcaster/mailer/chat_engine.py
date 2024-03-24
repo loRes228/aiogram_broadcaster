@@ -13,7 +13,7 @@ class ChatState(str, Enum):
     FAILED = auto()
 
 
-class ChatManager(BaseModel):
+class ChatEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     chats: DefaultDict[ChatState, Set[int]]
     mailer_id: int = Field(exclude=True)
@@ -29,8 +29,8 @@ class ChatManager(BaseModel):
         state: ChatState,
         mailer_id: int,
         storage: Optional[BaseBCRStorage] = None,
-    ) -> "ChatManager":
-        return ChatManager(
+    ) -> "ChatEngine":
+        return ChatEngine(
             chats={state: set(iterable)},
             mailer_id=mailer_id,
             storage=storage,
@@ -42,11 +42,11 @@ class ChatManager(BaseModel):
         mapping: Mapping[str, str],
         mailer_id: int,
         storage: Optional[BaseBCRStorage] = None,
-    ) -> "ChatManager":
+    ) -> "ChatEngine":
         chats: Dict[str, Set[str]] = defaultdict(set)
         for chat, state in mapping.items():
             chats[state].add(chat)
-        return ChatManager(
+        return ChatEngine(
             chats=chats,
             mailer_id=mailer_id,
             storage=storage,
@@ -72,17 +72,17 @@ class ChatManager(BaseModel):
         chats = (self.chats[state] for state in states or ChatState)
         return set().union(*chats)
 
-    async def add_chats(self, chats: Iterable[int], state: ChatState) -> bool:
+    async def add_chats(self, chats: Iterable[int], state: ChatState) -> Set[int]:
         difference = set(chats) - self.get_chats()
         if not difference:
-            return False
+            return difference
         self.chats[state].update(difference)
         if self.storage:
             await self.storage.set_chats(
                 mailer_id=self.mailer_id,
                 chats=self,
             )
-        return True
+        return difference
 
     async def set_chat_state(self, chat: int, state: ChatState) -> None:
         from_state = self.resolve_chat_state(chat=chat)

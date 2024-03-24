@@ -8,6 +8,7 @@ from .document import DocumentContent
 from .from_chat_copy import FromChatCopyContent
 from .from_chat_forward import FromChatForwardContent
 from .game import GameContent
+from .invoice import InvoiceContent
 from .location import LocationContent
 from .media_group import MediaGroupContent
 from .message_copy import MessageCopyContent
@@ -34,6 +35,7 @@ __all__ = (
     "FromChatCopyContent",
     "FromChatForwardContent",
     "GameContent",
+    "InvoiceContent",
     "LocationContent",
     "MediaGroupContent",
     "MessageCopyContent",

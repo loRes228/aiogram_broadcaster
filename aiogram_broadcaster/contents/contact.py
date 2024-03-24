@@ -12,6 +12,16 @@ from aiogram.types import (
 from .base import BaseContent
 
 
+ReplyMarkupType = Optional[
+    Union[
+        InlineKeyboardMarkup,
+        ReplyKeyboardMarkup,
+        ReplyKeyboardRemove,
+        ForceReply,
+    ]
+]
+
+
 class ContactContent(BaseContent):
     phone_number: str
     first_name: str
@@ -19,14 +29,7 @@ class ContactContent(BaseContent):
     vcard: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: Optional[
-        Union[
-            InlineKeyboardMarkup,
-            ReplyKeyboardMarkup,
-            ReplyKeyboardRemove,
-            ForceReply,
-        ]
-    ] = None
+    reply_markup: ReplyMarkupType = None
 
     async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
         return SendContact(
@@ -51,12 +54,5 @@ class ContactContent(BaseContent):
             vcard: Optional[str] = None,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: Optional[
-                Union[
-                    InlineKeyboardMarkup,
-                    ReplyKeyboardMarkup,
-                    ReplyKeyboardRemove,
-                    ForceReply,
-                ]
-            ] = ...,
+            reply_markup: ReplyMarkupType = ...,
         ) -> None: ...

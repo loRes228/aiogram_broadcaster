@@ -53,5 +53,7 @@ class MultipleMailers:
         return await self._gather_futures(futures=futures)
 
     async def _gather_futures(self, futures: List[Coroutine[Any, Any, Any]]) -> Dict[Mailer, Any]:
+        if not futures:
+            return {}
         results = await gather(*futures, return_exceptions=True)
         return dict(zip(self.mailers, results))

@@ -6,10 +6,13 @@ from aiogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardMarkup
 from .base import BaseContent
 
 
+ReplyMarkupType = Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]]
+
+
 class MessageSendContent(BaseContent):
     message: Message
     disable_notification: Optional[bool] = None
-    reply_markup: Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]] = None
+    reply_markup: ReplyMarkupType = None
     parse_mode: Optional[str] = None
 
     async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
@@ -27,6 +30,6 @@ class MessageSendContent(BaseContent):
             *,
             message: Message,
             disable_notification: Optional[bool] = ...,
-            reply_markup: Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]] = ...,
+            reply_markup: ReplyMarkupType = ...,
             parse_mode: Optional[str] = ...,
         ) -> None: ...

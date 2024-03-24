@@ -13,6 +13,16 @@ from aiogram.types import (
 from .base import BaseContent
 
 
+ReplyMarkupType = Optional[
+    Union[
+        InlineKeyboardMarkup,
+        ReplyKeyboardMarkup,
+        ReplyKeyboardRemove,
+        ForceReply,
+    ]
+]
+
+
 class VideoNoteContent(BaseContent):
     video_note: Union[InputFile, str]
     duration: Optional[int] = None
@@ -20,14 +30,7 @@ class VideoNoteContent(BaseContent):
     thumbnail: Optional[InputFile] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: Optional[
-        Union[
-            InlineKeyboardMarkup,
-            ReplyKeyboardMarkup,
-            ReplyKeyboardRemove,
-            ForceReply,
-        ]
-    ] = None
+    reply_markup: ReplyMarkupType = None
 
     async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
         return SendVideoNote(
@@ -52,12 +55,5 @@ class VideoNoteContent(BaseContent):
             thumbnail: Optional[InputFile] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: Optional[
-                Union[
-                    InlineKeyboardMarkup,
-                    ReplyKeyboardMarkup,
-                    ReplyKeyboardRemove,
-                    ForceReply,
-                ]
-            ] = ...,
+            reply_markup: ReplyMarkupType = ...,
         ) -> None: ...

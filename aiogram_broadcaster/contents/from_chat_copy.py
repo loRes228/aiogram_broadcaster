@@ -13,6 +13,16 @@ from aiogram.types import (
 from .base import BaseContent
 
 
+ReplyMarkupType = Optional[
+    Union[
+        InlineKeyboardMarkup,
+        ReplyKeyboardMarkup,
+        ReplyKeyboardRemove,
+        ForceReply,
+    ]
+]
+
+
 class FromChatCopyContent(BaseContent):
     from_chat_id: Union[int, str]
     message_id: int
@@ -21,14 +31,7 @@ class FromChatCopyContent(BaseContent):
     caption_entities: Optional[List[MessageEntity]] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: Optional[
-        Union[
-            InlineKeyboardMarkup,
-            ReplyKeyboardMarkup,
-            ReplyKeyboardRemove,
-            ForceReply,
-        ]
-    ] = None
+    reply_markup: ReplyMarkupType = None
 
     async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
         return CopyMessage(
@@ -55,12 +58,5 @@ class FromChatCopyContent(BaseContent):
             caption_entities: Optional[List[MessageEntity]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: Optional[
-                Union[
-                    InlineKeyboardMarkup,
-                    ReplyKeyboardMarkup,
-                    ReplyKeyboardRemove,
-                    ForceReply,
-                ]
-            ] = ...,
+            reply_markup: ReplyMarkupType = ...,
         ) -> None: ...
