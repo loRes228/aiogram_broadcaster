@@ -54,6 +54,6 @@ class FileBCRStorage(BaseBCRStorage):
         )
 
     async def set_records(self, records: StorageRecords) -> None:
-        data = records.model_dump_json(exclude_defaults=True, indent=4)
+        data = records.model_dump_json(exclude_defaults=True)
         async with open(file=self.file, mode="w") as file:
             await file.write(data)
