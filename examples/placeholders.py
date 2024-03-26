@@ -38,7 +38,7 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot)
+    broadcaster = Broadcaster()
     broadcaster.placeholder.include(placeholder)
     broadcaster.placeholder["static"] = "value"
     broadcaster.setup(dispatcher=dispatcher)

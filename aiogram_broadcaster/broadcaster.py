@@ -7,7 +7,7 @@ from pydantic_core import PydanticSerializationError
 from .contents import BaseContent
 from .default import DefaultMailerProperties
 from .event import EventManager
-from .l10n import BaseLanguageGetter, L10nContentAdapter
+from .l10n import BaseLanguageGetter, DefaultLanguageGetter
 from .logger import logger
 from .mailer import Mailer, MailerStatus
 from .mailer.chat_engine import ChatEngine, ChatState
@@ -15,12 +15,13 @@ from .mailer.multiple import MultipleMailers
 from .mailer.settings import MailerSettings
 from .placeholder import PlaceholderWizard
 from .storage.base import BaseBCRStorage
+from .storage.record import StorageRecord
 
 
 class Broadcaster:
     _bots: Dict[int, Bot]
     storage: Optional[BaseBCRStorage]
-    language_getter: Optional[BaseLanguageGetter]
+    language_getter: BaseLanguageGetter
     default: DefaultMailerProperties
     context_key: str
     kwargs: Dict[str, Any]
@@ -39,7 +40,7 @@ class Broadcaster:
     ) -> None:
         self._bots = {bot.id: bot for bot in bots}
         self.storage = storage
-        self.language_getter = language_getter
+        self.language_getter = language_getter or DefaultLanguageGetter()
         self.default = default or DefaultMailerProperties()
         self.context_key = context_key
         self.kwargs = kwargs
@@ -50,10 +51,11 @@ class Broadcaster:
         self._mailers = {}
 
     def __repr__(self) -> str:
-        return f"Broadcaster(total_mailers={len(self)})"
+        return f"Broadcaster(total_mailers={len(self._mailers)})"
 
     def __str__(self) -> str:
-        return f"Broadcaster[{', '.join(map(repr, self))}]"
+        mailers = ", ".join(map(repr, self))
+        return f"Broadcaster[{mailers}]"
 
     def __contains__(self, item: int) -> bool:
         return item in self._mailers
@@ -99,6 +101,7 @@ class Broadcaster:
         preserve: Optional[bool] = None,
         disable_events: bool = False,
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
+        data: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> MultipleMailers:
         if not bots and not self._bots:
@@ -115,9 +118,10 @@ class Broadcaster:
                 run_on_startup=run_on_startup,
                 handle_retry_after=handle_retry_after,
                 destroy_on_complete=destroy_on_complete,
+                preserve=preserve,
                 disable_events=disable_events,
                 exclude_placeholders=exclude_placeholders,
-                preserve=preserve,
+                data=data,
                 **kwargs,
             )
             for bot in bots
@@ -138,6 +142,7 @@ class Broadcaster:
         preserve: Optional[bool] = None,
         disable_events: bool = False,
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
+        data: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> Mailer:
         properties = self.default.prepare(
@@ -153,16 +158,11 @@ class Broadcaster:
             raise ValueError("At least one chat id must be provided.")
         if not bot and not self._bots:
             raise ValueError("At least one bot must be specified.")
-        if isinstance(content, L10nContentAdapter) and not self.language_getter:
-            raise RuntimeError("To use 'L10nContentAdapter' language_getter must be provided.")
-        if properties.preserve and self.storage:
-            try:
-                content.model_dump_json(exclude_defaults=True)
-            except PydanticSerializationError as error:
-                raise ValueError("Content cant be serialized to preserving.") from error
 
         if bot is None:
             bot = self.bots[-1]
+        if data is None:
+            data = {}
 
         interval = properties.interval
         if properties.dynamic_interval:
@@ -195,46 +195,53 @@ class Broadcaster:
             storage=self.storage if properties.preserve else None,
             mailer_container=self._mailers,
             bot=bot,
-            kwargs={**self.kwargs, **kwargs},
+            kwargs={**self.kwargs, **data, **kwargs},
         )
         logger.info("Mailer id=%d was created.", mailer_id)
         if not properties.preserve:
             return mailer
         self._mailers[mailer_id] = mailer
-        if self.storage:
-            await self.storage.set_content(mailer_id=mailer_id, content=content)
-            await self.storage.set_chats(mailer_id=mailer_id, chats=chat_engine)
-            await self.storage.set_settings(mailer_id=mailer_id, settings=settings)
-            await self.storage.set_bot(mailer_id=mailer_id, bot=bot.id)
+        if not self.storage:
+            return mailer
+        record = StorageRecord(
+            content=content,
+            chats=chat_engine,
+            settings=settings,
+            bot=bot.id,
+            data=data,
+        )
+        try:
+            record.model_dump_json(exclude_defaults=True)
+        except PydanticSerializationError as error:
+            del self._mailers[mailer_id]
+            raise RuntimeError("Record cant be serialized to preserving.") from error
+        await self.storage.set_record(mailer_id=mailer_id, record=record)
         return mailer
 
     async def restore_mailers(self) -> None:
         if not self.storage:
             raise RuntimeError("Storage not specified.")
         for mailer_id in await self.storage.get_mailer_ids():
-            bot_id = await self.storage.get_bot(mailer_id=mailer_id)
-            if bot_id not in self._bots:
+            record = await self.storage.get_record(mailer_id=mailer_id)
+            if record.bot not in self._bots:
                 logger.error(
                     "Failed to restore mailer id=%d, bot with id=%d not specified.",
                     mailer_id,
-                    bot_id,
+                    record.bot,
                 )
                 continue
-            content = await self.storage.get_content(mailer_id=mailer_id)
-            chat_engine = await self.storage.get_chats(mailer_id=mailer_id)
-            settings = await self.storage.get_settings(mailer_id=mailer_id)
             mailer = Mailer(
                 id=mailer_id,
-                settings=settings,
-                chat_engine=chat_engine,
-                content=content,
+                settings=record.settings,
+                chat_engine=record.chats,
+                content=record.content,
                 event=self.event,
                 language_getter=self.language_getter,
                 placeholder=self.placeholder,
                 storage=self.storage,
                 mailer_container=self._mailers,
-                bot=self._bots[bot_id],
-                kwargs=self.kwargs.copy(),
+                bot=self._bots[record.bot],
+                kwargs={**self.kwargs, **record.data},
             )
             self._mailers[mailer_id] = mailer
             logger.info("Mailer id=%d restored from storage.", mailer_id)

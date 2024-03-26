@@ -15,11 +15,15 @@ class MultipleMailers:
     def __iter__(self) -> Iterator[Mailer]:
         return iter(self.mailers)
 
+    def __len__(self) -> int:
+        return len(self.mailers)
+
     def __repr__(self) -> str:
         return f"MultipleMailers(total_mailers={len(self.mailers)})"
 
     def __str__(self) -> str:
-        return f"MultipleMailers[{', '.join(map(repr, self.mailers))}]"
+        mailers = ", ".join(map(repr, self.mailers))
+        return f"MultipleMailers[{mailers}]"
 
     def start(self, **kwargs: Any) -> None:
         for mailer in self.mailers:

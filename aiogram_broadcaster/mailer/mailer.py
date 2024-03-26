@@ -24,7 +24,7 @@ class Mailer:
     _chat_engine: ChatEngine
     _content: BaseContent
     _event: EventManager
-    _language_getter: Optional[BaseLanguageGetter]
+    _language_getter: BaseLanguageGetter
     _placeholder: PlaceholderWizard
     _storage: Optional[BaseBCRStorage]
     _mailer_container: Dict[int, "Mailer"]
@@ -43,7 +43,7 @@ class Mailer:
         chat_engine: ChatEngine,
         content: BaseContent,
         event: EventManager,
-        language_getter: Optional[BaseLanguageGetter],
+        language_getter: BaseLanguageGetter,
         placeholder: PlaceholderWizard,
         storage: Optional[BaseBCRStorage],
         mailer_container: Dict[int, "Mailer"],
@@ -209,7 +209,7 @@ class Mailer:
         if self._status is MailerStatus.STARTED:
             await self._emit_stop()
         if self._storage:
-            await self._storage.delete(mailer_id=self._id)
+            await self._storage.delete_record(mailer_id=self._id)
         self._status = MailerStatus.DESTROYED
         self._mailer_container.pop(self._id, None)
         logger.info("Mailer id=%d destroyed.", self._id)

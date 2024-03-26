@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, ClassVar, Generator, List, Optional, Type
+from typing import Any, ClassVar, Generator, List, Optional, Type, cast
 
 from typing_extensions import Self
 
@@ -55,17 +55,13 @@ class ChainObject:
         self.__parent_entity = entity
         entity.__sub_entities.append(self)  # noqa: SLF001
 
-    if TYPE_CHECKING:
-        include: Callable[..., None]
-    else:
-
-        def include(self, *args: Self) -> None:
-            if not args:
-                raise ValueError(f"At least one {self.__sub_name} must be provided to include.")
-            for entity in args:
-                if not isinstance(entity, self.__entity):
-                    raise TypeError(
-                        f"The {self.__sub_name} must be an instance of {self.__entity.__name__}, "
-                        f"not a {type(entity).__name__}.",
-                    )
-                entity._set_parent_entity(entity=self)  # noqa: SLF001
+    def include(self, *args: Any) -> None:
+        if not args:
+            raise ValueError(f"At least one {self.__sub_name} must be provided to include.")
+        for entity in args:
+            if not isinstance(entity, self.__entity):
+                raise TypeError(
+                    f"The {self.__sub_name} must be an instance of {self.__entity.__name__}, "
+                    f"not a {type(entity).__name__}.",
+                )
+            entity._set_parent_entity(entity=cast(Self, self))  # noqa: SLF001

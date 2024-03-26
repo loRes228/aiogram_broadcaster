@@ -1,6 +1,51 @@
-from typing import Set
+from typing import Dict, Iterator, Set
 
 from .chat_engine import ChatEngine, ChatState
+
+
+class ChatsMetric:
+    ids: Set[int]
+    total: int
+    ratio: float
+    average: float
+    range: float
+    relative_range: float
+    metrics: Dict[str, float]
+
+    def __init__(self, ids: Set[int], total: int) -> None:
+        self.ids = ids
+        self.total = len(ids)
+        self.ratio = (self.total / total) * 100
+        self.average = (self.total + total) / 2
+        self.range = abs(self.total - total)
+        self.relative_range = (self.range / self.average) * 100
+        self.metrics = {
+            "total": self.total,
+            "ratio": self.ratio,
+            "average": self.average,
+            "range": self.range,
+            "relative_range": self.relative_range,
+        }
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(self.ids)
+
+    def __repr__(self) -> str:
+        # fmt: off
+        metrics = ", ".join(
+            f"{metric_name}={metric}"
+            for metric_name, metric in self.metrics.items()
+        )
+        # fmt: on
+        return f"ChatsStatistic({metrics})"
+
+    def __str__(self) -> str:
+        # fmt: off
+        return ", ".join(
+            f"{metric_name}: {metric}"
+            for metric_name, metric in self.metrics.items()
+        )
+        # fmt: on
 
 
 class MailerStatistic:
@@ -10,80 +55,51 @@ class MailerStatistic:
         self._chat_engine = chat_engine
 
     def __repr__(self) -> str:
-        return (
-            f"MailerStatistic("
-            f"total_count={self.total_count}"
-            f"pending_count={self.pending_count}"
-            f"success_count={self.success_count}"
-            f"failed_count={self.failed_count}"
-            f"sends_count={self.sends_count}"
-            ")"
+        # fmt: off
+        metrics = ", ".join(
+            f"{metric_name}={metric.total}"
+            for metric_name, metric in self.metrics.items()
         )
+        # fmt: on
+        return f"MailerStatistic({metrics})"
 
     def __str__(self) -> str:
-        return (
-            f"Total chats: {self.total_count}\n"
-            f"Pending chats: {self.pending_count} | {self.pending_ratio:.2f}%\n"
-            f"Success chats: {self.success_count} | {self.success_ratio:.2f}%\n"
-            f"Failed chats: {self.failed_count} | {self.failed_ratio:.2f}%\n"
-            f"Sends chats: {self.sends_count} | {self.sends_ratio:.2f}%"
+        return "\n".join(
+            f"{metric_name.replace('_', ' ').capitalize()} - {metric}"
+            for metric_name, metric in self.metrics.items()
         )
 
     @property
-    def total_chats(self) -> Set[int]:
-        return self._chat_engine.get_chats()
+    def total_chats(self) -> ChatsMetric:
+        chats = self._chat_engine.get_chats()
+        return ChatsMetric(ids=chats, total=len(chats))
 
     @property
-    def pending_chats(self) -> Set[int]:
-        return self._chat_engine.get_chats(ChatState.PENDING)
+    def pending_chats(self) -> ChatsMetric:
+        chats = self._chat_engine.get_chats(ChatState.PENDING)
+        return ChatsMetric(ids=chats, total=self.total_chats.total)
 
     @property
-    def success_chats(self) -> Set[int]:
-        return self._chat_engine.get_chats(ChatState.SUCCESS)
+    def success_chats(self) -> ChatsMetric:
+        chats = self._chat_engine.get_chats(ChatState.SUCCESS)
+        return ChatsMetric(ids=chats, total=self.total_chats.total)
 
     @property
-    def failed_chats(self) -> Set[int]:
-        return self._chat_engine.get_chats(ChatState.FAILED)
+    def failed_chats(self) -> ChatsMetric:
+        chats = self._chat_engine.get_chats(ChatState.FAILED)
+        return ChatsMetric(ids=chats, total=self.total_chats.total)
 
     @property
-    def sends_chats(self) -> Set[int]:
-        return self._chat_engine.get_chats(ChatState.SUCCESS, ChatState.FAILED)
+    def processed_chats(self) -> ChatsMetric:
+        chats = self._chat_engine.get_chats(ChatState.SUCCESS, ChatState.FAILED)
+        return ChatsMetric(ids=chats, total=self.total_chats.total)
 
     @property
-    def total_count(self) -> int:
-        return len(self.total_chats)
-
-    @property
-    def pending_count(self) -> int:
-        return len(self.pending_chats)
-
-    @property
-    def success_count(self) -> int:
-        return len(self.success_chats)
-
-    @property
-    def failed_count(self) -> int:
-        return len(self.failed_chats)
-
-    @property
-    def sends_count(self) -> int:
-        return len(self.sends_chats)
-
-    @property
-    def pending_ratio(self) -> float:
-        return self._calculate_ratio(self.pending_count)
-
-    @property
-    def success_ratio(self) -> float:
-        return self._calculate_ratio(self.success_count)
-
-    @property
-    def failed_ratio(self) -> float:
-        return self._calculate_ratio(self.failed_count)
-
-    @property
-    def sends_ratio(self) -> float:
-        return self._calculate_ratio(self.sends_count)
-
-    def _calculate_ratio(self, value: int) -> float:
-        return (value / self.total_count) * 100
+    def metrics(self) -> Dict[str, ChatsMetric]:
+        return {
+            "total_chats": self.total_chats,
+            "pending_chats": self.pending_chats,
+            "success_chats": self.success_chats,
+            "failed_chats": self.failed_chats,
+            "processed_chats": self.processed_chats,
+        }

@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, AsyncGenerator, Set
 
 
 if TYPE_CHECKING:
-    from typing import Set
-
-    from aiogram_broadcaster.contents import BaseContent
-    from aiogram_broadcaster.mailer.chat_engine import ChatEngine, ChatState
-    from aiogram_broadcaster.mailer.settings import MailerSettings
+    from .record import StorageRecord
 
 
 class BaseBCRStorage(ABC):
@@ -18,41 +15,21 @@ class BaseBCRStorage(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, mailer_id: int) -> None:
+    async def get_record(self, mailer_id: int) -> StorageRecord:
         pass
 
     @abstractmethod
-    async def get_content(self, mailer_id: int) -> BaseContent:
+    async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
         pass
 
     @abstractmethod
-    async def set_content(self, mailer_id: int, content: BaseContent) -> None:
+    async def delete_record(self, mailer_id: int) -> None:
         pass
 
-    @abstractmethod
-    async def get_chats(self, mailer_id: int) -> ChatEngine:
-        pass
-
-    @abstractmethod
-    async def set_chats(self, mailer_id: int, chats: ChatEngine) -> None:
-        pass
-
-    @abstractmethod
-    async def set_chat_state(self, mailer_id: int, chat: int, state: ChatState) -> None:
-        pass
-
-    @abstractmethod
-    async def get_settings(self, mailer_id: int) -> MailerSettings:
-        pass
-
-    @abstractmethod
-    async def set_settings(self, mailer_id: int, settings: MailerSettings) -> None:
-        pass
-
-    @abstractmethod
-    async def get_bot(self, mailer_id: int) -> int:
-        pass
-
-    @abstractmethod
-    async def set_bot(self, mailer_id: int, bot: int) -> None:
-        pass
+    @asynccontextmanager
+    async def update_record(self, mailer_id: int) -> AsyncGenerator[StorageRecord, None]:
+        record = await self.get_record(mailer_id=mailer_id)
+        try:
+            yield record
+        finally:
+            await self.set_record(mailer_id=mailer_id, record=record)

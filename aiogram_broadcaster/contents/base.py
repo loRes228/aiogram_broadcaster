@@ -21,6 +21,7 @@ class BaseContent(BaseModel, ABC):
         validate_assignment=True,
         arbitrary_types_allowed=True,
     )
+
     __validators__: ClassVar[Dict[str, Type["BaseContent"]]] = {}
 
     def __init_subclass__(cls, **kwargs: Any) -> None:

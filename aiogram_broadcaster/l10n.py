@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, cast
 
+from aiogram import Bot
 from aiogram.dispatcher.event.handler import CallableObject
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.methods.base import TelegramMethod
 from pydantic import ConfigDict, SerializeAsAny
 
@@ -27,8 +29,19 @@ class BaseLanguageGetter(ABC):
             pass
 
 
+class DefaultLanguageGetter(BaseLanguageGetter):
+    async def __call__(self, chat_id: int, bot: Bot) -> Optional[str]:
+        try:
+            member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
+        except TelegramBadRequest:
+            return None
+        else:
+            return member.user.language_code
+
+
 class L10nContentAdapter(BaseContent):
     model_config = ConfigDict(extra="allow")
+
     default: SerializeAsAny[BaseContent]
     __pydantic_extra__: Dict[str, SerializeAsAny[BaseContent]]
 

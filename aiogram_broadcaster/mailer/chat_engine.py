@@ -1,6 +1,5 @@
-from collections import defaultdict
 from enum import Enum, auto
-from typing import AsyncGenerator, DefaultDict, Dict, Iterable, Mapping, Optional, Set
+from typing import Any, AsyncGenerator, DefaultDict, Dict, Iterable, Optional, Set
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,9 +14,16 @@ class ChatState(str, Enum):
 
 class ChatEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
     chats: DefaultDict[ChatState, Set[int]]
-    mailer_id: int = Field(exclude=True)
+    mailer_id: Optional[int] = Field(default=None, exclude=True)
     storage: Optional[BaseBCRStorage] = Field(default=None, exclude=True)
+
+    def model_post_init(self, __context: Optional[Dict[str, Any]]) -> None:
+        if not __context:
+            return
+        self.mailer_id = __context.get("mailer_id")
+        self.storage = __context.get("storage")
 
     def __len__(self) -> int:
         return len(self.get_chats())
@@ -27,7 +33,7 @@ class ChatEngine(BaseModel):
         cls,
         iterable: Iterable[int],
         state: ChatState,
-        mailer_id: int,
+        mailer_id: Optional[int] = None,
         storage: Optional[BaseBCRStorage] = None,
     ) -> "ChatEngine":
         return ChatEngine(
@@ -35,31 +41,6 @@ class ChatEngine(BaseModel):
             mailer_id=mailer_id,
             storage=storage,
         )
-
-    @classmethod
-    def from_mapping(
-        cls,
-        mapping: Mapping[str, str],
-        mailer_id: int,
-        storage: Optional[BaseBCRStorage] = None,
-    ) -> "ChatEngine":
-        chats: Dict[str, Set[str]] = defaultdict(set)
-        for chat, state in mapping.items():
-            chats[state].add(chat)
-        return ChatEngine(
-            chats=chats,
-            mailer_id=mailer_id,
-            storage=storage,
-        )
-
-    def to_dict(self) -> Dict[str, str]:
-        # fmt: off
-        return {
-            str(chat): str(state.value)
-            for state, chats in self.chats.items()
-            for chat in chats
-        }
-        # fmt: on
 
     async def iterate_chats(self, state: ChatState) -> AsyncGenerator[int, None]:
         while self.chats[state]:
@@ -77,23 +58,18 @@ class ChatEngine(BaseModel):
         if not difference:
             return difference
         self.chats[state].update(difference)
-        if self.storage:
-            await self.storage.set_chats(
-                mailer_id=self.mailer_id,
-                chats=self,
-            )
+        if self.storage and self.mailer_id:
+            async with self.storage.update_record(mailer_id=self.mailer_id) as record:
+                record.chats = self
         return difference
 
     async def set_chat_state(self, chat: int, state: ChatState) -> None:
         from_state = self.resolve_chat_state(chat=chat)
         self.chats[from_state].discard(chat)
         self.chats[state].add(chat)
-        if self.storage:
-            await self.storage.set_chat_state(
-                mailer_id=self.mailer_id,
-                chat=chat,
-                state=state,
-            )
+        if self.storage and self.mailer_id:
+            async with self.storage.update_record(mailer_id=self.mailer_id) as record:
+                record.chats = self
 
     def resolve_chat_state(self, chat: int) -> ChatState:
         for state, chats in self.chats.items():
