@@ -23,7 +23,8 @@ Source = "https://github.com/loRes228/aiogram_broadcaster"
 [project.optional-dependencies]
 dev = [
     "mypy>=1.9.0",
-    "ruff>=0.3.2"
+    "ruff>=0.3.2",
+    "types-aiofiles>=23.2.0"
 ]
 
 [tool.hatch.version]
