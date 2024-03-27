@@ -19,7 +19,7 @@ class ChatEngine(BaseModel):
     mailer_id: Optional[int] = Field(default=None, exclude=True)
     storage: Optional[BaseBCRStorage] = Field(default=None, exclude=True)
 
-    def model_post_init(self, __context: Optional[Dict[str, Any]]) -> None:
+    def model_post_init(self, __context: Dict[str, Any]) -> None:
         if not __context:
             return
         self.mailer_id = __context.get("mailer_id")
@@ -58,21 +58,29 @@ class ChatEngine(BaseModel):
         if not difference:
             return difference
         self.chats[state].update(difference)
-        if self.storage and self.mailer_id:
-            async with self.storage.update_record(mailer_id=self.mailer_id) as record:
-                record.chats = self
+        await self._preserve()
         return difference
 
+    async def set_chats_state(self, state: ChatState) -> None:
+        chats = self.get_chats()
+        self.chats.clear()
+        self.chats[state] = chats
+        await self._preserve()
+
     async def set_chat_state(self, chat: int, state: ChatState) -> None:
-        from_state = self.resolve_chat_state(chat=chat)
+        from_state = self._resolve_chat_state(chat=chat)
         self.chats[from_state].discard(chat)
         self.chats[state].add(chat)
-        if self.storage and self.mailer_id:
-            async with self.storage.update_record(mailer_id=self.mailer_id) as record:
-                record.chats = self
+        await self._preserve()
 
-    def resolve_chat_state(self, chat: int) -> ChatState:
+    def _resolve_chat_state(self, chat: int) -> ChatState:
         for state, chats in self.chats.items():
             if chat in chats:
                 return state
         raise LookupError(f"Chat={chats} state is undefined.")
+
+    async def _preserve(self) -> None:
+        if not self.storage or not self.mailer_id:
+            return
+        async with self.storage.update_record(mailer_id=self.mailer_id) as record:
+            record.chats = self

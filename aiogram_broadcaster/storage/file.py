@@ -1,5 +1,6 @@
+from asyncio import Lock
 from pathlib import Path
-from typing import Any, Dict, Set, Union
+from typing import Any, Dict, Optional, Set, Union
 
 from aiofiles import open
 from pydantic import BaseModel, Field
@@ -14,14 +15,23 @@ class StorageRecords(BaseModel):
 
 class FileBCRStorage(BaseBCRStorage):
     file: Path
+    _lock: Optional[Lock]
 
     def __init__(self, filename: Union[str, Path] = ".mailers.json") -> None:
         if not isinstance(filename, Path):
             filename = Path(filename)
         self.file = filename
+        self._lock = None
 
         if self.file.exists() and not self.file.is_file():
-            raise RuntimeError
+            raise RuntimeError("The filename is not a file.")
+
+    @property
+    def lock(self) -> Lock:
+        """Lazy initialization to correctly catch the event loop."""
+        if self._lock is None:
+            self._lock = Lock()
+        return self._lock
 
     async def get_mailer_ids(self) -> Set[int]:
         records = await self.get_records()
@@ -46,14 +56,17 @@ class FileBCRStorage(BaseBCRStorage):
             records = StorageRecords()
             await self.set_records(records=records)
             return records
-        async with open(file=self.file, mode="r") as file:
+        async with self.lock, open(file=self.file, mode="r", encoding="utf-8") as file:
             data = await file.read()
-        return StorageRecords.model_validate_json(
-            json_data=data,
-            context=pydantic_context,
-        )
+            return StorageRecords.model_validate_json(
+                json_data=data,
+                context=pydantic_context,
+            )
 
     async def set_records(self, records: StorageRecords) -> None:
-        data = records.model_dump_json(exclude_defaults=True)
-        async with open(file=self.file, mode="w") as file:
+        async with self.lock, open(file=self.file, mode="w", encoding="utf-8") as file:
+            data = records.model_dump_json(exclude_defaults=True)
             await file.write(data)
+
+    async def close(self) -> None:
+        pass

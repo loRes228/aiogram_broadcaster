@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, Iterator, List, Literal, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterable, Literal, Optional, Set, Tuple, Union
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher
@@ -11,14 +11,15 @@ from .l10n import BaseLanguageGetter, DefaultLanguageGetter
 from .logger import logger
 from .mailer import Mailer, MailerStatus
 from .mailer.chat_engine import ChatEngine, ChatState
-from .mailer.multiple import MultipleMailers
+from .mailer.container import MailerContainer
+from .mailer.group import MailerGroup
 from .mailer.settings import MailerSettings
 from .placeholder import PlaceholderWizard
 from .storage.base import BaseBCRStorage
 from .storage.record import StorageRecord
 
 
-class Broadcaster:
+class Broadcaster(MailerContainer):
     _bots: Dict[int, Bot]
     storage: Optional[BaseBCRStorage]
     language_getter: BaseLanguageGetter
@@ -27,7 +28,6 @@ class Broadcaster:
     kwargs: Dict[str, Any]
     event: EventManager
     placeholder: PlaceholderWizard
-    _mailers: Dict[int, Mailer]
 
     def __init__(
         self,
@@ -38,6 +38,8 @@ class Broadcaster:
         context_key: str = "broadcaster",
         **kwargs: Any,
     ) -> None:
+        super().__init__()
+
         self._bots = {bot.id: bot for bot in bots}
         self.storage = storage
         self.language_getter = language_getter or DefaultLanguageGetter()
@@ -48,45 +50,13 @@ class Broadcaster:
 
         self.event = EventManager(name="root")
         self.placeholder = PlaceholderWizard(name="root")
-        self._mailers = {}
-
-    def __repr__(self) -> str:
-        return f"Broadcaster(total_mailers={len(self._mailers)})"
-
-    def __str__(self) -> str:
-        mailers = ", ".join(map(repr, self))
-        return f"Broadcaster[{mailers}]"
-
-    def __contains__(self, item: int) -> bool:
-        return item in self._mailers
-
-    def __getitem__(self, item: int) -> Mailer:
-        if mailer := self._mailers.get(item):
-            return mailer
-        raise LookupError(f"Mailer with id={item} not exists.")
-
-    def __iter__(self) -> Iterator[Mailer]:
-        return iter(self._mailers.values())
-
-    def __len__(self) -> int:
-        return len(self._mailers)
 
     @property
     def bots(self) -> Tuple[Bot, ...]:
         return tuple(self._bots.values())
 
-    @property
-    def mailers(self) -> Dict[int, Mailer]:
-        return self._mailers
-
-    def get_mailers(self) -> List[Mailer]:
-        return list(self._mailers.values())
-
-    def get_mailer(self, mailer_id: int) -> Optional[Mailer]:
-        return self._mailers.get(mailer_id)
-
-    def as_multiple(self) -> MultipleMailers:
-        return MultipleMailers(mailers=self._mailers.values())
+    def as_group(self) -> MailerGroup:
+        return MailerGroup(*self._mailers.values())
 
     async def create_mailers(
         self,
@@ -103,7 +73,7 @@ class Broadcaster:
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
         data: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> MultipleMailers:
+    ) -> MailerGroup:
         if not bots and not self._bots:
             raise ValueError("At least one bot must be specified.")
         if not bots:
@@ -126,7 +96,7 @@ class Broadcaster:
             )
             for bot in bots
         ]
-        return MultipleMailers(mailers=mailers)
+        return MailerGroup(*mailers)
 
     async def create_mailer(
         self,
@@ -260,4 +230,5 @@ class Broadcaster:
             self.kwargs.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.restore_mailers)
+            dispatcher.shutdown.register(self.storage.close)
         dispatcher.startup.register(self.run_mailers)

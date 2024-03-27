@@ -33,3 +33,7 @@ class BaseBCRStorage(ABC):
             yield record
         finally:
             await self.set_record(mailer_id=mailer_id, record=record)
+
+    @abstractmethod
+    async def close(self) -> None:
+        pass

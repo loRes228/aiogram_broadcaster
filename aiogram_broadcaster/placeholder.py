@@ -56,7 +56,7 @@ class Placeholder(ChainObject):
             yield from placeholder.values
 
     @property
-    def chain_values(self) -> Generator[Tuple[str, Any], None, None]:
+    def chain_items(self) -> Generator[Tuple[str, Any], None, None]:
         for placeholder in self.chain_tail:
             yield from placeholder.values.items()
 
@@ -92,7 +92,7 @@ class PlaceholderWizard(Placeholder):
             select = set(self.chain_keys)
         return {
             key: await value(**kwargs) if callable(value) else value
-            for key, value in self.chain_values
+            for key, value in self.chain_items
             if key in select
         }
 

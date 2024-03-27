@@ -12,7 +12,7 @@ from pydantic import (
 from pydantic.functional_validators import ModelWrapValidatorHandler
 
 
-VALIDATOR_KEY = "__validator"
+VALIDATOR_KEY = "__V"
 
 
 class BaseContent(BaseModel, ABC):

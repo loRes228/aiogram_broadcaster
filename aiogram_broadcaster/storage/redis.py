@@ -83,3 +83,6 @@ class RedisBCRStorage(BaseBCRStorage):
     async def delete_record(self, mailer_id: int) -> None:
         key = self.key_builder.build(mailer_id=mailer_id)
         await self.redis.delete(key)
+
+    async def close(self) -> None:
+        await self.redis.aclose(close_connection_pool=True)

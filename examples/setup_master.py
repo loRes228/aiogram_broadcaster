@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, List, Optional, Protocol
+from typing import Any, List, Optional, Protocol
 
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramBadRequest
@@ -12,9 +12,6 @@ from aiogram_broadcaster.mailer import Mailer
 from aiogram_broadcaster.placeholder import Placeholder
 from aiogram_broadcaster.storage.redis import RedisBCRStorage
 
-
-if TYPE_CHECKING:
-    from aiogram.types import Message
 
 event = EventRouter(name=__name__)
 placeholder = Placeholder(name=__name__)
@@ -45,20 +42,17 @@ async def append_new_chats(mailer: Mailer, database: Database) -> None:
 
 
 @event.completed()
-async def notify_complete(mailer: Mailer, bot: Bot, **kwargs: Any) -> None:
-    message: Optional[Message] = kwargs.get("message")
-    publisher_id: Optional[int] = kwargs.get("publisher_id")
+async def notify_complete(mailer: Mailer, bot: Bot, publisher_id: int, **kwargs: Any) -> None:
     text = (
         f"Broadcasting has been completed!\n"
         f"Mailer ID: {mailer.id} | Bot ID: {bot.id}\n"
         f"{mailer}"
     )
-    if message:
-        await message.reply(text=text)
-        return
-    if publisher_id:
-        await bot.send_message(chat_id=publisher_id, text=text)
-        return
+    await bot.send_message(
+        chat_id=publisher_id,
+        text=text,
+        reply_to_message_id=kwargs.get("message_id"),
+    )
 
 
 @event.failed_sent()

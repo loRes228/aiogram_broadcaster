@@ -27,9 +27,6 @@ class ChatsMetric:
             "relative_range": self.relative_range,
         }
 
-    def __iter__(self) -> Iterator[int]:
-        return iter(self.ids)
-
     def __repr__(self) -> str:
         # fmt: off
         metrics = ", ".join(
@@ -46,6 +43,9 @@ class ChatsMetric:
             for metric_name, metric in self.metrics.items()
         )
         # fmt: on
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(self.ids)
 
 
 class MailerStatistic:

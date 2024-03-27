@@ -129,6 +129,26 @@ class Mailer:
             self._status = MailerStatus.STOPPED
         return has_difference
 
+    async def reset_chats(self) -> None:
+        await self._chat_engine.set_chats_state(state=ChatState.PENDING)
+        if self._status is MailerStatus.COMPLETED:
+            self._status = MailerStatus.STOPPED
+
+    async def send(self, chat_id: int) -> Any:
+        method = await self._content.as_method(
+            chat_id=chat_id,
+            language_getter=self._language_getter,
+            **self._kwargs,
+        )
+        if self._settings.exclude_placeholders is not True:
+            method = await self._placeholder.render(
+                model=method,
+                exclude=self._settings.exclude_placeholders,
+                chat_id=chat_id,
+                **self._kwargs,
+            )
+        return await method.as_(bot=self._bot)
+
     def start(self, **kwargs: Any) -> None:
         self._check_start()
         self._task.start(self.run(**kwargs))
@@ -227,24 +247,9 @@ class Mailer:
                 return False
         return True
 
-    async def send_content(self, chat_id: int) -> Any:
-        method = await self._content.as_method(
-            chat_id=chat_id,
-            language_getter=self._language_getter,
-            **self._kwargs,
-        )
-        if self._settings.exclude_placeholders is not True:
-            method = await self._placeholder.render(
-                model=method,
-                exclude=self._settings.exclude_placeholders,
-                chat_id=chat_id,
-                **self._kwargs,
-            )
-        return await method.as_(bot=self._bot)
-
     async def _send(self, chat_id: int) -> None:
         try:
-            response = await self.send_content(chat_id=chat_id)
+            response = await self.send(chat_id=chat_id)
         except TelegramRetryAfter as error:
             if self._settings.handle_retry_after:
                 await self._process_retry_after(chat_id=chat_id, delay=error.retry_after)
