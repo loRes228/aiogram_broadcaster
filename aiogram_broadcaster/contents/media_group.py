@@ -4,7 +4,7 @@ from aiogram.client.default import Default
 from aiogram.methods import SendMediaGroup, TelegramMethod
 from aiogram.types import InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo
 
-from aiogram_broadcaster.contents import BaseContent
+from .base import BaseContent
 
 
 MediaType = List[

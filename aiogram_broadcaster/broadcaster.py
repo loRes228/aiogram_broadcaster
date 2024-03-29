@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, Literal, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterable, Literal, Optional, Set, Tuple, Union, cast
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher
@@ -9,11 +9,12 @@ from .default import DefaultMailerProperties
 from .event import EventManager
 from .l10n import BaseLanguageGetter, DefaultLanguageGetter
 from .logger import logger
-from .mailer import Mailer, MailerStatus
 from .mailer.chat_engine import ChatEngine, ChatState
 from .mailer.container import MailerContainer
 from .mailer.group import MailerGroup
+from .mailer.mailer import ContentType, Mailer
 from .mailer.settings import MailerSettings
+from .mailer.status import MailerStatus
 from .placeholder import PlaceholderWizard
 from .storage.base import BaseBCRStorage
 from .storage.record import StorageRecord
@@ -100,7 +101,7 @@ class Broadcaster(MailerContainer):
 
     async def create_mailer(
         self,
-        content: BaseContent,
+        content: ContentType,
         chats: Iterable[int],
         *,
         bot: Optional[Bot] = None,
@@ -114,7 +115,7 @@ class Broadcaster(MailerContainer):
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
         data: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> Mailer:
+    ) -> Mailer[ContentType]:
         properties = self.default.prepare(
             interval=interval,
             dynamic_interval=dynamic_interval,
@@ -170,7 +171,7 @@ class Broadcaster(MailerContainer):
         logger.info("Mailer id=%d was created.", mailer_id)
         if not properties.preserve:
             return mailer
-        self._mailers[mailer_id] = mailer
+        self._mailers[mailer_id] = cast(Mailer, mailer)
         if not self.storage:
             return mailer
         record = StorageRecord(
@@ -190,12 +191,12 @@ class Broadcaster(MailerContainer):
 
     async def restore_mailers(self) -> None:
         if not self.storage:
-            raise RuntimeError("Storage not specified.")
+            raise RuntimeError("Storage not found.")
         for mailer_id in await self.storage.get_mailer_ids():
             record = await self.storage.get_record(mailer_id=mailer_id)
             if record.bot not in self._bots:
                 logger.error(
-                    "Failed to restore mailer id=%d, bot with id=%d not specified.",
+                    "Failed to restore mailer id=%d, bot with id=%d not defined.",
                     mailer_id,
                     record.bot,
                 )

@@ -1,5 +1,5 @@
 from asyncio import Event, TimeoutError, wait_for
-from typing import Any, Dict, Iterable, Optional, Set
+from typing import TYPE_CHECKING, Any, Dict, Generic, Iterable, Optional, Set, TypeVar
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
@@ -18,11 +18,17 @@ from .status import MailerStatus
 from .tasks import TaskManager
 
 
-class Mailer:
+if TYPE_CHECKING:
+    ContentType = TypeVar("ContentType", bound=BaseContent, default=BaseContent)
+else:
+    ContentType = TypeVar("ContentType", bound=BaseContent)
+
+
+class Mailer(Generic[ContentType]):
     _id: int
     _settings: MailerSettings
     _chat_engine: ChatEngine
-    _content: BaseContent
+    _content: ContentType
     _event: EventManager
     _language_getter: BaseLanguageGetter
     _placeholder: PlaceholderWizard
@@ -41,7 +47,7 @@ class Mailer:
         id: int,  # noqa: A002
         settings: MailerSettings,
         chat_engine: ChatEngine,
-        content: BaseContent,
+        content: ContentType,
         event: EventManager,
         language_getter: BaseLanguageGetter,
         placeholder: PlaceholderWizard,
@@ -96,6 +102,9 @@ class Mailer:
     def __len__(self) -> int:
         return len(self._chat_engine)
 
+    def __bool__(self) -> bool:
+        return self._status is MailerStatus.COMPLETED
+
     @property
     def id(self) -> int:
         return self._id
@@ -113,7 +122,7 @@ class Mailer:
         return self._statistic
 
     @property
-    def content(self) -> BaseContent:
+    def content(self) -> ContentType:
         return self._content
 
     @property
@@ -121,18 +130,25 @@ class Mailer:
         return self._bot
 
     async def add_chats(self, chats: Iterable[int]) -> Set[int]:
-        has_difference = await self._chat_engine.add_chats(
+        new_chats = await self._chat_engine.add_chats(
             chats=chats,
             state=ChatState.PENDING,
         )
-        if has_difference and self._status is MailerStatus.COMPLETED:
-            self._status = MailerStatus.STOPPED
-        return has_difference
+        if new_chats:
+            logger.info(
+                "Mailer id=%d new %d chats added.",
+                self._id,
+                len(new_chats),
+            )
+            if self._status is MailerStatus.COMPLETED:
+                self._status = MailerStatus.STOPPED
+        return new_chats
 
     async def reset_chats(self) -> None:
         await self._chat_engine.set_chats_state(state=ChatState.PENDING)
         if self._status is MailerStatus.COMPLETED:
             self._status = MailerStatus.STOPPED
+        logger.info("Mailer id=%d has been reset.")
 
     async def send(self, chat_id: int) -> Any:
         method = await self._content.as_method(
@@ -150,56 +166,31 @@ class Mailer:
         return await method.as_(bot=self._bot)
 
     def start(self, **kwargs: Any) -> None:
-        self._check_start()
+        if self._status is not MailerStatus.STOPPED:
+            raise RuntimeError(f"Mailer id={self.id} cant be started.")
         self._task.start(self.run(**kwargs))
 
     async def wait(self) -> None:
-        self._check_wait()
+        if not self._task.started or self._task.waited:
+            raise RuntimeError(f"Mailer id={self.id} cant be waited.")
         await self._task.wait()
 
     async def stop(self) -> None:
-        self._check_stop()
+        if self._status is not MailerStatus.STARTED:
+            raise RuntimeError(f"Mailer id={self.id} cant be stopped.")
         await self._emit_stop()
 
     async def run(self, **kwargs: Any) -> None:
-        self._check_start()
+        if self._status is not MailerStatus.STOPPED:
+            raise RuntimeError(f"Mailer id={self.id} cant be started.")
         await self._emit_start(**kwargs)
         if await self._broadcast():
             await self._emit_complete()
 
     async def destroy(self) -> None:
-        self._check_destroy()
+        if not self._settings.preserved:
+            raise RuntimeError(f"Mailer id={self.id} cant be destroyed.")
         await self._emit_destroy()
-
-    def _check_start(self) -> None:
-        if self._status is MailerStatus.DESTROYED:
-            raise RuntimeError(f"Mailer id={self.id} has been destroyed.")
-        if self._status is MailerStatus.STARTED:
-            raise RuntimeError(f"Mailer id={self._id} is already started.")
-        if self._status is MailerStatus.COMPLETED:
-            raise RuntimeError(f"Mailer id={self._id} has been already completed.")
-
-    def _check_stop(self) -> None:
-        if self._status is MailerStatus.DESTROYED:
-            raise RuntimeError(f"Mailer id={self.id} has been destroyed.")
-        if self._status is MailerStatus.STOPPED:
-            raise RuntimeError(f"Mailer id={self._id} is already stopped.")
-        if self._status is MailerStatus.COMPLETED:
-            raise RuntimeError(f"Mailer id={self._id} has been already been completed.")
-
-    def _check_wait(self) -> None:
-        if self._status is MailerStatus.DESTROYED:
-            raise RuntimeError(f"Mailer id={self.id} has been destroyed.")
-        if not self._task.started:
-            raise RuntimeError(f"Mailer id={self._id} is not yet started for waiting.")
-        if self._task.waited:
-            raise RuntimeError(f"Mailer id={self._id} has been already waited.")
-
-    def _check_destroy(self) -> None:
-        if self._status is MailerStatus.DESTROYED:
-            raise RuntimeError(f"Mailer id={self._id} is already destroyed.")
-        if self._id not in self._mailer_container and not self._storage:
-            raise RuntimeError(f"Mailer id={self._id} not preserved to destroy.")
 
     async def _emit_start(self, **kwargs: Any) -> None:
         logger.info("Mailer id=%d started.", self._id)

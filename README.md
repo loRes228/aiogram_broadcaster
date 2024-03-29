@@ -35,19 +35,13 @@ async def on_any_message(message: Message, broadcaster: Broadcaster) -> Any:
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
-        data={"publisher_id": message.chat.id, "message_id": message.message_id},
     )
     mailer.start()
     await message.answer(text="Run broadcasting...")
 
 
 @event.completed()
-async def notify_complete(
-    mailer: Mailer,
-    bot: Bot,
-    publisher_id: int,
-    message_id: int,
-) -> None:
+async def notify_complete(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
     text = (
         f"Broadcasting has been completed!\n"
         f"Mailer ID: {mailer.id} | Bot ID: {bot.id}\n"
@@ -55,11 +49,7 @@ async def notify_complete(
         f"Failed chats: {mailer.statistic.failed_chats.total}\n"
         f"Success chats: {mailer.statistic.success_chats.total}\n"
     )
-    await bot.send_message(
-        chat_id=publisher_id,
-        text=text,
-        reply_to_message_id=message_id,
-    )
+    await mailer.content.message.reply(text=text)
 
 
 def main() -> None:
