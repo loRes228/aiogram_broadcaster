@@ -25,23 +25,6 @@ class ChatEngine(BaseModel):
         self.mailer_id = __context.get("mailer_id")
         self.storage = __context.get("storage")
 
-    def __len__(self) -> int:
-        return len(self.get_chats())
-
-    @classmethod
-    def from_iterable(
-        cls,
-        iterable: Iterable[int],
-        state: ChatState,
-        mailer_id: Optional[int] = None,
-        storage: Optional[BaseBCRStorage] = None,
-    ) -> "ChatEngine":
-        return ChatEngine(
-            chats={state: set(iterable)},
-            mailer_id=mailer_id,
-            storage=storage,
-        )
-
     async def iterate_chats(self, state: ChatState) -> AsyncGenerator[int, None]:
         while self.chats[state]:
             yield self.chats[state].copy().pop()

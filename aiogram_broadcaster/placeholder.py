@@ -1,4 +1,5 @@
 from string import Template
+from types import FunctionType
 from typing import (
     Any,
     Callable,
@@ -12,19 +13,13 @@ from typing import (
     TypeVar,
 )
 
-from aiogram.dispatcher.event.handler import CallableObject as _CallableObject
-from aiogram.dispatcher.event.handler import CallbackType
+from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 from pydantic import BaseModel
 
 from .utils.chain import ChainObject
 
 
 ModelType = TypeVar("ModelType", bound=BaseModel)
-
-
-class CallableObject(_CallableObject):
-    async def __call__(self, **kwargs: Any) -> Any:
-        return await self.call(**kwargs)
 
 
 class Placeholder(ChainObject):
@@ -63,13 +58,13 @@ class Placeholder(ChainObject):
     def add(self, key: str, value: Any) -> None:
         if key in self.values:
             raise KeyError(f"Key {key!r} is already exists.")
-        if callable(value):
+        if isinstance(value, FunctionType):
             value = CallableObject(callback=value)
         self.values[key] = value
 
-    def attach(self, mapping: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> None:
-        if mapping:
-            kwargs.update(mapping)
+    def attach(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> None:
+        if __mapping:
+            kwargs.update(__mapping)
         if keys_collusion := set(self.chain_keys) & set(kwargs):
             raise RuntimeError(f"Collusion between keys was detected: {keys_collusion}.")
         self.values.update(kwargs)
@@ -91,7 +86,7 @@ class PlaceholderWizard(Placeholder):
         if select is None:
             select = set(self.chain_keys)
         return {
-            key: await value(**kwargs) if callable(value) else value
+            key: await value.call(**kwargs) if isinstance(value, CallableObject) else value
             for key, value in self.chain_items
             if key in select
         }

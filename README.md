@@ -1,4 +1,4 @@
-# aiogram_broadcaster
+## A lightweight aiogram-based library for broadcasting Telegram messages.
 
 ## Installation
 
@@ -6,62 +6,49 @@
 pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 ```
 
-## Usage example
+## Creating a mailer and running broadcasting
+
+#### How to create a mailer and initiate broadcasting to multiple users.
+
+#### Usage:
 
 ```python
-import logging
-import sys
 from typing import Any
 
 from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster, DefaultMailerProperties
+from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
-from aiogram_broadcaster.event import EventRouter
-from aiogram_broadcaster.mailer import Mailer
-from aiogram_broadcaster.storage.file import FileBCRStorage
 
-TOKEN = "1234:Abc"  # noqa: S105
-USER_IDS = {78238238, 78378343, 98765431, 12345678}
+TOKEN = "1234:Abc"
+USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
-event = EventRouter()
 
 
 @router.message()
-async def on_any_message(message: Message, broadcaster: Broadcaster) -> Any:
+async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any:
+    # Creating content based on the Message
     content = MessageSendContent(message=message)
+
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
     )
+
+    # The mailer launch method starts mailing to chats as an asyncio task.
     mailer.start()
+
     await message.answer(text="Run broadcasting...")
 
 
-@event.completed()
-async def notify_complete(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
-    text = (
-        f"Broadcasting has been completed!\n"
-        f"Mailer ID: {mailer.id} | Bot ID: {bot.id}\n"
-        f"Total chats: {mailer.statistic.total_chats.total}\n"
-        f"Failed chats: {mailer.statistic.failed_chats.total}\n"
-        f"Success chats: {mailer.statistic.success_chats.total}\n"
-    )
-    await mailer.content.message.reply(text=text)
-
-
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     bot = Bot(token=TOKEN)
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    bcr_storage = FileBCRStorage()
-    default = DefaultMailerProperties(destroy_on_complete=True)
-    broadcaster = Broadcaster(bot, storage=bcr_storage, default=default)
-    broadcaster.event.include(event)
+    broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)
@@ -69,4 +56,174 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+```
+
+## Creating a group of mailers based on many bots
+
+#### When using a multibot, it may be necessary to launch many mailings in several bots. For this case, there is a [MailerGroup](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/group.py) object that stores several mailers and can manage them.
+
+#### Usage:
+
+```python
+from aiogram import Bot
+from asycncio import run
+
+from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.contents import TextContent
+
+
+async def main() -> None:
+    # Your user IDs
+    user_ids = {78238238, 78378343, 98765431, 12345678}
+
+    # List of bots
+    bots = [Bot(token="1234:Abc"), Bot(token="5678:Vbn")]
+
+    broadcaster = Broadcaster()
+
+    # Creating a group of mailers based on several bots
+    content = TextContent(text="any text")
+    mailer_group = await broadcaster.create_mailers(
+        *bots,
+        content=content,
+        chats=user_ids,
+    )
+
+    # Run all mailers in the mailer group
+    await mailer_group.run()
+
+
+if __name__ == "__main__":
+    run(main())
+```
+
+## Event management system for broadcasting
+
+#### The event system empowers you to effectively manage events throughout the broadcast process. It supports nesting, akin to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers) feature, enabling structured event handling.
+
+#### Usage:
+
+```python
+from aigoram_broadcaster import Broadcaster
+
+from aiogram_broadcaster.event import EventRouter
+
+broadcaster = Broadcaster()
+event = EventRouter(name=__name__)
+
+
+# Define event handlers
+
+
+@event.started()
+async def on_mailer_started() -> None:
+    """Triggered when the mailer begins its operations."""
+
+
+@event.stopped()
+async def on_mailer_stopped() -> None:
+    """Triggered when the mailer stops its operations."""
+
+
+@event.completed()
+async def on_mailer_completed() -> None:
+    """Triggered when the mailer successfully completes its operations."""
+
+
+@event.failed_sent()
+async def on_failed_mail_sent() -> None:
+    """
+    Triggered when a message fails to send.
+
+    Exclusive parameters for this type of event.
+        chat_id (int): ID of the chat.
+        error (Exception): Exception raised during sending.
+    """
+
+
+@event.success_sent()
+async def on_successful_mail_sent() -> None:
+    """
+    Triggered when a message is successfully sent.
+
+    Exclusive parameters for this type of event:
+        chat_id (int): ID of the chat.
+        response (Any): Response from the sent message.
+    """
+
+
+# Include the event instance in the broadcaster
+broadcaster.event.include(event)
+```
+
+## Placeholders for dynamic content insertion
+
+#### Placeholders facilitate the insertion of dynamic content within texts, offering support for nesting similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers). This feature allows for personalized messaging.
+
+#### Usage:
+
+```python
+from aiogram import Bot
+
+from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.contents import PhotoContent, TextContent
+from aiogram_broadcaster.placeholder import Placeholder
+
+broadcaster = Broadcaster()
+placeholder = Placeholder(name=__name__)
+
+
+# Define a function to retrieve the username
+@placeholder(key="name")
+async def get_username(chat_id: int, bot: Bot) -> str:
+    """Retrieves the username using the Telegram Bot API."""
+    member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
+    return member.user.first_name
+
+
+# Include the placeholder instance in the broadcaster
+broadcaster.placeholder.include(placeholder)
+
+# Other methods for registering placeholders
+broadcaster.placeholder["age"] = 22
+broadcaster.placeholder.add(key="name", value=get_username)
+broadcaster.placeholder.attach({"age": 22}, name=get_username)
+
+# Create content featuring a placeholder
+text_content = TextContent(text="Hello, $name!")
+photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
+```
+
+## Localization module for personalized content based on user's language
+
+#### The localization module allows for the creation of personalized content based on the user's language preference.
+
+#### Usage:
+
+```python
+from typing import Optional
+
+from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.contents import TextContent
+from aiogram_broadcaster.l10n import BaseLanguageGetter, L10nContentAdapter
+
+
+# Define a custom language getter
+class CustomLanguageGetter(BaseLanguageGetter):
+    async def __call__(self, chat_id: int, database: Database) -> Optional[str]:
+        """Retrieves the user's language using the internal database."""
+        user = await database.get_user_by_id(user_id=chat)
+        return user.language
+
+
+# Initialize the broadcaster with the custom language getter
+# By default, the DefaultLanguageGetter is initialized based on the Telegram getChatMember method
+broadcaster = Broadcaster(language_getter=CustomLanguageGetter())
+
+# Create localized content
+content = L10nContentAdapter(
+    default=TextContent(text="Hello!"),
+    uk=TextContent(text="Привіт!"),
+    ru=TextContent(text="Привет!"),
+)
 ```

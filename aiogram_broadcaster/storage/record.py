@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny
 
-from aiogram_broadcaster.contents import BaseContent
+from aiogram_broadcaster.contents.base import BaseContent
 from aiogram_broadcaster.mailer.chat_engine import ChatEngine
 from aiogram_broadcaster.mailer.settings import MailerSettings
 

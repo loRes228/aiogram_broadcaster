@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Dict, Type
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Dict, Type, TypeVar
 
 from aiogram.methods.base import TelegramMethod
 from pydantic import (
@@ -13,6 +13,11 @@ from pydantic.functional_validators import ModelWrapValidatorHandler
 
 
 VALIDATOR_KEY = "__V"
+
+if TYPE_CHECKING:
+    ContentType = TypeVar("ContentType", bound="BaseContent", default="BaseContent")
+else:
+    ContentType = TypeVar("ContentType", bound="BaseContent")
 
 
 class BaseContent(BaseModel, ABC):

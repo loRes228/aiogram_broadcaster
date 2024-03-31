@@ -28,6 +28,14 @@ class MailerContainer:
     def __len__(self) -> int:
         return len(self._mailers)
 
+    def __hash__(self) -> int:
+        return hash(frozenset(self._mailers))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, MailerContainer):
+            return False
+        return hash(self) == hash(other)
+
     @property
     def mailers(self) -> Dict[int, Mailer]:
         return self._mailers.copy()

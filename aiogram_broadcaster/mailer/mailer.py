@@ -1,10 +1,10 @@
 from asyncio import Event, TimeoutError, wait_for
-from typing import TYPE_CHECKING, Any, Dict, Generic, Iterable, Optional, Set, TypeVar
+from typing import Any, Dict, Generic, Iterable, Optional, Set
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
-from aiogram_broadcaster.contents import BaseContent
+from aiogram_broadcaster.contents.base import ContentType
 from aiogram_broadcaster.event import EventManager
 from aiogram_broadcaster.l10n import BaseLanguageGetter
 from aiogram_broadcaster.logger import logger
@@ -16,12 +16,6 @@ from .settings import MailerSettings
 from .statistic import MailerStatistic
 from .status import MailerStatus
 from .tasks import TaskManager
-
-
-if TYPE_CHECKING:
-    ContentType = TypeVar("ContentType", bound=BaseContent, default=BaseContent)
-else:
-    ContentType = TypeVar("ContentType", bound=BaseContent)
 
 
 class Mailer(Generic[ContentType]):
@@ -84,26 +78,23 @@ class Mailer(Generic[ContentType]):
             f"id={self._id}, "
             f"status={self._status.name.lower()!r}, "
             f"interval={self._settings.interval:.2f}, "
-            f"total_chats={len(self)}"
+            f"chats={self._statistic.processed_chats.total}/{self._statistic.total_chats.total}"
             ")"
         )
 
     def __str__(self) -> str:
         return str(self._statistic)
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Mailer):
-            return False
-        return hash(self) == hash(other)
+    def __bool__(self) -> bool:
+        return self._status is MailerStatus.COMPLETED
 
     def __hash__(self) -> int:
         return hash(self._id)
 
-    def __len__(self) -> int:
-        return len(self._chat_engine)
-
-    def __bool__(self) -> bool:
-        return self._status is MailerStatus.COMPLETED
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Mailer):
+            return False
+        return hash(self) == hash(other)
 
     @property
     def id(self) -> int:

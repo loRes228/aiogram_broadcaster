@@ -4,7 +4,7 @@ from uuid import uuid4
 from aiogram import Bot, Dispatcher
 from pydantic_core import PydanticSerializationError
 
-from .contents import BaseContent
+from .contents.base import BaseContent, ContentType
 from .default import DefaultMailerProperties
 from .event import EventManager
 from .l10n import BaseLanguageGetter, DefaultLanguageGetter
@@ -12,7 +12,7 @@ from .logger import logger
 from .mailer.chat_engine import ChatEngine, ChatState
 from .mailer.container import MailerContainer
 from .mailer.group import MailerGroup
-from .mailer.mailer import ContentType, Mailer
+from .mailer.mailer import Mailer
 from .mailer.settings import MailerSettings
 from .mailer.status import MailerStatus
 from .placeholder import PlaceholderWizard
@@ -130,6 +130,8 @@ class Broadcaster(MailerContainer):
         if not bot and not self._bots:
             raise ValueError("At least one bot must be specified.")
 
+        chats = set(chats)
+
         if bot is None:
             bot = self.bots[-1]
         if data is None:
@@ -137,7 +139,7 @@ class Broadcaster(MailerContainer):
 
         interval = properties.interval
         if properties.dynamic_interval:
-            interval = max(0.1, interval / len(set(chats)))
+            interval = max(0.1, interval / len(chats))
 
         mailer_id = hash(uuid4())
         settings = MailerSettings(
@@ -149,9 +151,8 @@ class Broadcaster(MailerContainer):
             exclude_placeholders=exclude_placeholders,
             preserved=properties.preserve,
         )
-        chat_engine = ChatEngine.from_iterable(
-            iterable=chats,
-            state=ChatState.PENDING,
+        chat_engine = ChatEngine(
+            chats={ChatState.PENDING: chats},
             mailer_id=mailer_id,
             storage=self.storage if properties.preserve else None,
         )

@@ -7,7 +7,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.methods.base import TelegramMethod
 from pydantic import ConfigDict, SerializeAsAny
 
-from .contents import BaseContent
+from .contents.base import BaseContent
 
 
 class BaseLanguageGetter(ABC):
