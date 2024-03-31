@@ -1,4 +1,4 @@
-CODE_DIRS = aiogram_broadcaster examples
+CODE_DIRS = aiogram_broadcaster
 
 
 .PHONY: lint
