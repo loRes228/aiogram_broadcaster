@@ -23,13 +23,11 @@ ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
 class Placeholder(ChainObject):
-    name: str
     values: Dict[str, Any]
 
     def __init__(self, name: Optional[str] = None) -> None:
-        super().__init__(entity=Placeholder, sub_name="placeholder")
+        super().__init__(entity=Placeholder, sub_name="placeholder", name=name)
 
-        self.name = name or hex(id(self))
         self.values = {}
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -41,9 +39,6 @@ class Placeholder(ChainObject):
             return callback
 
         return wrapper
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}(name={self.name!r}, keys={list(self.chain_keys)})"
 
     @property
     def chain_keys(self) -> Generator[str, None, None]:

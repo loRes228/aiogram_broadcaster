@@ -7,7 +7,6 @@ from pydantic_core import PydanticSerializationError
 from .contents.base import BaseContent, ContentType
 from .default import DefaultMailerProperties
 from .event import EventManager
-from .l10n import BaseLanguageGetter, DefaultLanguageGetter
 from .logger import logger
 from .mailer.chat_engine import ChatEngine, ChatState
 from .mailer.container import MailerContainer
@@ -23,10 +22,9 @@ from .storage.record import StorageRecord
 class Broadcaster(MailerContainer):
     _bots: Dict[int, Bot]
     storage: Optional[BaseBCRStorage]
-    language_getter: BaseLanguageGetter
     default: DefaultMailerProperties
     context_key: str
-    kwargs: Dict[str, Any]
+    contextual_data: Dict[str, Any]
     event: EventManager
     placeholder: PlaceholderWizard
 
@@ -34,7 +32,6 @@ class Broadcaster(MailerContainer):
         self,
         *bots: Bot,
         storage: Optional[BaseBCRStorage] = None,
-        language_getter: Optional[BaseLanguageGetter] = None,
         default: Optional[DefaultMailerProperties] = None,
         context_key: str = "broadcaster",
         **kwargs: Any,
@@ -43,11 +40,10 @@ class Broadcaster(MailerContainer):
 
         self._bots = {bot.id: bot for bot in bots}
         self.storage = storage
-        self.language_getter = language_getter or DefaultLanguageGetter()
         self.default = default or DefaultMailerProperties()
         self.context_key = context_key
-        self.kwargs = kwargs
-        self.kwargs["broadcaster"] = self
+        self.contextual_data = kwargs
+        self.contextual_data["broadcaster"] = self
 
         self.event = EventManager(name="root")
         self.placeholder = PlaceholderWizard(name="root")
@@ -162,12 +158,11 @@ class Broadcaster(MailerContainer):
             chat_engine=chat_engine,
             content=content,
             event=self.event,
-            language_getter=self.language_getter,
             placeholder=self.placeholder,
             storage=self.storage if properties.preserve else None,
             mailer_container=self._mailers,
             bot=bot,
-            kwargs={**self.kwargs, **data, **kwargs},
+            contextual_data={**self.contextual_data, **data, **kwargs},
         )
         logger.info("Mailer id=%d was created.", mailer_id)
         if not properties.preserve:
@@ -194,7 +189,11 @@ class Broadcaster(MailerContainer):
         if not self.storage:
             raise RuntimeError("Storage not found.")
         for mailer_id in await self.storage.get_mailer_ids():
-            record = await self.storage.get_record(mailer_id=mailer_id)
+            try:
+                record = await self.storage.get_record(mailer_id=mailer_id)
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to restore mailer id=%d.")
+                continue
             if record.bot not in self._bots:
                 logger.error(
                     "Failed to restore mailer id=%d, bot with id=%d not defined.",
@@ -208,12 +207,11 @@ class Broadcaster(MailerContainer):
                 chat_engine=record.chats,
                 content=record.content,
                 event=self.event,
-                language_getter=self.language_getter,
                 placeholder=self.placeholder,
                 storage=self.storage,
                 mailer_container=self._mailers,
                 bot=self._bots[record.bot],
-                kwargs={**self.kwargs, **record.data},
+                contextual_data={**self.contextual_data, **record.data},
             )
             self._mailers[mailer_id] = mailer
             logger.info("Mailer id=%d restored from storage.", mailer_id)
@@ -226,10 +224,10 @@ class Broadcaster(MailerContainer):
                 continue
             mailer.start()
 
-    def setup(self, dispatcher: Dispatcher, *, include_data: bool = True) -> None:
+    def setup(self, dispatcher: Dispatcher, *, fetch_data: bool = True) -> None:
         dispatcher[self.context_key] = self
-        if include_data:
-            self.kwargs.update(dispatcher.workflow_data)
+        if fetch_data:
+            self.contextual_data.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.restore_mailers)
             dispatcher.shutdown.register(self.storage.close)

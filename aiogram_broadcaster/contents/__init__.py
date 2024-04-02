@@ -1,3 +1,4 @@
+from .adapter import ContentAdapter
 from .animation import AnimationContent
 from .audio import AudioContent
 from .base import BaseContent
@@ -30,6 +31,7 @@ __all__ = (
     "BaseContent",
     "ChatActionContent",
     "ContactContent",
+    "ContentAdapter",
     "DiceContent",
     "DocumentContent",
     "FromChatCopyContent",

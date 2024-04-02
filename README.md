@@ -8,7 +8,7 @@ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 
 ## Creating a mailer and running broadcasting
 
-#### How to create a mailer and initiate broadcasting to multiple users.
+#### How to create a mailer and initiate broadcasting.
 
 #### Usage:
 
@@ -66,35 +66,23 @@ if __name__ == "__main__":
 
 ```python
 from aiogram import Bot
-from asycncio import run
 
 from aiogram_broadcaster import Broadcaster
-from aiogram_broadcaster.contents import TextContent
 
+# List of bots
+bots = [Bot(token="1234:Abc"), Bot(token="5678:Vbn")]
 
-async def main() -> None:
-    # Your user IDs
-    user_ids = {78238238, 78378343, 98765431, 12345678}
+broadcaster = Broadcaster()
 
-    # List of bots
-    bots = [Bot(token="1234:Abc"), Bot(token="5678:Vbn")]
+# Creating a group of mailers based on several bots
+mailer_group = await broadcaster.create_mailers(
+    *bots,
+    content=...,
+    chats=...,
+)
 
-    broadcaster = Broadcaster()
-
-    # Creating a group of mailers based on several bots
-    content = TextContent(text="any text")
-    mailer_group = await broadcaster.create_mailers(
-        *bots,
-        content=content,
-        chats=user_ids,
-    )
-
-    # Run all mailers in the mailer group
-    await mailer_group.run()
-
-
-if __name__ == "__main__":
-    run(main())
+# Run all mailers in the mailer group
+await mailer_group.run()
 ```
 
 ## Event management system for broadcasting
@@ -108,7 +96,6 @@ from aigoram_broadcaster import Broadcaster
 
 from aiogram_broadcaster.event import EventRouter
 
-broadcaster = Broadcaster()
 event = EventRouter(name=__name__)
 
 
@@ -153,6 +140,7 @@ async def on_successful_mail_sent() -> None:
 
 
 # Include the event instance in the broadcaster
+broadcaster = Broadcaster()
 broadcaster.event.include(event)
 ```
 
@@ -194,36 +182,95 @@ text_content = TextContent(text="Hello, $name!")
 photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 ```
 
-## Localization module for personalized content based on user's language
+## Creating personalized content
 
-#### The localization module allows for the creation of personalized content based on the user's language preference.
+#### This module provides utilities to create personalized content targeted to specific users or groups based on their language preferences or geographical location, etc.
 
 #### Usage:
 
 ```python
 from typing import Optional
 
-from aiogram_broadcaster import Broadcaster
-from aiogram_broadcaster.contents import TextContent
-from aiogram_broadcaster.l10n import BaseLanguageGetter, L10nContentAdapter
+from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest
+
+from aiogram_broadcaster.contents import ContentAdapter, TextContent
 
 
-# Define a custom language getter
-class CustomLanguageGetter(BaseLanguageGetter):
-    async def __call__(self, chat_id: int, database: Database) -> Optional[str]:
-        """Retrieves the user's language using the internal database."""
-        user = await database.get_user_by_id(user_id=chat)
-        return user.language
+class L10nContentAdapter(ContentAdapter):
+    """Content based on the user's language."""
+
+    async def __call__(self, chat_id: int, bot: Bot) -> Optional[str]:
+        try:
+            member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
+        except TelegramBadRequest:
+            return None
+        else:
+            return member.user.language_code
 
 
-# Initialize the broadcaster with the custom language getter
-# By default, the DefaultLanguageGetter is initialized based on the Telegram getChatMember method
-broadcaster = Broadcaster(language_getter=CustomLanguageGetter())
-
-# Create localized content
 content = L10nContentAdapter(
     default=TextContent(text="Hello!"),
     uk=TextContent(text="Привіт!"),
     ru=TextContent(text="Привет!"),
 )
+
+
+class GEOContentAdapter(ContentAdapter):
+    """Content based on the user's geographical location."""
+
+    async def __call__(self, chat_id: int, database: Database) -> Optional[str]:
+        user = await database.get_user_by_id(chat_id=chat_id)
+        return user.country
+
+
+content = GEOContentAdapter(
+    default=TextContent(text="News for you!"),
+    ukraine=TextContent(text="Новини для України!"),
+    usa=TextContent(text="News for U.S!"),
+)
+```
+
+## Tiered dependency injection
+
+#### Utilize in event system, content adapter, placeholders, and more for comprehensive management of dependencies.
+
+#### Usage:
+
+* #### Main contextual data
+
+```python
+from aiogram_broadcaster import Broadcaster
+
+broadcaster = Broadcaster(key="value")
+```
+
+* #### Fetching the dispatcher contextual data
+
+```python
+from aiogram import Dispatcher
+
+from aiogram_broadcaster import Broadcaster
+
+dispatcher = Dispatcher()
+dispatcher["key"] = "value"
+
+broadcaster = Broadcaster()
+broadcaster.setup(dispatcher=dispatcher, fetch_data=True)
+```
+
+* #### Contextual data only for mailer
+
+```python
+broadcaster = Broadcaster()
+
+await broadcaster.create_mailer(content=..., chats=..., key=value)
+```
+
+* #### Stored contextual data only for mailer
+
+```python
+broadcaster = Broadcaster()
+
+await broadcaster.create_mailer(content=..., chats=..., data={"key": "value"})
 ```

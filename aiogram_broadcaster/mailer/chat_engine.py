@@ -31,8 +31,7 @@ class ChatEngine(BaseModel):
 
     def get_chats(self, *states: ChatState) -> Set[int]:
         if len(states) == 1:
-            state, *_ = states
-            return self.chats[state]
+            return self.chats[states[-1]]
         chats = (self.chats[state] for state in states or ChatState)
         return set().union(*chats)
 

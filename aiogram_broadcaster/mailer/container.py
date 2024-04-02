@@ -28,6 +28,9 @@ class MailerContainer:
     def __len__(self) -> int:
         return len(self._mailers)
 
+    def __bool__(self) -> bool:
+        return all(self._mailers.values())
+
     def __hash__(self) -> int:
         return hash(frozenset(self._mailers))
 

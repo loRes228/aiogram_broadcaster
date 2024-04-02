@@ -10,18 +10,18 @@ class MailerGroup(MailerContainer):
         futures = [mailer.wait() for mailer in self._mailers.values()]
         await wait(futures)
 
-    def start(self, **kwargs: Any) -> Dict[Mailer, Optional[Exception]]:
+    def start(self) -> Dict[Mailer, Optional[Exception]]:
         results: Dict[Mailer, Optional[Exception]] = {}
         for mailer in self._mailers.values():
             try:
-                mailer.start(**kwargs)
+                mailer.start()
                 results[mailer] = None
             except Exception as error:  # noqa: BLE001, PERF203
                 results[mailer] = error
         return results
 
-    async def run(self, **kwargs: Any) -> Dict[Mailer, Optional[Exception]]:
-        futures = [mailer.run(**kwargs) for mailer in self._mailers.values()]
+    async def run(self) -> Dict[Mailer, Optional[Exception]]:
+        futures = [mailer.run() for mailer in self._mailers.values()]
         return await self._gather_futures(*futures)
 
     async def stop(self) -> Dict[Mailer, Optional[Exception]]:

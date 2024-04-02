@@ -6,7 +6,6 @@ from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
 from aiogram_broadcaster.contents.base import ContentType
 from aiogram_broadcaster.event import EventManager
-from aiogram_broadcaster.l10n import BaseLanguageGetter
 from aiogram_broadcaster.logger import logger
 from aiogram_broadcaster.placeholder import PlaceholderWizard
 from aiogram_broadcaster.storage.base import BaseBCRStorage
@@ -24,12 +23,11 @@ class Mailer(Generic[ContentType]):
     _chat_engine: ChatEngine
     _content: ContentType
     _event: EventManager
-    _language_getter: BaseLanguageGetter
     _placeholder: PlaceholderWizard
     _storage: Optional[BaseBCRStorage]
     _mailer_container: Dict[int, "Mailer"]
     _bot: Bot
-    _kwargs: Dict[str, Any]
+    _contextual_data: Dict[str, Any]
     _status: MailerStatus
     _statistic: MailerStatistic
     _task: TaskManager
@@ -43,25 +41,23 @@ class Mailer(Generic[ContentType]):
         chat_engine: ChatEngine,
         content: ContentType,
         event: EventManager,
-        language_getter: BaseLanguageGetter,
         placeholder: PlaceholderWizard,
         storage: Optional[BaseBCRStorage],
         mailer_container: Dict[int, "Mailer"],
         bot: Bot,
-        kwargs: Dict[str, Any],
+        contextual_data: Dict[str, Any],
     ) -> None:
         self._id = id
         self._settings = settings
         self._chat_engine = chat_engine
         self._content = content
         self._event = event
-        self._language_getter = language_getter
         self._placeholder = placeholder
         self._storage = storage
         self._mailer_container = mailer_container
         self._bot = bot
-        self._kwargs = kwargs
-        self._kwargs.update(
+        self._contextual_data = contextual_data
+        self._contextual_data.update(
             mailer=self,
             bot=bot,
         )
@@ -144,22 +140,21 @@ class Mailer(Generic[ContentType]):
     async def send(self, chat_id: int) -> Any:
         method = await self._content.as_method(
             chat_id=chat_id,
-            language_getter=self._language_getter,
-            **self._kwargs,
+            **self._contextual_data,
         )
         if self._settings.exclude_placeholders is not True:
             method = await self._placeholder.render(
                 model=method,
                 exclude=self._settings.exclude_placeholders,
                 chat_id=chat_id,
-                **self._kwargs,
+                **self._contextual_data,
             )
         return await method.as_(bot=self._bot)
 
-    def start(self, **kwargs: Any) -> None:
+    def start(self) -> None:
         if self._status is not MailerStatus.STOPPED:
             raise RuntimeError(f"Mailer id={self.id} cant be started.")
-        self._task.start(self.run(**kwargs))
+        self._task.start(self.run())
 
     async def wait(self) -> None:
         if not self._task.started or self._task.waited:
@@ -171,49 +166,55 @@ class Mailer(Generic[ContentType]):
             raise RuntimeError(f"Mailer id={self.id} cant be stopped.")
         await self._emit_stop()
 
-    async def run(self, **kwargs: Any) -> None:
+    async def run(self) -> None:
         if self._status is not MailerStatus.STOPPED:
             raise RuntimeError(f"Mailer id={self.id} cant be started.")
-        await self._emit_start(**kwargs)
-        if await self._broadcast():
-            await self._emit_complete()
+        await self._emit_start()
+        try:
+            completed = await self._broadcast()
+        except:
+            await self.stop()
+            raise
+        else:
+            if completed:
+                await self._emit_complete()
 
     async def destroy(self) -> None:
         if not self._settings.preserved:
             raise RuntimeError(f"Mailer id={self.id} cant be destroyed.")
         await self._emit_destroy()
 
-    async def _emit_start(self, **kwargs: Any) -> None:
+    async def _emit_start(self) -> None:
         logger.info("Mailer id=%d started.", self._id)
-        self._status = MailerStatus.STARTED
-        self._stop_event.clear()
-        self._kwargs.update(kwargs)
         if not self._settings.disable_events:
-            await self._event.emit_started(**self._kwargs)
+            await self._event.emit_started(**self._contextual_data)
+        self._stop_event.clear()
+        self._status = MailerStatus.STARTED
 
     async def _emit_stop(self) -> None:
         logger.info("Mailer id=%d stopped.", self._id)
-        self._status = MailerStatus.STOPPED
-        self._stop_event.set()
         if not self._settings.disable_events:
-            await self._event.emit_stopped(**self._kwargs)
+            await self._event.emit_stopped(**self._contextual_data)
+        self._stop_event.set()
+        self._status = MailerStatus.STOPPED
 
     async def _emit_complete(self) -> None:
         logger.info("Mailer id=%d completed.", self._id)
-        self._status = MailerStatus.COMPLETED
-        self._stop_event.set()
         if not self._settings.disable_events:
-            await self._event.emit_completed(**self._kwargs)
+            await self._event.emit_completed(**self._contextual_data)
         if self._settings.destroy_on_complete:
             await self._emit_destroy()
+        else:
+            self._status = MailerStatus.COMPLETED
+        self._stop_event.set()
 
     async def _emit_destroy(self) -> None:
         if self._status is MailerStatus.STARTED:
             await self._emit_stop()
         if self._storage:
             await self._storage.delete_record(mailer_id=self._id)
-        self._status = MailerStatus.DESTROYED
         self._mailer_container.pop(self._id, None)
+        self._status = MailerStatus.DESTROYED
         logger.info("Mailer id=%d destroyed.", self._id)
 
     async def _broadcast(self) -> bool:
@@ -267,7 +268,7 @@ class Mailer(Generic[ContentType]):
             await self._event.emit_failed_sent(
                 chat_id=chat_id,
                 error=error,
-                **self._kwargs,
+                **self._contextual_data,
             )
 
     async def _process_success_sent(self, chat_id: int, response: Any) -> None:
@@ -284,7 +285,7 @@ class Mailer(Generic[ContentType]):
             await self._event.emit_success_sent(
                 chat_id=chat_id,
                 response=response,
-                **self._kwargs,
+                **self._contextual_data,
             )
 
     async def _sleep(self, delay: float) -> bool:

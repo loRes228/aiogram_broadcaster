@@ -1,26 +1,35 @@
 from asyncio import Lock
+from json import dumps, loads
 from pathlib import Path
-from typing import Any, Dict, Optional, Set, Union
+from typing import Any, Callable, Dict, Optional, Set, Union, cast
 
 from aiofiles import open
-from pydantic import BaseModel, Field
 
 from .base import BaseBCRStorage
 from .record import StorageRecord
 
 
-class StorageRecords(BaseModel):
-    records: Dict[int, StorageRecord] = Field(default_factory=dict)
+JsonLoads = Callable[..., Any]
+JsonDumps = Callable[..., str]
 
 
 class FileBCRStorage(BaseBCRStorage):
     file: Path
+    json_loads: JsonLoads
+    json_dumps: JsonDumps
     _lock: Optional[Lock]
 
-    def __init__(self, filename: Union[str, Path] = ".mailers.json") -> None:
+    def __init__(
+        self,
+        filename: Union[str, Path] = ".mailers.json",
+        json_loads: JsonLoads = loads,
+        json_dumps: JsonDumps = dumps,
+    ) -> None:
         if not isinstance(filename, Path):
             filename = Path(filename)
         self.file = filename
+        self.json_loads = json_loads
+        self.json_dumps = json_dumps
         self._lock = None
 
         if self.file.exists() and not self.file.is_file():
@@ -34,43 +43,39 @@ class FileBCRStorage(BaseBCRStorage):
         return self._lock
 
     async def get_mailer_ids(self) -> Set[int]:
-        async with self.lock:
-            records = await self.get_records()
-            return set(records.records)
+        records = await self.get_records()
+        return set(map(int, records))
 
     async def get_record(self, mailer_id: int) -> StorageRecord:
-        async with self.lock:
-            records = await self.get_records(mailer_id=mailer_id, storage=self)
-            return records.records[mailer_id]
+        records = await self.get_records()
+        return StorageRecord.model_validate(
+            obj=records[str(mailer_id)],
+            context={"mailer_id": mailer_id, "storage": self},
+        )
 
     async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
-        async with self.lock:
-            records = await self.get_records()
-            records.records[mailer_id] = record
-            await self.set_records(records=records)
+        records = await self.get_records()
+        records[str(mailer_id)] = record.model_dump(mode="json", exclude_defaults=True)
+        await self.set_records(data=records)
 
     async def delete_record(self, mailer_id: int) -> None:
-        async with self.lock:
-            records = await self.get_records()
-            del records.records[mailer_id]
-            await self.set_records(records=records)
+        records = await self.get_records()
+        del records[str(mailer_id)]
+        await self.set_records(data=records)
 
-    async def get_records(self, **pydantic_context: Any) -> StorageRecords:
+    async def get_records(self) -> Dict[str, Any]:
         if not self.file.exists() or self.file.stat().st_size == 0:
-            records = StorageRecords()
-            await self.set_records(records=records)
-            return records
-        async with open(file=self.file, mode="r", encoding="utf-8") as file:
+            await self.set_records(data={})
+            return {}
+        async with open(file=self.file, encoding="utf-8") as file:
             data = await file.read()
-            return StorageRecords.model_validate_json(
-                json_data=data,
-                context=pydantic_context,
-            )
+            json_data = self.json_loads(data)
+            return cast(Dict[str, Any], json_data)
 
-    async def set_records(self, records: StorageRecords) -> None:
+    async def set_records(self, data: Dict[str, Any]) -> None:
         async with open(file=self.file, mode="w", encoding="utf-8") as file:
-            data = records.model_dump_json(exclude_defaults=True)
-            await file.write(data)
+            json_data = self.json_dumps(data)
+            await file.write(json_data)
 
     async def close(self) -> None:
         pass

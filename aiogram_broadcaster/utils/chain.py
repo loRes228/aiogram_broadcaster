@@ -7,18 +7,43 @@ class ChainObject:
     __chain_root__: ClassVar[bool] = False
     __entity: Type[Self]
     __sub_name: str
+    __name: str
     __parent_entity: Optional[Self]
     __sub_entities: List[Self]
 
-    def __init__(self, entity: Type[Self], sub_name: str) -> None:
+    def __init__(
+        self,
+        entity: Type[Self],
+        sub_name: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> None:
         if not issubclass(entity, ChainObject):
             raise TypeError(
                 f"The entity must be a subclass of ChainObject, not a {entity.__name__}.",
             )
         self.__entity = entity
-        self.__sub_name = sub_name
+        self.__sub_name = sub_name or entity.__name__
+        self.__name = name or hex(id(self))
         self.__parent_entity = None
         self.__sub_entities = []
+
+    def __repr__(self) -> str:
+        fields = [f"name={self.name!r}"]
+        if self.__sub_entities:
+            fields.append(f"sub_{self.__sub_name}s={list(self.__sub_entities)}")
+        fields_sting = ", ".join(fields)
+        return f"{type(self).__name__}({fields_sting})"
+
+    def __str__(self) -> str:
+        fields = [f"name={self.name!r}"]
+        if self.__parent_entity:
+            fields.append(f"parent_{self.__sub_name}={self.__parent_entity}")
+        fields_sting = ", ".join(fields)
+        return f"{type(self).__name__}({fields_sting})"
+
+    @property
+    def name(self) -> str:
+        return self.__name
 
     @property
     def chain_head(self) -> Generator[Self, None, None]:

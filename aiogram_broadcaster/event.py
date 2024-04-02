@@ -1,5 +1,5 @@
 from contextlib import suppress
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Tuple
+from typing import Any, Callable, Dict, List, NoReturn, Optional
 
 from aiogram.dispatcher.event.bases import CancelHandler, SkipHandler
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
@@ -16,7 +16,7 @@ def skip_event() -> NoReturn:
 
 
 class EventObserver:
-    callbacks: List[Tuple[CallableObject, Dict[str, Any]]]
+    callbacks: List[CallableObject]
 
     def __init__(self) -> None:
         self.callbacks = []
@@ -28,16 +28,15 @@ class EventObserver:
 
         return wrapper
 
-    def register(self, callback: CallbackType, **kwargs: Any) -> None:
-        self.callbacks.append((CallableObject(callback=callback), kwargs))
+    def register(self, callback: CallbackType) -> None:
+        self.callbacks.append(CallableObject(callback=callback))
 
     async def trigger(self, **kwargs: Any) -> None:
         with suppress(SkipEvent, SkipHandler, CancelHandler):
             merged_kwargs: Dict[str, Any] = {}
-            for callback, callback_kwargs in self.callbacks:
+            for callback in self.callbacks:
                 result = await callback.call(
                     **kwargs,
-                    **callback_kwargs,
                     **merged_kwargs,
                 )
                 if result and isinstance(result, dict):
@@ -45,7 +44,6 @@ class EventObserver:
 
 
 class EventRouter(ChainObject):
-    name: str
     started: EventObserver
     stopped: EventObserver
     completed: EventObserver
@@ -54,9 +52,8 @@ class EventRouter(ChainObject):
     observers: Dict[str, EventObserver]
 
     def __init__(self, name: Optional[str] = None) -> None:
-        super().__init__(entity=EventRouter, sub_name="event")
+        super().__init__(entity=EventRouter, sub_name="event", name=name)
 
-        self.name = name or hex(id(self))
         self.started = EventObserver()
         self.stopped = EventObserver()
         self.completed = EventObserver()
@@ -69,9 +66,6 @@ class EventRouter(ChainObject):
             "success_sent": self.success_sent,
             "failed_sent": self.failed_sent,
         }
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}(name={self.name!r})"
 
 
 class EventManager(EventRouter):
