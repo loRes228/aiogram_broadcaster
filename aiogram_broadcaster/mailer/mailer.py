@@ -146,48 +146,48 @@ class Mailer(Generic[ContentType]):
         logger.info("Mailer id=%d has been reset.", self._id)
 
     async def destroy(self) -> None:
-        if self._status is MailerStatus.DESTROYED:
+        if self._status is MailerStatus.DESTROYED or self._status is MailerStatus.STARTED:
             raise RuntimeError(f"Mailer id={self._id} cant be destroyed.")
-        if self._status is MailerStatus.STARTED:
-            await self.stop()
-        if self._settings.preserved:
-            del self._mailer_container[self._id]
-            if self._storage:
-                await self._storage.delete_record(mailer_id=self._id)
+        logger.info("Mailer id=%d destroyed.", self._id)
         self._stop_event.set()
         self._status = MailerStatus.DESTROYED
-        logger.info("Mailer id=%d destroyed.", self._id)
+        if not self._settings.preserved:
+            return
+        del self._mailer_container[self._id]
+        if self._storage:
+            await self._storage.delete_record(mailer_id=self._id)
 
     async def stop(self) -> None:
         if self._status is not MailerStatus.STARTED:
             raise RuntimeError(f"Mailer id={self._id} cant be stopped.")
         logger.info("Mailer id=%d stopped.", self._id)
-        if not self._settings.disable_events:
-            await self._event.emit_stopped(**self._contextual_data)
         self._stop_event.set()
         self._status = MailerStatus.STOPPED
+        if not self._settings.disable_events:
+            await self._event.emit_stopped(**self._contextual_data)
 
     async def run(self) -> None:
         if self._status is not MailerStatus.STOPPED:
             raise RuntimeError(f"Mailer id={self._id} cant be started.")
-        if not self._settings.disable_events:
-            await self._event.emit_started(**self._contextual_data)
+        logger.info("Mailer id=%d started.", self._id)
         self._stop_event.clear()
         self._status = MailerStatus.STARTED
-        logger.info("Mailer id=%d started.", self._id)
+        if not self._settings.disable_events:
+            await self._event.emit_started(**self._contextual_data)
         try:
             completed = await self._broadcast()
         except:
             await self.stop()
             raise
-        if completed:
-            if not self._settings.disable_events:
-                await self._event.emit_completed(**self._contextual_data)
-            self._stop_event.set()
-            self._status = MailerStatus.COMPLETED
-            if self._settings.destroy_on_complete:
-                await self.destroy()
-            logger.info("Mailer id=%d completed.", self._id)
+        if not completed:
+            return
+        logger.info("Mailer id=%d completed.", self._id)
+        self._stop_event.set()
+        self._status = MailerStatus.COMPLETED
+        if not self._settings.disable_events:
+            await self._event.emit_completed(**self._contextual_data)
+        if self._settings.destroy_on_complete:
+            await self.destroy()
 
     def start(self) -> None:
         if self._status is not MailerStatus.STOPPED:
