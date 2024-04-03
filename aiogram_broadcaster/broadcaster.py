@@ -20,7 +20,7 @@ from .storage.record import StorageRecord
 
 
 class Broadcaster(MailerContainer):
-    _bots: Dict[int, Bot]
+    bots: Tuple[Bot, ...]
     storage: Optional[BaseBCRStorage]
     default: DefaultMailerProperties
     context_key: str
@@ -38,7 +38,7 @@ class Broadcaster(MailerContainer):
     ) -> None:
         super().__init__()
 
-        self._bots = {bot.id: bot for bot in bots}
+        self.bots = bots
         self.storage = storage
         self.default = default or DefaultMailerProperties()
         self.context_key = context_key
@@ -47,10 +47,6 @@ class Broadcaster(MailerContainer):
 
         self.event = EventManager(name="root")
         self.placeholder = PlaceholderWizard(name="root")
-
-    @property
-    def bots(self) -> Tuple[Bot, ...]:
-        return tuple(self._bots.values())
 
     def as_group(self) -> MailerGroup:
         return MailerGroup(*self._mailers.values())
@@ -71,7 +67,7 @@ class Broadcaster(MailerContainer):
         data: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> MailerGroup:
-        if not bots and not self._bots:
+        if not bots and not self.bots:
             raise ValueError("At least one bot must be specified.")
         if not bots:
             bots = self.bots
@@ -123,7 +119,7 @@ class Broadcaster(MailerContainer):
 
         if not chats:
             raise ValueError("At least one chat id must be provided.")
-        if not bot and not self._bots:
+        if not bot and not self.bots:
             raise ValueError("At least one bot must be specified.")
 
         chats = set(chats)
@@ -188,13 +184,14 @@ class Broadcaster(MailerContainer):
     async def restore_mailers(self) -> None:
         if not self.storage:
             raise RuntimeError("Storage not found.")
+        bots = {bot.id: bot for bot in self.bots}
         for mailer_id in await self.storage.get_mailer_ids():
             try:
                 record = await self.storage.get_record(mailer_id=mailer_id)
             except Exception:  # noqa: BLE001
                 logger.exception("Failed to restore mailer id=%d.")
                 continue
-            if record.bot not in self._bots:
+            if record.bot not in bots:
                 logger.error(
                     "Failed to restore mailer id=%d, bot with id=%d not defined.",
                     mailer_id,
@@ -210,7 +207,7 @@ class Broadcaster(MailerContainer):
                 placeholder=self.placeholder,
                 storage=self.storage,
                 mailer_container=self._mailers,
-                bot=self._bots[record.bot],
+                bot=bots[record.bot],
                 contextual_data={**self.contextual_data, **record.data},
             )
             self._mailers[mailer_id] = mailer

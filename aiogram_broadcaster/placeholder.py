@@ -6,6 +6,7 @@ from typing import (
     Container,
     Dict,
     Generator,
+    Iterable,
     List,
     Mapping,
     Optional,
@@ -22,13 +23,13 @@ from .utils.chain import ChainObject
 ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
-class Placeholder(ChainObject):
-    values: Dict[str, Any]
+class Placeholder(ChainObject, sub_name="placeholder"):
+    items: Dict[str, Any]
 
     def __init__(self, name: Optional[str] = None) -> None:
-        super().__init__(entity=Placeholder, sub_name="placeholder", name=name)
+        super().__init__(name=name)
 
-        self.values = {}
+        self.items = {}
 
     def __setitem__(self, key: str, value: Any) -> None:
         self.add(key=key, value=value)
@@ -43,36 +44,36 @@ class Placeholder(ChainObject):
     @property
     def chain_keys(self) -> Generator[str, None, None]:
         for placeholder in self.chain_tail:
-            yield from placeholder.values
+            yield from placeholder.items
 
     @property
     def chain_items(self) -> Generator[Tuple[str, Any], None, None]:
         for placeholder in self.chain_tail:
-            yield from placeholder.values.items()
+            yield from placeholder.items.items()
 
     def add(self, key: str, value: Any) -> None:
-        if key in self.values:
-            raise KeyError(f"Key {key!r} is already exists.")
+        if key in self.items:
+            raise KeyError(key)
         if isinstance(value, FunctionType):
             value = CallableObject(callback=value)
-        self.values[key] = value
+        self.items[key] = value
 
     def attach(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> None:
         if __mapping:
             kwargs.update(__mapping)
-        if keys_collusion := set(self.chain_keys) & set(kwargs):
-            raise RuntimeError(f"Collusion between keys was detected: {keys_collusion}.")
-        self.values.update(kwargs)
+        self._check_keys_collusion(keys=kwargs)
+        self.items.update(kwargs)
 
     def _set_parent_entity(self, entity: "Placeholder") -> None:
-        if keys_collusion := set(self.chain_keys) & set(entity.chain_keys):
-            raise RuntimeError(f"Collusion between keys was detected: {keys_collusion}.")
+        self._check_keys_collusion(keys=entity.chain_keys)
         super()._set_parent_entity(entity=entity)
 
+    def _check_keys_collusion(self, keys: Iterable[str]) -> None:
+        if collusion := set(self.chain_keys) & set(keys):
+            raise KeyError(*collusion)
 
-class PlaceholderWizard(Placeholder):
-    __chain_root__ = True
 
+class PlaceholderWizard(Placeholder, root=True):
     async def fetch_data(
         self,
         select: Optional[Container[str]] = None,

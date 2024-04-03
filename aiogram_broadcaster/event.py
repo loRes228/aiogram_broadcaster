@@ -43,7 +43,7 @@ class EventObserver:
                     merged_kwargs.update(result)
 
 
-class EventRouter(ChainObject):
+class EventRouter(ChainObject, sub_name="event"):
     started: EventObserver
     stopped: EventObserver
     completed: EventObserver
@@ -52,7 +52,7 @@ class EventRouter(ChainObject):
     observers: Dict[str, EventObserver]
 
     def __init__(self, name: Optional[str] = None) -> None:
-        super().__init__(entity=EventRouter, sub_name="event", name=name)
+        super().__init__(name=name)
 
         self.started = EventObserver()
         self.stopped = EventObserver()
@@ -68,9 +68,7 @@ class EventRouter(ChainObject):
         }
 
 
-class EventManager(EventRouter):
-    __chain_root__ = True
-
+class EventManager(EventRouter, root=True):
     async def emit_started(self, **kwargs: Any) -> None:
         for event in self.chain_tail:
             await event.started.trigger(**kwargs)

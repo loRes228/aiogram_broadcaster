@@ -67,7 +67,7 @@ class FileBCRStorage(BaseBCRStorage):
         if not self.file.exists() or self.file.stat().st_size == 0:
             await self.set_records(data={})
             return {}
-        async with open(file=self.file, encoding="utf-8") as file:
+        async with open(file=self.file, mode="r", encoding="utf-8") as file:
             data = await file.read()
             json_data = self.json_loads(data)
             return cast(Dict[str, Any], json_data)

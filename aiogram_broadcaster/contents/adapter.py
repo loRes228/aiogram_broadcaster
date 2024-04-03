@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, cast
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional
 
 from aiogram.dispatcher.event.handler import CallableObject
 from aiogram.methods import TelegramMethod
@@ -27,15 +27,9 @@ class ContentAdapter(BaseContent):
         self._callback = CallableObject(callback=self.__call__)
 
     async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
-        ident = await self._callback.call(**kwargs)
-        content = self.resolve_content(ident=ident)
+        key = await self._callback.call(**kwargs)
+        content = self.__pydantic_extra__.get(key, self.default)
         return await content.as_method(**kwargs)
-
-    def resolve_content(self, ident: Optional[str]) -> BaseContent:
-        if ident is None or not self.model_extra:
-            return self.default
-        content = self.model_extra.get(ident, self.default)
-        return cast(BaseContent, content)
 
     if TYPE_CHECKING:
 
