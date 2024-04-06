@@ -8,86 +8,94 @@ UNSET_ENTITY = sentinel.UNSET_ENTITY
 
 
 class ChainObject:
+    __chain_root__: ClassVar[bool] = False
     __entity__: ClassVar[Type[Self]] = UNSET_ENTITY
-    __sub_name__: ClassVar[str]
-    __root__: ClassVar[bool]
-    __name: str
-    __parent_entity: Optional[Self]
-    __sub_entities: List[Self]
+    __singular_name__: ClassVar[str]
+    __plural_name__: ClassVar[str]
+    name: str
+    head: Optional[Self]
+    tail: List[Self]
 
-    def __init_subclass__(cls, *, sub_name: Optional[str] = None, root: bool = False) -> None:
-        if cls.__entity__ is UNSET_ENTITY:
-            cls.__entity__ = cls
-            cls.__sub_name__ = sub_name or cls.__name__.lower()
-        cls.__root__ = root
+    def __init_subclass__(
+        cls,
+        singular_name: Optional[str] = None,
+        plural_name: Optional[str] = None,
+    ) -> None:
         super().__init_subclass__()
+        if cls.__entity__ is not UNSET_ENTITY:
+            return
+        cls.__entity__ = cls
+        cls.__singular_name__ = singular_name or cls.__name__.lower()
+        cls.__plural_name__ = plural_name or f"{cls.__name__.lower()}s"
 
     def __init__(self, name: Optional[str] = None) -> None:
-        self.__name = name or hex(id(self))
-        self.__parent_entity = None
-        self.__sub_entities = []
+        self.name = name or hex(id(self))
+        self.head = None
+        self.tail = []
 
     def __repr__(self) -> str:
         fields = [f"name={self.name!r}"]
-        if self.__sub_entities:
-            fields.append(f"sub_{self.__sub_name__}s={list(self.__sub_entities)}")
+        if self.tail:
+            fields.append(f"sub_{self.__plural_name__}={list(self.tail)}")
         fields_sting = ", ".join(fields)
         return f"{type(self).__name__}({fields_sting})"
 
     def __str__(self) -> str:
         fields = [f"name={self.name!r}"]
-        if self.__parent_entity:
-            fields.append(f"parent_{self.__sub_name__}={self.__parent_entity}")
+        if self.head:
+            fields.append(f"parent_{self.__singular_name__}={self.head}")
         fields_sting = ", ".join(fields)
         return f"{type(self).__name__}({fields_sting})"
-
-    @property
-    def name(self) -> str:
-        return self.__name
 
     @property
     def chain_head(self) -> Generator[Self, None, None]:
         entity: Optional[Self] = self
         while entity:
             yield entity
-            entity = entity.__parent_entity  # noqa: SLF001
+            entity = entity.head
 
     @property
     def chain_tail(self) -> Generator[Self, None, None]:
         yield self
-        for sub_entity in self.__sub_entities:
-            yield from sub_entity.chain_tail
-
-    def _set_parent_entity(self, entity: Self) -> None:
-        if self.__root__:
-            raise RuntimeError(
-                f"{type(self).__name__} cannot be attached to another {self.__sub_name__}.",
-            )
-        if not isinstance(entity, self.__entity__):
-            raise TypeError(
-                f"The {self.__sub_name__} must be an instance of {self.__entity__.__name__}, "
-                f"not a {type(entity).__name__}.",
-            )
-        if self.__parent_entity:
-            raise RuntimeError(
-                f"The {self.__sub_name__} {self.name} is already attached to "
-                f"{self.__parent_entity.__sub_name__} {self.__parent_entity.name}.",
-            )
-        if self == entity:
-            raise ValueError(f"Cannot include the {self.__sub_name__} on itself.")
-        if self in entity.chain_head:
-            raise RuntimeError("Circular referencing detected.")
-
-        self.__parent_entity = entity
-        entity.__sub_entities.append(self)  # noqa: SLF001
+        for entity in self.tail:
+            yield from entity.chain_tail
 
     def include(self, *args: Any) -> None:
         if not args:
-            raise ValueError(f"At least one {self.__sub_name__} must be provided to include.")
+            raise ValueError(
+                f"At least one {self.__singular_name__} must be provided to include.",
+            )
         for entity in args:
             if not isinstance(entity, self.__entity__):
                 raise TypeError(
-                    f"The {self.__sub_name__} must be an instance of {self.__entity__.__name__}, "
-                    f"not a {type(entity).__name__}.",
+                    f"The {self.__singular_name__} must be an instance of "
+                    f"{self.__entity__.__name__}, not a {type(entity).__name__}.",
                 )
-            entity._set_parent_entity(entity=cast(Self, self))  # noqa: SLF001
+            entity._set_head(entity=cast(Self, self))  # noqa: SLF001
+
+    def _set_head(self, entity: Self) -> None:
+        if self.__chain_root__:
+            raise RuntimeError(
+                f"{type(self).__name__} cannot be attached to another {self.__singular_name__}.",
+            )
+        if not isinstance(entity, self.__entity__):
+            raise TypeError(
+                f"The {self.__singular_name__} must be an instance of "
+                f"{self.__entity__.__name__}, not a {type(entity).__name__}.",
+            )
+        if self.head:
+            raise RuntimeError(
+                f"The {self.__singular_name__} {self.name} is already attached to "
+                f"{self.__singular_name__} {self.head.name}.",
+            )
+        if self == entity:
+            raise ValueError(
+                f"Cannot include the {self.__singular_name__} on itself.",
+            )
+        if self in entity.chain_head:
+            raise RuntimeError(
+                "Circular referencing detected.",
+            )
+
+        self.head = entity
+        entity.tail.append(self)

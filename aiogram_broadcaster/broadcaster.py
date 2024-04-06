@@ -121,6 +121,11 @@ class Broadcaster(MailerContainer):
             raise ValueError("At least one chat id must be provided.")
         if not bot and not self.bots:
             raise ValueError("At least one bot must be specified.")
+        if not content.is_registered():
+            raise RuntimeError(
+                f"Register the '{type(content).__name__}' content "
+                f"using the '{type(content).__name__}.register()' method.",
+            )
 
         chats = set(chats)
 

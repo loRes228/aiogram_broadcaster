@@ -23,7 +23,7 @@ from .utils.chain import ChainObject
 ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
-class Placeholder(ChainObject, sub_name="placeholder"):
+class Placeholder(ChainObject, singular_name="placeholder", plural_name="placeholders"):
     items: Dict[str, Any]
 
     def __init__(self, name: Optional[str] = None) -> None:
@@ -64,16 +64,18 @@ class Placeholder(ChainObject, sub_name="placeholder"):
         self._check_keys_collusion(keys=kwargs)
         self.items.update(kwargs)
 
-    def _set_parent_entity(self, entity: "Placeholder") -> None:
+    def _set_head(self, entity: "Placeholder") -> None:
         self._check_keys_collusion(keys=entity.chain_keys)
-        super()._set_parent_entity(entity=entity)
+        super()._set_head(entity=entity)
 
     def _check_keys_collusion(self, keys: Iterable[str]) -> None:
         if collusion := set(self.chain_keys) & set(keys):
             raise KeyError(*collusion)
 
 
-class PlaceholderWizard(Placeholder, root=True):
+class PlaceholderWizard(Placeholder):
+    __chain_root__ = True
+
     async def fetch_data(
         self,
         select: Optional[Container[str]] = None,

@@ -148,7 +148,7 @@ class Mailer(Generic[ContentType]):
     async def destroy(self) -> None:
         if self._status is MailerStatus.DESTROYED or self._status is MailerStatus.STARTED:
             raise RuntimeError(f"Mailer id={self._id} cant be destroyed.")
-        logger.info("Mailer id=%d destroyed.", self._id)
+        logger.info("Mailer id=%d has been destroyed.", self._id)
         self._stop_event.set()
         self._status = MailerStatus.DESTROYED
         if not self._settings.preserved:
@@ -160,7 +160,7 @@ class Mailer(Generic[ContentType]):
     async def stop(self) -> None:
         if self._status is not MailerStatus.STARTED:
             raise RuntimeError(f"Mailer id={self._id} cant be stopped.")
-        logger.info("Mailer id=%d stopped.", self._id)
+        logger.info("Mailer id=%d is stopped.", self._id)
         self._stop_event.set()
         self._status = MailerStatus.STOPPED
         if not self._settings.disable_events:
@@ -169,7 +169,7 @@ class Mailer(Generic[ContentType]):
     async def run(self) -> None:
         if self._status is not MailerStatus.STOPPED:
             raise RuntimeError(f"Mailer id={self._id} cant be started.")
-        logger.info("Mailer id=%d started.", self._id)
+        logger.info("Mailer id=%d is started.", self._id)
         self._stop_event.clear()
         self._status = MailerStatus.STARTED
         if not self._settings.disable_events:
@@ -181,7 +181,7 @@ class Mailer(Generic[ContentType]):
             raise
         if not completed:
             return
-        logger.info("Mailer id=%d completed.", self._id)
+        logger.info("Mailer id=%d successfully completed.", self._id)
         self._stop_event.set()
         self._status = MailerStatus.COMPLETED
         if not self._settings.disable_events:
@@ -196,7 +196,7 @@ class Mailer(Generic[ContentType]):
 
     async def wait(self) -> None:
         if not self._task.started or self._task.waited:
-            raise RuntimeError(f"Mailer id={self._id} cant be waited.")
+            raise RuntimeError(f"Mailer id={self._id} cant be wait.")
         await self._task.wait()
 
     async def _broadcast(self) -> bool:
@@ -227,9 +227,9 @@ class Mailer(Generic[ContentType]):
 
     async def _process_retry_after(self, chat_id: int, delay: float) -> None:
         logger.info(
-            "Retrying in %.2f seconds. Mailer id=%d, chat id=%d.",
-            delay,
+            "Mailer id=%d waits %.2f seconds to resend a message to chat id=%d.",
             self._id,
+            delay,
             chat_id,
         )
         if await self._sleep(delay=delay):
@@ -237,15 +237,12 @@ class Mailer(Generic[ContentType]):
 
     async def _process_failed_sent(self, chat_id: int, error: Exception) -> None:
         logger.info(
-            "Failed to send message. Mailer id=%d, chat id=%d, error: %s.",
+            "Mailer id=%d failed to send a message to chat id=%d, error: %s.",
             self._id,
             chat_id,
             error,
         )
-        await self._chat_engine.set_chat_state(
-            chat=chat_id,
-            state=ChatState.FAILED,
-        )
+        await self._chat_engine.set_chat_state(chat=chat_id, state=ChatState.FAILED)
         if not self._settings.disable_events:
             await self._event.emit_failed_sent(
                 chat_id=chat_id,
@@ -255,14 +252,11 @@ class Mailer(Generic[ContentType]):
 
     async def _process_success_sent(self, chat_id: int, response: Any) -> None:
         logger.info(
-            "Successfully sent. Mailer id=%d, chat id=%d.",
+            "Mailer id=%d successfully sent a message to chat id=%d.",
             self._id,
             chat_id,
         )
-        await self._chat_engine.set_chat_state(
-            chat=chat_id,
-            state=ChatState.SUCCESS,
-        )
+        await self._chat_engine.set_chat_state(chat=chat_id, state=ChatState.SUCCESS)
         if not self._settings.disable_events:
             await self._event.emit_success_sent(
                 chat_id=chat_id,
@@ -272,10 +266,7 @@ class Mailer(Generic[ContentType]):
 
     async def _sleep(self, delay: float) -> bool:
         try:
-            await wait_for(
-                fut=self._stop_event.wait(),
-                timeout=delay,
-            )
+            await wait_for(fut=self._stop_event.wait(), timeout=delay)
         except TimeoutError:
             return True
         else:

@@ -43,25 +43,29 @@ class FileBCRStorage(BaseBCRStorage):
         return self._lock
 
     async def get_mailer_ids(self) -> Set[int]:
-        records = await self.get_records()
-        return set(map(int, records))
+        async with self.lock:
+            records = await self.get_records()
+            return set(map(int, records))
 
     async def get_record(self, mailer_id: int) -> StorageRecord:
-        records = await self.get_records()
-        return StorageRecord.model_validate(
-            obj=records[str(mailer_id)],
-            context={"mailer_id": mailer_id, "storage": self},
-        )
+        async with self.lock:
+            records = await self.get_records()
+            return StorageRecord.model_validate(
+                obj=records[str(mailer_id)],
+                context={"mailer_id": mailer_id, "storage": self},
+            )
 
     async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
-        records = await self.get_records()
-        records[str(mailer_id)] = record.model_dump(mode="json", exclude_defaults=True)
-        await self.set_records(data=records)
+        async with self.lock:
+            records = await self.get_records()
+            records[str(mailer_id)] = record.model_dump(mode="json", exclude_defaults=True)
+            await self.set_records(data=records)
 
     async def delete_record(self, mailer_id: int) -> None:
-        records = await self.get_records()
-        del records[str(mailer_id)]
-        await self.set_records(data=records)
+        async with self.lock:
+            records = await self.get_records()
+            del records[str(mailer_id)]
+            await self.set_records(data=records)
 
     async def get_records(self) -> Dict[str, Any]:
         if not self.file.exists() or self.file.stat().st_size == 0:
