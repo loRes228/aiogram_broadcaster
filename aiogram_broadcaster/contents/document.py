@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import SendDocument, TelegramMethod
+from aiogram.methods import SendDocument
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -35,7 +35,7 @@ class DocumentContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: ReplyMarkupType = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> SendDocument:
         return SendDocument(
             chat_id=chat_id,
             document=self.document,

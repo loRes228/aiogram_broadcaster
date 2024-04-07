@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import SendLocation, TelegramMethod
+from aiogram.methods import SendLocation
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -33,7 +33,7 @@ class LocationContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: ReplyMarkupType = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> SendLocation:
         return SendLocation(
             chat_id=chat_id,
             latitude=self.latitude,

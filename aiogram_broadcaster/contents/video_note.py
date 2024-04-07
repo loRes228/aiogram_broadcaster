@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import SendVideoNote, TelegramMethod
+from aiogram.methods import SendVideoNote
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -32,7 +32,7 @@ class VideoNoteContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: ReplyMarkupType = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> SendVideoNote:
         return SendVideoNote(
             chat_id=chat_id,
             video_note=self.video_note,

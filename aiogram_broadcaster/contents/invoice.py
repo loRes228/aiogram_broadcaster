@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import SendInvoice, TelegramMethod
+from aiogram.methods import SendInvoice
 from aiogram.types import InlineKeyboardMarkup, LabeledPrice
 
 from .base import BaseContent
@@ -33,7 +33,7 @@ class InvoiceContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: Optional[InlineKeyboardMarkup] = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> SendInvoice:
         return SendInvoice(
             chat_id=chat_id,
             title=self.title,

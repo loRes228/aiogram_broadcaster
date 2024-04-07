@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import TelegramMethod
+from aiogram.methods import CopyMessage
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -33,7 +33,7 @@ class MessageCopyContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: ReplyMarkupType = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> CopyMessage:
         return self.message.copy_to(
             chat_id=chat_id,
             caption=self.caption,

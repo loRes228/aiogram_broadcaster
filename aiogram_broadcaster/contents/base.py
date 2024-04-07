@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Dict, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Dict, Type, TypeVar, cast
 
+from aiogram.dispatcher.event.handler import CallableObject
 from aiogram.methods import TelegramMethod
 from pydantic import (
     BaseModel,
@@ -29,11 +30,25 @@ class BaseContent(BaseModel, ABC):
     )
 
     __validators__: ClassVar[Dict[str, Type["BaseContent"]]] = {}
+    _callback: ClassVar[CallableObject]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
+        cls._callback = CallableObject(callback=cls.__call__)
         if kwargs.pop("register", True):
             cls.register()
         super().__init_subclass__(**kwargs)
+
+    if TYPE_CHECKING:
+        __call__: Callable[..., Any]
+    else:
+
+        @abstractmethod
+        async def __call__(self, **kwargs: Any) -> Any:
+            pass
+
+    async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
+        method = await self._callback.call(self, **kwargs)
+        return cast(TelegramMethod[Any], method)
 
     @classmethod
     def is_registered(cls) -> bool:
@@ -44,14 +59,6 @@ class BaseContent(BaseModel, ABC):
         if cls.is_registered():
             raise RuntimeError(f"The content '{cls.__name__}' is already registered.")
         cls.__validators__[cls.__name__] = cls
-
-    if TYPE_CHECKING:
-        as_method: ClassVar[Callable[..., Awaitable[TelegramMethod[Any]]]]
-    else:
-
-        @abstractmethod
-        async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
-            pass
 
     @model_validator(mode="wrap")
     @classmethod

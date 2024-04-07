@@ -15,7 +15,7 @@ class MessageSendContent(BaseContent):
     reply_markup: ReplyMarkupType = None
     parse_mode: Optional[str] = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> TelegramMethod[Any]:
         return self.message.send_copy(
             chat_id=chat_id,
             disable_notification=self.disable_notification,

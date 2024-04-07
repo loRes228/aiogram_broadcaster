@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import SendGame, TelegramMethod
+from aiogram.methods import SendGame
 from aiogram.types import InlineKeyboardMarkup
 
 from .base import BaseContent
@@ -13,7 +13,7 @@ class GameContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: Optional[InlineKeyboardMarkup] = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> SendGame:
         return SendGame(
             chat_id=chat_id,
             game_short_name=self.game_short_name,

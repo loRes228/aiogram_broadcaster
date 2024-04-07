@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import ForwardMessage, TelegramMethod
+from aiogram.methods import ForwardMessage
 
 from .base import BaseContent
 
@@ -12,7 +12,7 @@ class FromChatForwardContent(BaseContent):
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> ForwardMessage:
         return ForwardMessage(
             chat_id=chat_id,
             from_chat_id=self.from_chat_id,

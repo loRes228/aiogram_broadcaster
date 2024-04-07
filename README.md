@@ -87,14 +87,14 @@ await mailer_group.run()
 
 ## Event management system for broadcasting
 
-#### The event system empowers you to effectively manage events throughout the broadcast process. It supports nesting, akin to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers) feature, enabling structured event handling.
+#### The event system empowers you to effectively manage events throughout the broadcast process.
+
+> **_NOTE:_** Chain nesting is supported, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
 ```python
-from aigoram_broadcaster import Broadcaster
-
-from aiogram_broadcaster.event import EventRouter
+from aigoram_broadcaster import Broadcaster, EventRouter
 
 event = EventRouter(name=__name__)
 
@@ -146,16 +146,17 @@ broadcaster.event.include(event)
 
 ## Placeholders for dynamic content insertion
 
-#### Placeholders facilitate the insertion of dynamic content within texts, offering support for nesting similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers). This feature allows for personalized messaging.
+#### Placeholders facilitate the insertion of dynamic content within texts, this feature allows for personalized messaging.
+
+> **_NOTE:_** Chain nesting is supported, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
 ```python
 from aiogram import Bot
 
-from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster import Broadcaster, Placeholder
 from aiogram_broadcaster.contents import PhotoContent, TextContent
-from aiogram_broadcaster.placeholder import Placeholder
 
 broadcaster = Broadcaster()
 placeholder = Placeholder(name=__name__)
@@ -186,6 +187,9 @@ photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 
 #### This module provides utilities to create personalized content targeted to specific users or groups based on their language preferences or geographical location, etc.
 
+> **_NOTE:_** The difference between MappingContent and DefaultMappingContent is that MappingContent will give an error if the key is not found,
+> while DefaultMappingContent will give the content specified under the default key.
+
 #### Usage:
 
 ```python
@@ -194,10 +198,10 @@ from typing import Optional
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 
-from aiogram_broadcaster.contents import ContentAdapter, TextContent
+from aiogram_broadcaster.contents import DefaultMappingContent, MappingContent, TextContent
 
 
-class L10nContentAdapter(ContentAdapter):
+class L10nContentAdapter(DefaultMappingContent):
     """Content based on the user's language."""
 
     async def __call__(self, chat_id: int, bot: Bot) -> Optional[str]:
@@ -216,16 +220,15 @@ content = L10nContentAdapter(
 )
 
 
-class GEOContentAdapter(ContentAdapter):
+class GEOContentAdapter(MappingContent):
     """Content based on the user's geographical location."""
 
-    async def __call__(self, chat_id: int, database: Database) -> Optional[str]:
+    async def __call__(self, chat_id: int, database: Database) -> str:
         user = await database.get_user_by_id(chat_id=chat_id)
         return user.country
 
 
 content = GEOContentAdapter(
-    default=TextContent(text="News for you!"),
     ukraine=TextContent(text="Новини для України!"),
     usa=TextContent(text="News for U.S!"),
 )
@@ -233,7 +236,7 @@ content = GEOContentAdapter(
 
 ## Tiered dependency injection
 
-#### Utilize in event system, content adapter, placeholders, and more for comprehensive management of dependencies.
+#### Utilize in event system, mapping content, placeholders, and more for comprehensive management of dependencies.
 
 #### Usage:
 

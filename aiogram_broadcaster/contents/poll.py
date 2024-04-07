@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import SendPoll, TelegramMethod
+from aiogram.methods import SendPoll
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -41,7 +41,7 @@ class PollContent(BaseContent):
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: ReplyMarkupType = None
 
-    async def as_method(self, chat_id: int, **_: Any) -> TelegramMethod[Any]:
+    async def __call__(self, chat_id: int) -> SendPoll:
         return SendPoll(
             chat_id=chat_id,
             question=self.question,

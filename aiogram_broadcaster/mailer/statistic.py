@@ -1,10 +1,10 @@
-from typing import Dict, Iterator, Set
+from typing import Dict, FrozenSet, Iterator, Set, SupportsInt
 
 from .chat_engine import ChatEngine, ChatState
 
 
 class ChatsMetric:
-    ids: Set[int]
+    ids: FrozenSet[int]
     total: int
     ratio: float
     average: float
@@ -13,7 +13,7 @@ class ChatsMetric:
     metrics: Dict[str, float]
 
     def __init__(self, ids: Set[int], total: int) -> None:
-        self.ids = ids
+        self.ids = frozenset(ids)
         self.total = len(ids)
         self.ratio = (self.total / total) * 100
         self.average = (self.total + total) / 2
@@ -46,6 +46,38 @@ class ChatsMetric:
 
     def __iter__(self) -> Iterator[int]:
         return iter(self.ids)
+
+    def __contains__(self, item: int) -> bool:
+        return item in self.ids
+
+    def __len__(self) -> int:
+        return self.total
+
+    def __int__(self) -> int:
+        return self.total
+
+    def __bool__(self) -> bool:
+        return self.range == 0
+
+    def __lt__(self, other: SupportsInt) -> bool:
+        return self.total < int(other)
+
+    def __gt__(self, other: SupportsInt) -> bool:
+        return self.total > int(other)
+
+    def __le__(self, other: SupportsInt) -> bool:
+        return self.total <= int(other)
+
+    def __ge__(self, other: SupportsInt) -> bool:
+        return self.total >= int(other)
+
+    def __hash__(self) -> int:
+        return hash(self.ids)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ChatsMetric):
+            return False
+        return hash(self) == hash(other)
 
 
 class MailerStatistic:

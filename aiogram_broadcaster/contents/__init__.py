@@ -1,4 +1,3 @@
-from .adapter import ContentAdapter
 from .animation import AnimationContent
 from .audio import AudioContent
 from .base import BaseContent
@@ -11,6 +10,7 @@ from .from_chat_forward import FromChatForwardContent
 from .game import GameContent
 from .invoice import InvoiceContent
 from .location import LocationContent
+from .mapping import DefaultMappingContent, MappingContent
 from .media_group import MediaGroupContent
 from .message_copy import MessageCopyContent
 from .message_forward import MessageForwardContent
@@ -31,7 +31,7 @@ __all__ = (
     "BaseContent",
     "ChatActionContent",
     "ContactContent",
-    "ContentAdapter",
+    "DefaultMappingContent",
     "DiceContent",
     "DocumentContent",
     "FromChatCopyContent",
@@ -39,6 +39,7 @@ __all__ = (
     "GameContent",
     "InvoiceContent",
     "LocationContent",
+    "MappingContent",
     "MediaGroupContent",
     "MessageCopyContent",
     "MessageForwardContent",
