@@ -25,6 +25,9 @@ dev = [
     "ruff>=0.3.2",
     "types-aiofiles>=23.2.0"
 ]
+redis = [
+    "redis[hiredis]~=5.0.1",
+]
 
 [tool.hatch.version]
 path = "aiogram_broadcaster/__about__.py"

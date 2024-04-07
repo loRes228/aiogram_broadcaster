@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install --editable .[dev]
+        run: pip install --editable .[dev,redis]
 
       - name: Lint code
         run: make lint
