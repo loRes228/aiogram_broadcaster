@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from aiogram.methods import TelegramMethod
 from pydantic import ConfigDict, SerializeAsAny
@@ -6,9 +6,10 @@ from pydantic import ConfigDict, SerializeAsAny
 from .base import BaseContent
 
 
-class MappingContent(BaseContent):
+class KeyBasedContent(BaseContent):
     model_config = ConfigDict(extra="allow")
 
+    default: Optional[SerializeAsAny[BaseContent]] = None
     __pydantic_extra__: Dict[str, SerializeAsAny[BaseContent]]
 
     async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
@@ -17,24 +18,15 @@ class MappingContent(BaseContent):
         return await content.as_method(**kwargs)
 
     def resolve_content(self, key: Any) -> BaseContent:
+        if self.default:
+            return self.__pydantic_extra__.get(key, self.default)
         return self.__pydantic_extra__[key]
-
-    if TYPE_CHECKING:
-
-        def __init__(self, **contents: BaseContent) -> None: ...
-
-
-class DefaultMappingContent(MappingContent):
-    default: SerializeAsAny[BaseContent]
-
-    def resolve_content(self, key: Any) -> BaseContent:
-        return self.__pydantic_extra__.get(key, self.default)
 
     if TYPE_CHECKING:
 
         def __init__(
             self,
             *,
-            default: BaseContent,
+            default: Optional[BaseContent] = ...,
             **contents: BaseContent,
         ) -> None: ...

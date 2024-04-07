@@ -187,8 +187,7 @@ photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 
 #### This module provides utilities to create personalized content targeted to specific users or groups based on their language preferences or geographical location, etc.
 
-> **_NOTE:_** The difference between MappingContent and DefaultMappingContent is that MappingContent will give an error if the key is not found,
-> while DefaultMappingContent will give the content specified under the default key.
+> **_NOTE:_** If the default key is not specified, an error will be given if the key is not found.
 
 #### Usage:
 
@@ -198,10 +197,10 @@ from typing import Optional
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 
-from aiogram_broadcaster.contents import DefaultMappingContent, MappingContent, TextContent
+from aiogram_broadcaster.contents import KeyBasedContent, TextContent
 
 
-class L10nContentAdapter(DefaultMappingContent):
+class LanguageBasedContent(KeyBasedContent):
     """Content based on the user's language."""
 
     async def __call__(self, chat_id: int, bot: Bot) -> Optional[str]:
@@ -213,14 +212,14 @@ class L10nContentAdapter(DefaultMappingContent):
             return member.user.language_code
 
 
-content = L10nContentAdapter(
+content = LanguageBasedContent(
     default=TextContent(text="Hello!"),
     uk=TextContent(text="Привіт!"),
     ru=TextContent(text="Привет!"),
 )
 
 
-class GEOContentAdapter(MappingContent):
+class GEOBasedContent(KeyBasedContent):
     """Content based on the user's geographical location."""
 
     async def __call__(self, chat_id: int, database: Database) -> str:
@@ -228,7 +227,7 @@ class GEOContentAdapter(MappingContent):
         return user.country
 
 
-content = GEOContentAdapter(
+content = GEOBasedContent(
     ukraine=TextContent(text="Новини для України!"),
     usa=TextContent(text="News for U.S!"),
 )

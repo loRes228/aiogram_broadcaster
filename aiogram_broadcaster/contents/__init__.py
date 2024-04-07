@@ -9,8 +9,8 @@ from .from_chat_copy import FromChatCopyContent
 from .from_chat_forward import FromChatForwardContent
 from .game import GameContent
 from .invoice import InvoiceContent
+from .key_based import KeyBasedContent
 from .location import LocationContent
-from .mapping import DefaultMappingContent, MappingContent
 from .media_group import MediaGroupContent
 from .message_copy import MessageCopyContent
 from .message_forward import MessageForwardContent
@@ -31,15 +31,14 @@ __all__ = (
     "BaseContent",
     "ChatActionContent",
     "ContactContent",
-    "DefaultMappingContent",
     "DiceContent",
     "DocumentContent",
     "FromChatCopyContent",
     "FromChatForwardContent",
     "GameContent",
     "InvoiceContent",
+    "KeyBasedContent",
     "LocationContent",
-    "MappingContent",
     "MediaGroupContent",
     "MessageCopyContent",
     "MessageForwardContent",
