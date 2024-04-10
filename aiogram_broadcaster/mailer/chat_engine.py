@@ -38,20 +38,23 @@ class ChatEngine(BaseModel):
     async def add_chats(self, chats: Iterable[int], state: ChatState) -> Set[int]:
         difference = set(chats) - self.get_chats()
         if not difference:
-            return difference
+            return set()
         self.chats[state].update(difference)
         await self._preserve()
         return difference
 
-    async def set_chats_state(self, state: ChatState) -> None:
+    async def set_chats_state(self, state: ChatState) -> bool:
         chats = self.get_chats()
+        if self.chats[state] == chats:
+            return False
         self.chats.clear()
         self.chats[state] = chats
         await self._preserve()
+        return True
 
     async def set_chat_state(self, chat: int, state: ChatState) -> None:
         from_state = self._resolve_chat_state(chat=chat)
-        self.chats[from_state].discard(chat)
+        self.chats[from_state].remove(chat)
         self.chats[state].add(chat)
         await self._preserve()
 
@@ -59,7 +62,7 @@ class ChatEngine(BaseModel):
         for state, chats in self.chats.items():
             if chat in chats:
                 return state
-        raise LookupError(f"Chat={chats} state is undefined.")
+        raise LookupError(f"State of chat={chat} could not be resolved.")
 
     async def _preserve(self) -> None:
         if not self.storage or not self.mailer_id:

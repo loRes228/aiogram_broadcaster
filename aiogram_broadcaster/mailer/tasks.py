@@ -22,10 +22,10 @@ class TaskManager:
     def waited(self) -> bool:
         return self._waited
 
-    def start(self, coroutine: Coroutine[Any, Any, Any], /) -> None:
+    def start(self, target: Coroutine[Any, Any, Any]) -> None:
         if self._task:
             return
-        self._task = create_task(coroutine)
+        self._task = create_task(target)
         self._task.add_done_callback(self._on_task_done)
 
     async def wait(self) -> None:

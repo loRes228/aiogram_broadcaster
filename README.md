@@ -13,6 +13,8 @@ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 #### Usage:
 
 ```python
+import logging
+import sys
 from typing import Any
 
 from aiogram import Bot, Dispatcher, Router
@@ -44,6 +46,8 @@ async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+
     bot = Bot(token=TOKEN)
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
@@ -89,12 +93,13 @@ await mailer_group.run()
 
 #### The event system empowers you to effectively manage events throughout the broadcast process.
 
-> **_NOTE:_** Chain nesting is supported, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
+> **_NOTE:_** `EventRouter` supports chained nesting, similar to
+> aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
 ```python
-from aigoram_broadcaster import Broadcaster, EventRouter
+from aigoram_broadcaster import EventRouter
 
 event = EventRouter(name=__name__)
 
@@ -140,7 +145,6 @@ async def on_successful_mail_sent() -> None:
 
 
 # Include the event instance in the broadcaster
-broadcaster = Broadcaster()
 broadcaster.event.include(event)
 ```
 
@@ -148,21 +152,19 @@ broadcaster.event.include(event)
 
 #### Placeholders facilitate the insertion of dynamic content within texts, this feature allows for personalized messaging.
 
-> **_NOTE:_** Chain nesting is supported, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
+> **_NOTE:_** `Placeholder` supports chained nesting, similar to
+> aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
+* #### Function-based
+
 ```python
-from aiogram import Bot
+from aiogram_broadcaster import Placeholder
 
-from aiogram_broadcaster import Broadcaster, Placeholder
-from aiogram_broadcaster.contents import PhotoContent, TextContent
-
-broadcaster = Broadcaster()
 placeholder = Placeholder(name=__name__)
 
 
-# Define a function to retrieve the username
 @placeholder(key="name")
 async def get_username(chat_id: int, bot: Bot) -> str:
     """Retrieves the username using the Telegram Bot API."""
@@ -170,15 +172,35 @@ async def get_username(chat_id: int, bot: Bot) -> str:
     return member.user.first_name
 
 
-# Include the placeholder instance in the broadcaster
 broadcaster.placeholder.include(placeholder)
+```
 
-# Other methods for registering placeholders
-broadcaster.placeholder["age"] = 22
-broadcaster.placeholder.add(key="name", value=get_username)
-broadcaster.placeholder.attach({"age": 22}, name=get_username)
+* #### Class-based
 
-# Create content featuring a placeholder
+```python
+from aiogram_broadcaster import PlaceholderItem
+
+
+class NamePlaceholder(PlaceholderItem, key="name"):
+    async def __call__(self, chat_id: int, bot: Bot) -> str:
+        member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
+        return member.user.first_name
+
+
+broadcaster.placeholder.register(NamePlaceholder())
+```
+
+* #### Other registration methods
+
+```python
+broadcaster.placeholder["name"] = function
+broadcaster.placeholder.add(key="key", value="value")
+broadcaster.placeholder.attach({"key": "value"}, key="value")
+```
+
+### And then
+
+```python
 text_content = TextContent(text="Hello, $name!")
 photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 ```
@@ -235,7 +257,7 @@ content = GEOBasedContent(
 
 ## Tiered dependency injection
 
-#### Utilize in event system, mapping content, placeholders, and more for comprehensive management of dependencies.
+#### Utilize in event system, key based content, placeholders, and more for comprehensive management of dependencies.
 
 #### Usage:
 

@@ -1,7 +1,7 @@
 from .broadcaster import Broadcaster
 from .default import DefaultMailerProperties
 from .event import EventRouter, skip_event
-from .placeholder import Placeholder
+from .placeholder import Placeholder, PlaceholderItem
 
 
 __all__ = (
@@ -9,5 +9,6 @@ __all__ = (
     "DefaultMailerProperties",
     "EventRouter",
     "Placeholder",
+    "PlaceholderItem",
     "skip_event",
 )

@@ -12,6 +12,10 @@ class KeyBasedContent(BaseContent):
     default: Optional[SerializeAsAny[BaseContent]] = None
     __pydantic_extra__: Dict[str, SerializeAsAny[BaseContent]]
 
+    def model_post_init(self, __context: Any) -> None:
+        if not self.default and not self.__pydantic_extra__:
+            raise ValueError("At least one content must be specified.")
+
     async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
         key = await self._callback.call(self, **kwargs)
         content = self.resolve_content(key=key)

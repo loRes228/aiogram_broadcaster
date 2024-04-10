@@ -36,9 +36,9 @@ class MailerGroup(MailerContainer):
         futures = [mailer.add_chats(chats=chats) for mailer in self._mailers.values()]
         return await self._gather_futures(*futures)
 
-    async def reset_chats(self) -> None:
+    async def reset_chats(self) -> Dict[Mailer, bool]:
         futures = [mailer.reset_chats() for mailer in self._mailers.values()]
-        await self._gather_futures(*futures)
+        return await self._gather_futures(*futures)
 
     async def send(self, chat_id: int) -> Dict[Mailer, Any]:
         futures = [mailer.send(chat_id=chat_id) for mailer in self._mailers.values()]

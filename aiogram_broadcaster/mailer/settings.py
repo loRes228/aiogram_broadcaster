@@ -1,12 +1,12 @@
 from typing import Literal, Optional, Set, Union
 
-from pydantic import BaseModel, ConfigDict, Field, PositiveFloat
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MailerSettings(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
 
-    interval: PositiveFloat = 1
+    interval: float = Field(default=1, ge=0)
     run_on_startup: bool = False
     disable_events: bool = False
     handle_retry_after: bool = False

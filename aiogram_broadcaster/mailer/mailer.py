@@ -121,7 +121,7 @@ class Mailer(Generic[ContentType]):
         if self._settings.exclude_placeholders is not True:
             method = await self._placeholder.render(
                 model=method,
-                exclude=self._settings.exclude_placeholders,
+                exclude_keys=self._settings.exclude_placeholders,
                 chat_id=chat_id,
                 **self._contextual_data,
             )
@@ -137,13 +137,15 @@ class Mailer(Generic[ContentType]):
             logger.info("Mailer id=%d new %d chats added.", self._id, len(new_chats))
         return new_chats
 
-    async def reset_chats(self) -> None:
-        if self._status is MailerStatus.DESTROYED:
+    async def reset_chats(self) -> bool:
+        if self._status in {MailerStatus.STARTED, MailerStatus.DESTROYED}:
             raise RuntimeError(f"Mailer id={self._id} cant be reset.")
-        await self._chat_engine.set_chats_state(state=ChatState.PENDING)
-        if self._status is MailerStatus.COMPLETED:
-            self._status = MailerStatus.STOPPED
-        logger.info("Mailer id=%d has been reset.", self._id)
+        is_reset = await self._chat_engine.set_chats_state(state=ChatState.PENDING)
+        if is_reset:
+            if self._status is MailerStatus.COMPLETED:
+                self._status = MailerStatus.STOPPED
+            logger.info("Mailer id=%d has been reset.", self._id)
+        return is_reset
 
     async def destroy(self) -> None:
         if self._status is MailerStatus.DESTROYED or self._status is MailerStatus.STARTED:
@@ -192,7 +194,7 @@ class Mailer(Generic[ContentType]):
     def start(self) -> None:
         if self._status is not MailerStatus.STOPPED:
             raise RuntimeError(f"Mailer id={self._id} cant be started.")
-        self._task.start(self.run())
+        self._task.start(target=self.run())
 
     async def wait(self) -> None:
         if not self._task.started or self._task.waited:

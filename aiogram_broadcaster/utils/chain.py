@@ -16,17 +16,12 @@ class ChainObject:
     head: Optional[Self]
     tail: List[Self]
 
-    def __init_subclass__(
-        cls,
-        singular_name: Optional[str] = None,
-        plural_name: Optional[str] = None,
-    ) -> None:
-        super().__init_subclass__()
-        if cls.__entity__ is not UNSET_ENTITY:
-            return
-        cls.__entity__ = cls
-        cls.__singular_name__ = singular_name or cls.__name__.lower()
-        cls.__plural_name__ = plural_name or f"{cls.__name__.lower()}s"
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        if cls.__entity__ is UNSET_ENTITY:
+            cls.__entity__ = cls
+            cls.__singular_name__ = kwargs.pop("singular_name", cls.__name__.lower())
+            cls.__plural_name__ = kwargs.pop("plural_name", f"{cls.__name__.lower()}s")
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, name: Optional[str] = None) -> None:
         self.name = name or hex(id(self))
