@@ -1,3 +1,4 @@
+from .__meta__ import __version__
 from .broadcaster import Broadcaster
 from .default import DefaultMailerProperties
 from .event import EventRouter, skip_event
@@ -10,5 +11,6 @@ __all__ = (
     "EventRouter",
     "Placeholder",
     "PlaceholderItem",
+    "__version__",
     "skip_event",
 )

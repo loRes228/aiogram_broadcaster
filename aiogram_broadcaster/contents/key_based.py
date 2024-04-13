@@ -6,7 +6,7 @@ from pydantic import ConfigDict, SerializeAsAny
 from .base import BaseContent
 
 
-class KeyBasedContent(BaseContent):
+class KeyBasedContent(BaseContent, register=False):
     model_config = ConfigDict(extra="allow")
 
     default: Optional[SerializeAsAny[BaseContent]] = None
@@ -24,7 +24,10 @@ class KeyBasedContent(BaseContent):
     def resolve_content(self, key: Any) -> BaseContent:
         if self.default:
             return self.__pydantic_extra__.get(key, self.default)
-        return self.__pydantic_extra__[key]
+        try:
+            return self.__pydantic_extra__[key]
+        except KeyError as error:
+            raise LookupError(f"Failed to resolve content by key={key!r}.") from error
 
     if TYPE_CHECKING:
 

@@ -8,16 +8,17 @@ from typing import (
     Container,
     Dict,
     Generator,
-    Iterable,
-    List,
     Mapping,
     Optional,
+    Set,
     Tuple,
     TypeVar,
+    cast,
 )
 
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 from pydantic import BaseModel
+from typing_extensions import Self
 
 from .utils.chain import ChainObject
 
@@ -46,7 +47,7 @@ class PlaceholderItem(ABC):
             pass
 
 
-class Placeholder(ChainObject, singular_name="placeholder", plural_name="placeholders"):
+class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
     items: Dict[str, Any]
 
     def __init__(self, name: Optional[str] = None) -> None:
@@ -74,92 +75,93 @@ class Placeholder(ChainObject, singular_name="placeholder", plural_name="placeho
         for placeholder in self.chain_tail:
             yield from placeholder.items.items()
 
-    def add(self, key: str, value: Any) -> None:
-        if key in self.items:
-            raise ValueError(f"Key '{key} 'is already exists.")
+    def add(self, key: str, value: Any) -> Self:
+        if key in self.chain_keys:
+            raise ValueError(f"Key {key!r} is already exists.")
         if callable(value):
             value = CallableObject(callback=value)
         self.items[key] = value
+        return self
 
-    def register(self, *items: PlaceholderItem) -> None:
-        if not items:
-            raise ValueError("At least one placeholder item must be provided to insertion.")
-        for item in items:
-            if not isinstance(item, PlaceholderItem):
+    def register(self, *placeholders: PlaceholderItem) -> Self:
+        if not placeholders:
+            raise ValueError("At least one placeholder must be provided to register.")
+        for placeholder in placeholders:
+            if not isinstance(placeholder, PlaceholderItem):
                 raise TypeError(
-                    f"The placeholder item must be an instance of "
-                    f"PlaceholderItem, not a {type(item).__name__}.",
+                    f"The placeholder must be an instance of "
+                    f"PlaceholderItem, not a {type(placeholder).__name__}.",
                 )
-            self.add(key=item.__key__, value=item.__call__)
+            self.add(key=placeholder.__key__, value=placeholder.__call__)
+        return self
 
-    def attach(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> None:
+    def attach(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> Self:
         if __mapping:
             kwargs.update(__mapping)
-        self._check_keys_collusion(keys=kwargs)
-        self.items.update(kwargs)
+        if not kwargs:
+            raise ValueError("At least one keyword must be specified to attaching.")
+        for key, value in kwargs.items():
+            self.add(key=key, value=value)
+        return self
 
-    def _set_head(self, entity: "Placeholder") -> None:
-        self._check_keys_collusion(keys=entity.chain_keys)
-        super()._set_head(entity=entity)
-
-    def _check_keys_collusion(self, keys: Iterable[str]) -> None:
-        if keys := set(self.chain_keys) & set(keys):
-            raise RuntimeError(f"Collusion between keys: {', '.join(keys)}.")
+    def _chain_bind(self, entity: "ChainObject[Any]") -> None:
+        if collusion := set(self.chain_keys) & set(cast(Placeholder, entity).chain_keys):
+            raise ValueError(
+                f"The {self.__sub_name__} name={self.name!r} "
+                f"already has the keys: {list(collusion)}.",
+            )
+        super()._chain_bind(entity=entity)
 
 
 class PlaceholderWizard(Placeholder):
     __chain_root__ = True
 
-    async def fetch_data(
-        self,
-        select_keys: Optional[Container[str]] = None,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-        if select_keys is None:
-            select_keys = set(self.chain_keys)
+    TEXT_FIELDS: ClassVar[Set[str]] = {"caption", "text"}
+
+    async def fetch_data(self, __select_keys: Container[str], /, **kwargs: Any) -> Dict[str, Any]:
         return {
             key: await value.call(**kwargs) if isinstance(value, CallableObject) else value
             for key, value in self.chain_items
-            if key in select_keys
+            if key in __select_keys
         }
 
     def extract_text_field(self, object: Any) -> Optional[Tuple[str, str]]:  # noqa: A002
-        for field in ("caption", "text"):
-            if value := getattr(object, field, None):
+        for field in self.TEXT_FIELDS:
+            if (value := getattr(object, field, None)) and isinstance(value, str):
                 return field, value
         return None
 
-    def extract_keys(
-        self,
-        template: Template,
-        exclude_keys: Optional[Container[str]] = None,
-    ) -> List[str]:
-        if exclude_keys is None:
-            exclude_keys = set()
-        return [
+    def extract_keys(self, template: Template) -> Set[str]:
+        # fmt: off
+        return {
             match.group("named")
             for match in template.pattern.finditer(string=template.template)
-            if match.group("named") not in exclude_keys
-        ]
+        }
+        # fmt: on
 
     async def render(
         self,
-        model: ModelType,
-        exclude_keys: Optional[Container[str]] = None,
+        __model: ModelType,
+        __exclude_keys: Optional[Set[str]] = None,
+        /,
         **kwargs: Any,
     ) -> ModelType:
-        if not tuple(self.chain_keys):
-            return model
-        field = self.extract_text_field(object=model)
+        self_keys = set(self.chain_keys)
+        if not self_keys or __exclude_keys == self_keys:
+            return __model
+        field = self.extract_text_field(object=__model)
         if not field:
-            return model
+            return __model
         field_name, field_value = field
         template = Template(template=field_value)
-        keys = self.extract_keys(template=template, exclude_keys=exclude_keys)
-        if not keys:
-            return model
-        data = await self.fetch_data(select_keys=keys, **kwargs)
+        template_keys = self.extract_keys(template=template)
+        select_keys = self_keys & template_keys
+        if __exclude_keys:
+            select_keys -= __exclude_keys
+        if not select_keys:
+            return __model
+        data = await self.fetch_data(select_keys, **kwargs)
         if not data:
-            return model
+            return __model
         rendered_field = {field_name: template.safe_substitute(data)}
-        return model.model_copy(update=rendered_field)
+        return __model.model_copy(update=rendered_field)

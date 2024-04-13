@@ -120,35 +120,37 @@ class Mailer(Generic[ContentType]):
         method = await self._content.as_method(chat_id=chat_id, **self._contextual_data)
         if self._settings.exclude_placeholders is not True:
             method = await self._placeholder.render(
-                model=method,
-                exclude_keys=self._settings.exclude_placeholders,
+                method,
+                self._settings.exclude_placeholders,
                 chat_id=chat_id,
                 **self._contextual_data,
             )
-        return await method.as_(bot=self.bot)
+        return await method.as_(bot=self._bot)
 
     async def add_chats(self, chats: Iterable[int]) -> Set[int]:
         if self._status is MailerStatus.DESTROYED:
             raise RuntimeError(f"Mailer id={self._id} cant be added the chats.")
         new_chats = await self._chat_engine.add_chats(chats=chats, state=ChatState.PENDING)
-        if new_chats:
-            if self._status is MailerStatus.COMPLETED:
-                self._status = MailerStatus.STOPPED
-            logger.info("Mailer id=%d new %d chats added.", self._id, len(new_chats))
+        if not new_chats:
+            return set()
+        if self._status is MailerStatus.COMPLETED:
+            self._status = MailerStatus.STOPPED
+        logger.info("Mailer id=%d new %d chats added.", self._id, len(new_chats))
         return new_chats
 
     async def reset_chats(self) -> bool:
         if self._status in {MailerStatus.STARTED, MailerStatus.DESTROYED}:
             raise RuntimeError(f"Mailer id={self._id} cant be reset.")
         is_reset = await self._chat_engine.set_chats_state(state=ChatState.PENDING)
-        if is_reset:
-            if self._status is MailerStatus.COMPLETED:
-                self._status = MailerStatus.STOPPED
-            logger.info("Mailer id=%d has been reset.", self._id)
+        if not is_reset:
+            return False
+        if self._status is MailerStatus.COMPLETED:
+            self._status = MailerStatus.STOPPED
+        logger.info("Mailer id=%d has been reset.", self._id)
         return is_reset
 
     async def destroy(self) -> None:
-        if self._status is MailerStatus.DESTROYED or self._status is MailerStatus.STARTED:
+        if self._status in {MailerStatus.STARTED, MailerStatus.DESTROYED}:
             raise RuntimeError(f"Mailer id={self._id} cant be destroyed.")
         logger.info("Mailer id=%d has been destroyed.", self._id)
         self._stop_event.set()
@@ -168,7 +170,7 @@ class Mailer(Generic[ContentType]):
         if not self._settings.disable_events:
             await self._event.emit_stopped(**self._contextual_data)
 
-    async def run(self) -> None:
+    async def run(self) -> bool:
         if self._status is not MailerStatus.STOPPED:
             raise RuntimeError(f"Mailer id={self._id} cant be started.")
         logger.info("Mailer id=%d is started.", self._id)
@@ -182,14 +184,15 @@ class Mailer(Generic[ContentType]):
             await self.stop()
             raise
         if not completed:
-            return
+            return False
         logger.info("Mailer id=%d successfully completed.", self._id)
         self._stop_event.set()
         self._status = MailerStatus.COMPLETED
-        if not self._settings.disable_events:
-            await self._event.emit_completed(**self._contextual_data)
         if self._settings.destroy_on_complete:
             await self.destroy()
+        if not self._settings.disable_events:
+            await self._event.emit_completed(**self._contextual_data)
+        return completed
 
     def start(self) -> None:
         if self._status is not MailerStatus.STOPPED:

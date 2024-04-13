@@ -29,6 +29,8 @@ class MailerContainer:
         return len(self._mailers)
 
     def __bool__(self) -> bool:
+        if not self._mailers:
+            return False
         return all(self._mailers.values())
 
     def __hash__(self) -> int:

@@ -50,7 +50,7 @@ class RedisBCRStorage(BaseBCRStorage):
         self.key_builder = key_builder or KeyBuilder()
 
         if not self.redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
-            raise RuntimeError("'decode_responses' must be set to True in the Redis client.")
+            raise RuntimeError("The 'decode_responses' must be set to True in the Redis client.")
 
     @classmethod
     def from_url(

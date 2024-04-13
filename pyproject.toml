@@ -30,4 +30,4 @@ redis = [
 ]
 
 [tool.hatch.version]
-path = "aiogram_broadcaster/__about__.py"
+path = "aiogram_broadcaster/__meta__.py"

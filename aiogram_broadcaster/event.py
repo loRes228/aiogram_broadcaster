@@ -23,13 +23,17 @@ class EventObserver:
 
     def __call__(self) -> Callable[[CallbackType], CallbackType]:
         def wrapper(callback: CallbackType) -> CallbackType:
-            self.register(callback=callback)
+            self.register(callback)
             return callback
 
         return wrapper
 
-    def register(self, callback: CallbackType) -> None:
-        self.callbacks.append(CallableObject(callback=callback))
+    def register(self, *callbacks: CallbackType) -> "EventObserver":
+        if not callbacks:
+            raise ValueError("At least one callback must be provided to register.")
+        for callback in callbacks:
+            self.callbacks.append(CallableObject(callback=callback))
+        return self
 
     async def trigger(self, **kwargs: Any) -> None:
         with suppress(SkipEvent, SkipHandler, CancelHandler):
@@ -43,7 +47,7 @@ class EventObserver:
                     merged_kwargs.update(result)
 
 
-class EventRouter(ChainObject, singular_name="event", plural_name="events"):
+class EventRouter(ChainObject["EventRouter"], sub_name="event"):
     started: EventObserver
     stopped: EventObserver
     completed: EventObserver

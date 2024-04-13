@@ -108,24 +108,24 @@ event = EventRouter(name=__name__)
 
 
 @event.started()
-async def on_mailer_started() -> None:
+async def mailer_started() -> None:
     """Triggered when the mailer begins its operations."""
 
 
 @event.stopped()
-async def on_mailer_stopped() -> None:
+async def mailer_stopped() -> None:
     """Triggered when the mailer stops its operations."""
 
 
 @event.completed()
-async def on_mailer_completed() -> None:
+async def mailer_completed() -> None:
     """Triggered when the mailer successfully completes its operations."""
 
 
 @event.failed_sent()
-async def on_failed_mail_sent() -> None:
+async def mail_failed_sent() -> None:
     """
-    Triggered when a message fails to send.
+    Triggered when a content fails to send.
 
     Exclusive parameters for this type of event.
         chat_id (int): ID of the chat.
@@ -134,13 +134,13 @@ async def on_failed_mail_sent() -> None:
 
 
 @event.success_sent()
-async def on_successful_mail_sent() -> None:
+async def mail_successful_sent() -> None:
     """
-    Triggered when a message is successfully sent.
+    Triggered when a mail is successfully sent.
 
     Exclusive parameters for this type of event:
         chat_id (int): ID of the chat.
-        response (Any): Response from the sent message.
+        response (Any): Response from the sent mail.
     """
 
 

@@ -57,24 +57,20 @@ class BaseContent(BaseModel, ABC):
     @classmethod
     def register(cls) -> None:
         if cls.is_registered():
-            raise RuntimeError(f"The content '{cls.__name__}' is already registered.")
+            raise RuntimeError(f"The content {cls.__name__!r} is already registered.")
         cls.__validators__[cls.__name__] = cls
 
     @model_validator(mode="wrap")
     @classmethod
-    def _validate(
-        cls,
-        value: Any,
-        handler: ValidatorFunctionWrapHandler,
-    ) -> Any:
+    def _validate(cls, value: Any, handler: ValidatorFunctionWrapHandler) -> Any:
         if not isinstance(value, dict):
             return handler(value)
-        validator_name: str = value.pop(VALIDATOR_KEY, None)
-        if not validator_name:
+        if VALIDATOR_KEY not in value:
             return handler(value)
+        validator_name: str = value.pop(VALIDATOR_KEY, None)
         if validator_name not in cls.__validators__:
             raise RuntimeError(
-                f"Content '{validator_name}' has not been registered, "
+                f"Content {validator_name!r} has not been registered, "
                 f"you can register using the '{validator_name}.register()' method.",
             )
         return cls.__validators__[validator_name].model_validate(value)

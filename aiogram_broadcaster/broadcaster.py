@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterable, Literal, Optional, Set, Tuple, Union, ca
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher
-from pydantic_core import PydanticSerializationError
+from pydantic_core import PydanticSerializationError, ValidationError
 
 from .contents.base import BaseContent, ContentType
 from .default import DefaultMailerProperties
@@ -43,12 +43,14 @@ class Broadcaster(MailerContainer):
         self.default = default or DefaultMailerProperties()
         self.context_key = context_key
         self.contextual_data = kwargs
-        self.contextual_data["broadcaster"] = self
+        self.contextual_data[self.context_key] = self
 
         self.event = EventManager(name="root")
         self.placeholder = PlaceholderWizard(name="root")
 
     def as_group(self) -> MailerGroup:
+        if not self._mailers:
+            raise RuntimeError("No mailers for grouping.")
         return MailerGroup(*self._mailers.values())
 
     async def create_mailers(
@@ -123,8 +125,8 @@ class Broadcaster(MailerContainer):
             raise ValueError("At least one bot must be specified.")
         if not content.is_registered():
             raise RuntimeError(
-                f"Register the '{type(content).__name__}' content "
-                f"using the '{type(content).__name__}.register()' method.",
+                f"Register the {type(content).__name__!r} content "
+                f"using the '{type(content).__name__!r}.register()' method.",
             )
 
         chats = set(chats)
@@ -193,8 +195,8 @@ class Broadcaster(MailerContainer):
         for mailer_id in await self.storage.get_mailer_ids():
             try:
                 record = await self.storage.get_record(mailer_id=mailer_id)
-            except Exception:  # noqa: BLE001
-                logger.exception("Failed to restore mailer id=%d.")
+            except ValidationError:
+                logger.exception("Failed to restore mailer id=%d.", mailer_id)
                 continue
             if record.bot not in bots:
                 logger.error(
@@ -218,19 +220,17 @@ class Broadcaster(MailerContainer):
             self._mailers[mailer_id] = mailer
             logger.info("Mailer id=%d restored from storage.", mailer_id)
 
-    async def run_mailers(self) -> None:
+    async def run_startup_mailers(self) -> None:
         for mailer in self._mailers.values():
-            if not mailer.settings.run_on_startup:
-                continue
-            if mailer.status is not MailerStatus.STOPPED:
-                continue
-            mailer.start()
+            if mailer.settings.run_on_startup and mailer.status is MailerStatus.STOPPED:
+                mailer.start()
 
-    def setup(self, dispatcher: Dispatcher, *, fetch_data: bool = True) -> None:
+    def setup(self, dispatcher: Dispatcher, *, fetch_data: bool = True) -> "Broadcaster":
         dispatcher[self.context_key] = self
         if fetch_data:
             self.contextual_data.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.restore_mailers)
             dispatcher.shutdown.register(self.storage.close)
-        dispatcher.startup.register(self.run_mailers)
+        dispatcher.startup.register(self.run_startup_mailers)
+        return self
