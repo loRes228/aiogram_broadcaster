@@ -15,24 +15,24 @@ class BaseBCRStorage(ABC):
         pass
 
     @abstractmethod
-    async def get_record(self, mailer_id: int) -> StorageRecord:
+    async def get(self, mailer_id: int) -> StorageRecord:
         pass
 
     @abstractmethod
-    async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
+    async def set(self, mailer_id: int, record: StorageRecord) -> None:
         pass
 
     @abstractmethod
-    async def delete_record(self, mailer_id: int) -> None:
+    async def delete(self, mailer_id: int) -> None:
         pass
 
     @asynccontextmanager
-    async def update_record(self, mailer_id: int) -> AsyncGenerator[StorageRecord, None]:
-        record = await self.get_record(mailer_id=mailer_id)
+    async def update(self, mailer_id: int) -> AsyncGenerator[StorageRecord, None]:
+        record = await self.get(mailer_id=mailer_id)
         try:
             yield record
         finally:
-            await self.set_record(mailer_id=mailer_id, record=record)
+            await self.set(mailer_id=mailer_id, record=record)
 
     @abstractmethod
     async def close(self) -> None:

@@ -1,16 +1,16 @@
 from .__meta__ import __version__
 from .broadcaster import Broadcaster
 from .default import DefaultMailerProperties
-from .event import EventRouter, skip_event
-from .placeholder import Placeholder, PlaceholderItem
+from .event import Event, skip_event
+from .placeholder import BasePlaceholder, Placeholder
 
 
 __all__ = (
+    "BasePlaceholder",
     "Broadcaster",
     "DefaultMailerProperties",
-    "EventRouter",
+    "Event",
     "Placeholder",
-    "PlaceholderItem",
     "__version__",
     "skip_event",
 )

@@ -67,7 +67,7 @@ class RedisBCRStorage(BaseBCRStorage):
         keys = await self.redis.keys(pattern=self.key_builder.pattern)
         return self.key_builder.extract_mailer_ids(keys=keys)
 
-    async def get_record(self, mailer_id: int) -> StorageRecord:
+    async def get(self, mailer_id: int) -> StorageRecord:
         key = self.key_builder.build(mailer_id=mailer_id)
         data = await self.redis.get(name=key)
         return StorageRecord.model_validate_json(
@@ -75,12 +75,12 @@ class RedisBCRStorage(BaseBCRStorage):
             context={"mailer_id": mailer_id, "storage": self},
         )
 
-    async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
+    async def set(self, mailer_id: int, record: StorageRecord) -> None:
         key = self.key_builder.build(mailer_id=mailer_id)
         data = record.model_dump_json(exclude_defaults=True)
         await self.redis.set(name=key, value=data)
 
-    async def delete_record(self, mailer_id: int) -> None:
+    async def delete(self, mailer_id: int) -> None:
         key = self.key_builder.build(mailer_id=mailer_id)
         await self.redis.delete(key)
 

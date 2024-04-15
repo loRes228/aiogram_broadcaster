@@ -67,5 +67,5 @@ class ChatEngine(BaseModel):
     async def _preserve(self) -> None:
         if not self.storage or not self.mailer_id:
             return
-        async with self.storage.update_record(mailer_id=self.mailer_id) as record:
+        async with self.storage.update(mailer_id=self.mailer_id) as record:
             record.chats = self

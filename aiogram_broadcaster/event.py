@@ -32,22 +32,13 @@ class EventObserver:
         if not callbacks:
             raise ValueError("At least one callback must be provided to register.")
         for callback in callbacks:
+            if not callable(callback):
+                raise TypeError("The callback must be callable.")
             self.callbacks.append(CallableObject(callback=callback))
         return self
 
-    async def trigger(self, **kwargs: Any) -> None:
-        with suppress(SkipEvent, SkipHandler, CancelHandler):
-            merged_kwargs: Dict[str, Any] = {}
-            for callback in self.callbacks:
-                result = await callback.call(
-                    **kwargs,
-                    **merged_kwargs,
-                )
-                if result and isinstance(result, dict):
-                    merged_kwargs.update(result)
 
-
-class EventRouter(ChainObject["EventRouter"], sub_name="event"):
+class Event(ChainObject["Event"], sub_name="event"):
     started: EventObserver
     stopped: EventObserver
     completed: EventObserver
@@ -72,25 +63,30 @@ class EventRouter(ChainObject["EventRouter"], sub_name="event"):
         }
 
 
-class EventManager(EventRouter):
+class EventManager(Event):
     __chain_root__ = True
 
-    async def emit_started(self, **kwargs: Any) -> None:
-        for event in self.chain_tail:
-            await event.started.trigger(**kwargs)
+    async def emit_event(self, __event_name: str, /, **kwargs: Any) -> Dict[str, Any]:
+        merged_kwargs: Dict[str, Any] = {}
+        with suppress(SkipEvent, SkipHandler, CancelHandler):
+            for event in self.chain_tail:
+                for callback in event.observers[__event_name].callbacks:
+                    result = await callback.call(**kwargs, **merged_kwargs)
+                    if result and isinstance(result, dict):
+                        merged_kwargs.update(result)
+        return merged_kwargs
 
-    async def emit_stopped(self, **kwargs: Any) -> None:
-        for event in self.chain_tail:
-            await event.stopped.trigger(**kwargs)
+    async def emit_started(self, **kwargs: Any) -> Dict[str, Any]:
+        return await self.emit_event("started", **kwargs)
 
-    async def emit_completed(self, **kwargs: Any) -> None:
-        for event in self.chain_tail:
-            await event.completed.trigger(**kwargs)
+    async def emit_stopped(self, **kwargs: Any) -> Dict[str, Any]:
+        return await self.emit_event("stopped", **kwargs)
 
-    async def emit_success_sent(self, **kwargs: Any) -> None:
-        for event in self.chain_tail:
-            await event.success_sent.trigger(**kwargs)
+    async def emit_completed(self, **kwargs: Any) -> Dict[str, Any]:
+        return await self.emit_event("completed", **kwargs)
 
-    async def emit_failed_sent(self, **kwargs: Any) -> None:
-        for event in self.chain_tail:
-            await event.failed_sent.trigger(**kwargs)
+    async def emit_success_sent(self, **kwargs: Any) -> Dict[str, Any]:
+        return await self.emit_event("success_sent", **kwargs)
+
+    async def emit_failed_sent(self, **kwargs: Any) -> Dict[str, Any]:
+        return await self.emit_event("failed_sent", **kwargs)

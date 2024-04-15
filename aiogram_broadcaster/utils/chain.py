@@ -56,12 +56,10 @@ class ChainObject(Generic[EntityType]):
             yield from entity.chain_tail
 
     @overload
-    def include(self, entity: EntityType, /) -> EntityType:
-        pass
+    def include(self, entity: EntityType, /) -> EntityType: ...
 
     @overload
-    def include(self, *entities: EntityType) -> None:
-        pass
+    def include(self, *entities: EntityType) -> None: ...
 
     def include(self: "ChainObject[Any]", *entities: "ChainObject[Any]") -> Any:
         if not entities:

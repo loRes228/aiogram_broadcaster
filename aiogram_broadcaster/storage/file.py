@@ -38,7 +38,7 @@ class FileBCRStorage(BaseBCRStorage):
             records = await self.get_records()
             return set(records.records)
 
-    async def get_record(self, mailer_id: int) -> StorageRecord:
+    async def get(self, mailer_id: int) -> StorageRecord:
         async with self.lock:
             records = await self.get_records()
             return StorageRecord.model_validate(
@@ -46,13 +46,13 @@ class FileBCRStorage(BaseBCRStorage):
                 context={"mailer_id": mailer_id, "storage": self},
             )
 
-    async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
+    async def set(self, mailer_id: int, record: StorageRecord) -> None:
         async with self.lock:
             records = await self.get_records()
             records.records[mailer_id] = record.model_dump(mode="json", exclude_defaults=True)
             await self.set_records(records=records)
 
-    async def delete_record(self, mailer_id: int) -> None:
+    async def delete(self, mailer_id: int) -> None:
         async with self.lock:
             records = await self.get_records()
             del records.records[mailer_id]

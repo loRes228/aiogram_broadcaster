@@ -26,7 +26,7 @@ from .utils.chain import ChainObject
 ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
-class PlaceholderItem(ABC):
+class BasePlaceholder(ABC):
     __key__: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
@@ -39,7 +39,7 @@ class PlaceholderItem(ABC):
         return f"PlaceholderItem(key={self.__key__!r})"
 
     if TYPE_CHECKING:
-        __call__: CallbackType
+        __call__: Callable[..., Any]
     else:
 
         @abstractmethod
@@ -70,11 +70,6 @@ class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
         for placeholder in self.chain_tail:
             yield from placeholder.items
 
-    @property
-    def chain_items(self) -> Generator[Tuple[str, Any], None, None]:
-        for placeholder in self.chain_tail:
-            yield from placeholder.items.items()
-
     def add(self, key: str, value: Any) -> Self:
         if key in self.chain_keys:
             raise ValueError(f"Key {key!r} is already exists.")
@@ -83,11 +78,11 @@ class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
         self.items[key] = value
         return self
 
-    def register(self, *placeholders: PlaceholderItem) -> Self:
+    def register(self, *placeholders: BasePlaceholder) -> Self:
         if not placeholders:
             raise ValueError("At least one placeholder must be provided to register.")
         for placeholder in placeholders:
-            if not isinstance(placeholder, PlaceholderItem):
+            if not isinstance(placeholder, BasePlaceholder):
                 raise TypeError(
                     f"The placeholder must be an instance of "
                     f"PlaceholderItem, not a {type(placeholder).__name__}.",
@@ -113,7 +108,7 @@ class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
         super()._chain_bind(entity=entity)
 
 
-class PlaceholderWizard(Placeholder):
+class PlaceholderManager(Placeholder):
     __chain_root__ = True
 
     TEXT_FIELDS: ClassVar[Set[str]] = {"caption", "text"}
@@ -121,7 +116,8 @@ class PlaceholderWizard(Placeholder):
     async def fetch_data(self, __select_keys: Container[str], /, **kwargs: Any) -> Dict[str, Any]:
         return {
             key: await value.call(**kwargs) if isinstance(value, CallableObject) else value
-            for key, value in self.chain_items
+            for placeholder in self.chain_tail
+            for key, value in placeholder.items.items()
             if key in __select_keys
         }
 

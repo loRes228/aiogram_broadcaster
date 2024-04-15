@@ -14,7 +14,7 @@ from .mailer.group import MailerGroup
 from .mailer.mailer import Mailer
 from .mailer.settings import MailerSettings
 from .mailer.status import MailerStatus
-from .placeholder import PlaceholderWizard
+from .placeholder import PlaceholderManager
 from .storage.base import BaseBCRStorage
 from .storage.record import StorageRecord
 
@@ -26,7 +26,7 @@ class Broadcaster(MailerContainer):
     context_key: str
     contextual_data: Dict[str, Any]
     event: EventManager
-    placeholder: PlaceholderWizard
+    placeholder: PlaceholderManager
 
     def __init__(
         self,
@@ -46,7 +46,7 @@ class Broadcaster(MailerContainer):
         self.contextual_data[self.context_key] = self
 
         self.event = EventManager(name="root")
-        self.placeholder = PlaceholderWizard(name="root")
+        self.placeholder = PlaceholderManager(name="root")
 
     def as_group(self) -> MailerGroup:
         if not self._mailers:
@@ -126,7 +126,7 @@ class Broadcaster(MailerContainer):
         if not content.is_registered():
             raise RuntimeError(
                 f"Register the {type(content).__name__!r} content "
-                f"using the '{type(content).__name__!r}.register()' method.",
+                f"using the '{type(content).__name__}.register()' method.",
             )
 
         chats = set(chats)
@@ -185,7 +185,7 @@ class Broadcaster(MailerContainer):
         except PydanticSerializationError as error:
             del self._mailers[mailer_id]
             raise RuntimeError("Record cant be serialized to preserving.") from error
-        await self.storage.set_record(mailer_id=mailer_id, record=record)
+        await self.storage.set(mailer_id=mailer_id, record=record)
         return mailer
 
     async def restore_mailers(self) -> None:
@@ -194,7 +194,7 @@ class Broadcaster(MailerContainer):
         bots = {bot.id: bot for bot in self.bots}
         for mailer_id in await self.storage.get_mailer_ids():
             try:
-                record = await self.storage.get_record(mailer_id=mailer_id)
+                record = await self.storage.get(mailer_id=mailer_id)
             except ValidationError:
                 logger.exception("Failed to restore mailer id=%d.", mailer_id)
                 continue
@@ -221,13 +221,19 @@ class Broadcaster(MailerContainer):
             logger.info("Mailer id=%d restored from storage.", mailer_id)
 
     async def run_startup_mailers(self) -> None:
-        for mailer in self._mailers.values():
-            if mailer.settings.run_on_startup and mailer.status is MailerStatus.STOPPED:
+        for mailer in self.get_mailers(MailerStatus.STOPPED):
+            if mailer.settings.run_on_startup:
                 mailer.start()
 
-    def setup(self, dispatcher: Dispatcher, *, fetch_data: bool = True) -> "Broadcaster":
+    def setup(
+        self,
+        dispatcher: Dispatcher,
+        *,
+        fetch_workflow_data: bool = True,
+    ) -> "Broadcaster":
         dispatcher[self.context_key] = self
-        if fetch_data:
+        self.contextual_data["dispatcher"] = dispatcher
+        if fetch_workflow_data:
             self.contextual_data.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.restore_mailers)

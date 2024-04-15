@@ -1,15 +1,11 @@
 from asyncio import create_task, gather, wait
-from typing import Any, Coroutine, Dict, Iterable, Optional
+from typing import Any, Coroutine, Dict, Iterable, Optional, Set, Union
 
 from .container import MailerContainer
 from .mailer import Mailer
 
 
 class MailerGroup(MailerContainer):
-    async def wait(self) -> None:
-        futures = [mailer.wait() for mailer in self._mailers.values()]
-        await wait(futures)
-
     def start(self) -> Dict[Mailer, Optional[Exception]]:
         results: Dict[Mailer, Optional[Exception]] = {}
         for mailer in self._mailers.values():
@@ -20,7 +16,11 @@ class MailerGroup(MailerContainer):
                 results[mailer] = error
         return results
 
-    async def run(self) -> Dict[Mailer, Optional[Exception]]:
+    async def wait(self) -> None:
+        futures = [mailer.wait() for mailer in self._mailers.values()]
+        await wait(futures)
+
+    async def run(self) -> Dict[Mailer, Union[Exception, bool]]:
         futures = [mailer.run() for mailer in self._mailers.values()]
         return await self._gather_futures(*futures)
 
@@ -32,11 +32,11 @@ class MailerGroup(MailerContainer):
         futures = [mailer.destroy() for mailer in self._mailers.values()]
         return await self._gather_futures(*futures)
 
-    async def add_chats(self, chats: Iterable[int]) -> Dict[Mailer, bool]:
+    async def add_chats(self, chats: Iterable[int]) -> Dict[Mailer, Union[Exception, Set[int]]]:
         futures = [mailer.add_chats(chats=chats) for mailer in self._mailers.values()]
         return await self._gather_futures(*futures)
 
-    async def reset_chats(self) -> Dict[Mailer, bool]:
+    async def reset_chats(self) -> Dict[Mailer, Union[Exception, bool]]:
         futures = [mailer.reset_chats() for mailer in self._mailers.values()]
         return await self._gather_futures(*futures)
 

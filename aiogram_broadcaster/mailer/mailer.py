@@ -7,7 +7,7 @@ from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 from aiogram_broadcaster.contents.base import ContentType
 from aiogram_broadcaster.event import EventManager
 from aiogram_broadcaster.logger import logger
-from aiogram_broadcaster.placeholder import PlaceholderWizard
+from aiogram_broadcaster.placeholder import PlaceholderManager
 from aiogram_broadcaster.storage.base import BaseBCRStorage
 
 from .chat_engine import ChatEngine, ChatState
@@ -23,7 +23,7 @@ class Mailer(Generic[ContentType]):
     _chat_engine: ChatEngine
     _content: ContentType
     _event: EventManager
-    _placeholder: PlaceholderWizard
+    _placeholder: PlaceholderManager
     _storage: Optional[BaseBCRStorage]
     _mailer_container: Dict[int, "Mailer"]
     _bot: Bot
@@ -41,7 +41,7 @@ class Mailer(Generic[ContentType]):
         chat_engine: ChatEngine,
         content: ContentType,
         event: EventManager,
-        placeholder: PlaceholderWizard,
+        placeholder: PlaceholderManager,
         storage: Optional[BaseBCRStorage],
         mailer_container: Dict[int, "Mailer"],
         bot: Bot,
@@ -159,7 +159,7 @@ class Mailer(Generic[ContentType]):
             return
         del self._mailer_container[self._id]
         if self._storage:
-            await self._storage.delete_record(mailer_id=self._id)
+            await self._storage.delete(mailer_id=self._id)
 
     async def stop(self) -> None:
         if self._status is not MailerStatus.STARTED:

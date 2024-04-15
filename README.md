@@ -178,10 +178,10 @@ broadcaster.placeholder.include(placeholder)
 * #### Class-based
 
 ```python
-from aiogram_broadcaster import PlaceholderItem
+from aiogram_broadcaster import BasePlaceholder
 
 
-class NamePlaceholder(PlaceholderItem, key="name"):
+class NamePlaceholder(BasePlaceholder, key="name"):
     async def __call__(self, chat_id: int, bot: Bot) -> str:
         member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
         return member.user.first_name
@@ -280,21 +280,30 @@ dispatcher = Dispatcher()
 dispatcher["key"] = "value"
 
 broadcaster = Broadcaster()
-broadcaster.setup(dispatcher=dispatcher, fetch_data=True)
+broadcaster.setup(dispatcher=dispatcher, fetch_workflow_data=True)
 ```
 
 * #### Contextual data only for mailer
 
 ```python
-broadcaster = Broadcaster()
-
 await broadcaster.create_mailer(content=..., chats=..., key=value)
 ```
 
 * #### Stored contextual data only for mailer
 
 ```python
-broadcaster = Broadcaster()
-
 await broadcaster.create_mailer(content=..., chats=..., data={"key": "value"})
+```
+
+* #### Event-to-Event
+
+```python
+@event.completed()
+async def transfer_content(mailer: Mailer) -> Dict[str, Any]:
+    return {"mailer_content": mailer.content}
+
+
+@event.completed()
+async def mailer_completed(mailer_content: BaseContent) -> None:
+    print(mailer_content)
 ```

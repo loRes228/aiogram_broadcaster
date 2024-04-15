@@ -1,6 +1,7 @@
 from typing import Dict, Iterator, List, Optional
 
 from .mailer import Mailer
+from .status import MailerStatus
 
 
 class MailerContainer:
@@ -48,5 +49,7 @@ class MailerContainer:
     def get_mailer(self, mailer_id: int) -> Optional[Mailer]:
         return self._mailers.get(mailer_id)
 
-    def get_mailers(self) -> List[Mailer]:
-        return list(self._mailers.values())
+    def get_mailers(self, *statuses: MailerStatus) -> List[Mailer]:
+        if not statuses:
+            return list(self._mailers.values())
+        return [mailer for mailer in self._mailers.values() if mailer.status in statuses]
