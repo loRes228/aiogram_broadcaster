@@ -1,4 +1,4 @@
-# ruff: noqa: TCH004,PLC0415
+# ruff: noqa: TCH004, PLC0415
 
 from typing import TYPE_CHECKING as _TYPE_CHECKING
 

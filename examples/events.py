@@ -51,7 +51,7 @@ async def mailer_completed(mailer: Mailer[MessageSendContent], bot: Bot) -> None
 
 
 @event.failed_sent()
-async def mailer_failed_sent(chay_id: int, error: Exception) -> None:  # noqa: ARG001
+async def mailer_failed_sent(chay_id: int, error: Exception) -> None:  # noqa: ARG001, RUF029
     if not isinstance(error, TelegramForbiddenError):
         return
     # Do something...
