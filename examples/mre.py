@@ -7,6 +7,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
+from aiogram_broadcaster.storage import FileMailerStorage
 
 
 TOKEN = "1234:Abc"  # noqa: S105
@@ -38,7 +39,8 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot)
+    storage = FileMailerStorage()
+    broadcaster = Broadcaster(bot, storage=storage)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)

@@ -38,7 +38,7 @@ class EventObserver:
         return self
 
 
-class Event(ChainObject["Event"], sub_name="event"):
+class EventRouter(ChainObject["EventRouter"], sub_name="event"):
     started: EventObserver
     stopped: EventObserver
     completed: EventObserver
@@ -63,7 +63,7 @@ class Event(ChainObject["Event"], sub_name="event"):
         }
 
 
-class EventManager(Event):
+class EventManager(EventRouter):
     __chain_root__ = True
 
     async def emit_event(self, __event_name: str, /, **kwargs: Any) -> Dict[str, Any]:

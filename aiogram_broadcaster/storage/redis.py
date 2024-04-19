@@ -2,7 +2,7 @@ from typing import Any, Iterable, Optional, Set, Union
 
 from redis.asyncio import ConnectionPool, Redis
 
-from .base import BaseBCRStorage
+from .base import BaseMailerStorage
 from .record import StorageRecord
 
 
@@ -35,7 +35,7 @@ class KeyBuilder:
         return self.seperator.join(map(str, key))
 
 
-class RedisBCRStorage(BaseBCRStorage):
+class RedisMailerStorage(BaseMailerStorage):
     redis: Redis
     key_builder: KeyBuilder
 
@@ -57,11 +57,12 @@ class RedisBCRStorage(BaseBCRStorage):
         cls,
         url: str,
         key_builder: Optional[KeyBuilder] = None,
-        **connection_kwargs: Any,
-    ) -> "RedisBCRStorage":
-        connection_kwargs["decode_responses"] = True
-        redis = Redis.from_url(url=url, **connection_kwargs)
-        return RedisBCRStorage(redis=redis, key_builder=key_builder)
+        **connection_options: Any,
+    ) -> "RedisMailerStorage":
+        connection_options["decode_responses"] = True
+        pool = ConnectionPool.from_url(url=url, **connection_options)
+        redis = Redis.from_pool(connection_pool=pool)
+        return cls(redis=redis, key_builder=key_builder)
 
     async def get_mailer_ids(self) -> Set[int]:
         keys = await self.redis.keys(pattern=self.key_builder.pattern)
@@ -84,5 +85,5 @@ class RedisBCRStorage(BaseBCRStorage):
         key = self.key_builder.build(mailer_id=mailer_id)
         await self.redis.delete(key)
 
-    async def close(self) -> None:
+    async def shutdown(self) -> None:
         await self.redis.aclose(close_connection_pool=True)

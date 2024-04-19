@@ -1,34 +1,41 @@
-# ruff: noqa: PLC0415,TCH004
+# ruff: noqa: TCH004,PLC0415
 
 from typing import TYPE_CHECKING as _TYPE_CHECKING
 
 
 if _TYPE_CHECKING:
-    from .base import BaseBCRStorage
-    from .file import FileBCRStorage
-    from .redis import RedisBCRStorage
+    from .base import BaseMailerStorage
+    from .file import FileMailerStorage
+    from .redis import RedisMailerStorage
+    from .sqlalchemy import SQLAlchemyMailerStorage
 
 __all__ = (
-    "BaseBCRStorage",
-    "FileBCRStorage",
-    "RedisBCRStorage",
+    "BaseMailerStorage",
+    "FileMailerStorage",
+    "RedisMailerStorage",
+    "SQLAlchemyMailerStorage",
 )
 
 
 def __getattr__(name: str) -> type:
-    if name == "BaseBCRStorage":
-        from .base import BaseBCRStorage
+    if name == "BaseMailerStorage":
+        from .base import BaseMailerStorage
 
-        return BaseBCRStorage
+        return BaseMailerStorage
 
-    if name == "FileBCRStorage":
-        from .file import FileBCRStorage
+    if name == "FileMailerStorage":
+        from .file import FileMailerStorage
 
-        return FileBCRStorage
+        return FileMailerStorage
 
-    if name == "RedisBCRStorage":
-        from .redis import RedisBCRStorage
+    if name == "RedisMailerStorage":
+        from .redis import RedisMailerStorage
 
-        return RedisBCRStorage
+        return RedisMailerStorage
+
+    if name == "SQLAlchemyMailerStorage":
+        from .sqlalchemy import SQLAlchemyMailerStorage
+
+        return SQLAlchemyMailerStorage
 
     raise AttributeError

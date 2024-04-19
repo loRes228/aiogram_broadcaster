@@ -18,7 +18,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install --editable .[dev,redis]
+        run: pip install --editable .[dev,redis,sqlalchemy]
 
       - name: Lint code
         run: make lint
+
+      - name: Check installable
+        run: |
+          pip install build
+          python -m build --wheel .
+          mkdir try_install
+          cd try_install
+          virtualenv .venv
+          .venv/bin/pip install ../dist/*.whl
+          .venv/bin/python -c "import aiogram_broadcaster; print(aiogram_broadcaster.__version__)"

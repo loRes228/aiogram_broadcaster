@@ -22,6 +22,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
+from aiogram_broadcaster.storage import FileMailerStorage
 
 TOKEN = "1234:Abc"
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
@@ -52,7 +53,8 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot)
+    storage = FileMailerStorage()
+    broadcaster = Broadcaster(bot, storage=storage)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)
@@ -160,9 +162,9 @@ broadcaster.event.include(event)
 * #### Function-based
 
 ```python
-from aiogram_broadcaster import Placeholder
+from aiogram_broadcaster import PlaceholderRouter
 
-placeholder = Placeholder(name=__name__)
+placeholder = PlaceholderRouter(name=__name__)
 
 
 @placeholder(key="name")
@@ -178,10 +180,10 @@ broadcaster.placeholder.include(placeholder)
 * #### Class-based
 
 ```python
-from aiogram_broadcaster import BasePlaceholder
+from aiogram_broadcaster import PlaceholderItem
 
 
-class NamePlaceholder(BasePlaceholder, key="name"):
+class NamePlaceholder(PlaceholderItem, key="name"):
     async def __call__(self, chat_id: int, bot: Bot) -> str:
         member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
         return member.user.first_name

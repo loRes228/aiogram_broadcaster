@@ -15,13 +15,13 @@ from .mailer.mailer import Mailer
 from .mailer.settings import MailerSettings
 from .mailer.status import MailerStatus
 from .placeholder import PlaceholderManager
-from .storage.base import BaseBCRStorage
+from .storage.base import BaseMailerStorage
 from .storage.record import StorageRecord
 
 
 class Broadcaster(MailerContainer):
     bots: Tuple[Bot, ...]
-    storage: Optional[BaseBCRStorage]
+    storage: Optional[BaseMailerStorage]
     default: DefaultMailerProperties
     context_key: str
     contextual_data: Dict[str, Any]
@@ -31,7 +31,7 @@ class Broadcaster(MailerContainer):
     def __init__(
         self,
         *bots: Bot,
-        storage: Optional[BaseBCRStorage] = None,
+        storage: Optional[BaseMailerStorage] = None,
         default: Optional[DefaultMailerProperties] = None,
         context_key: str = "broadcaster",
         **kwargs: Any,
@@ -43,7 +43,10 @@ class Broadcaster(MailerContainer):
         self.default = default or DefaultMailerProperties()
         self.context_key = context_key
         self.contextual_data = kwargs
-        self.contextual_data[self.context_key] = self
+        self.contextual_data.update(
+            {self.context_key: self},
+            bots=self.bots,
+        )
 
         self.event = EventManager(name="root")
         self.placeholder = PlaceholderManager(name="root")
@@ -191,8 +194,11 @@ class Broadcaster(MailerContainer):
     async def restore_mailers(self) -> None:
         if not self.storage:
             raise RuntimeError("Storage not found.")
+        mailer_ids = await self.storage.get_mailer_ids()
+        if not mailer_ids:
+            return
         bots = {bot.id: bot for bot in self.bots}
-        for mailer_id in await self.storage.get_mailer_ids():
+        for mailer_id in mailer_ids:
             try:
                 record = await self.storage.get(mailer_id=mailer_id)
             except ValidationError:
@@ -225,18 +231,14 @@ class Broadcaster(MailerContainer):
             if mailer.settings.run_on_startup:
                 mailer.start()
 
-    def setup(
-        self,
-        dispatcher: Dispatcher,
-        *,
-        fetch_workflow_data: bool = True,
-    ) -> "Broadcaster":
+    def setup(self, dispatcher: Dispatcher, *, fetch_workflow_data: bool = True) -> "Broadcaster":
         dispatcher[self.context_key] = self
         self.contextual_data["dispatcher"] = dispatcher
         if fetch_workflow_data:
             self.contextual_data.update(dispatcher.workflow_data)
         if self.storage:
+            dispatcher.startup.register(self.storage.startup)
             dispatcher.startup.register(self.restore_mailers)
-            dispatcher.shutdown.register(self.storage.close)
+            dispatcher.shutdown.register(self.storage.shutdown)
         dispatcher.startup.register(self.run_startup_mailers)
         return self

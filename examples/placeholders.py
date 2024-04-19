@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from aiogram_broadcaster import BasePlaceholder, Broadcaster, Placeholder
+from aiogram_broadcaster import Broadcaster, PlaceholderItem, PlaceholderRouter
 from aiogram_broadcaster.contents import TextContent
 
 
@@ -15,7 +15,7 @@ TOKEN = "1234:Abc"  # noqa: S105
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
-placeholder = Placeholder(name=__name__)
+placeholder = PlaceholderRouter(name=__name__)
 
 
 @router.message(CommandStart())
@@ -36,7 +36,7 @@ async def get_username(chat_id: int, bot: Bot) -> str:
     return member.user.first_name
 
 
-class DatePlaceholder(BasePlaceholder, key="date"):
+class DatePlaceholder(PlaceholderItem, key="date"):
     def __init__(
         self,
         tz: tzinfo = timezone.utc,

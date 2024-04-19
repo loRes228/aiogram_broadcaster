@@ -13,7 +13,6 @@ from typing import (
     Set,
     Tuple,
     TypeVar,
-    cast,
 )
 
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
@@ -26,12 +25,12 @@ from .utils.chain import ChainObject
 ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
-class BasePlaceholder(ABC):
+class PlaceholderItem(ABC):
     __key__: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         if "key" not in kwargs:
-            raise ValueError("Missing required argument 'key' when subclassing PlaceholderItem.")
+            raise ValueError("Missing required argument 'key' when subclassing BasePlaceholder.")
         cls.__key__ = kwargs.pop("key")
         super().__init_subclass__(**kwargs)
 
@@ -47,7 +46,7 @@ class BasePlaceholder(ABC):
             pass
 
 
-class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
+class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"):
     items: Dict[str, Any]
 
     def __init__(self, name: Optional[str] = None) -> None:
@@ -78,11 +77,11 @@ class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
         self.items[key] = value
         return self
 
-    def register(self, *placeholders: BasePlaceholder) -> Self:
+    def register(self, *placeholders: PlaceholderItem) -> Self:
         if not placeholders:
             raise ValueError("At least one placeholder must be provided to register.")
         for placeholder in placeholders:
-            if not isinstance(placeholder, BasePlaceholder):
+            if not isinstance(placeholder, PlaceholderItem):
                 raise TypeError(
                     f"The placeholder must be an instance of "
                     f"PlaceholderItem, not a {type(placeholder).__name__}.",
@@ -99,8 +98,8 @@ class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
             self.add(key=key, value=value)
         return self
 
-    def _chain_bind(self, entity: "ChainObject[Any]") -> None:
-        if collusion := set(self.chain_keys) & set(cast(Placeholder, entity).chain_keys):
+    def _chain_bind(self, entity: "PlaceholderRouter") -> None:
+        if collusion := set(self.chain_keys) & set(entity.chain_keys):
             raise ValueError(
                 f"The {self.__sub_name__} name={self.name!r} "
                 f"already has the keys: {list(collusion)}.",
@@ -108,7 +107,7 @@ class Placeholder(ChainObject["Placeholder"], sub_name="placeholder"):
         super()._chain_bind(entity=entity)
 
 
-class PlaceholderManager(Placeholder):
+class PlaceholderManager(PlaceholderRouter):
     __chain_root__ = True
 
     TEXT_FIELDS: ClassVar[Set[str]] = {"caption", "text"}

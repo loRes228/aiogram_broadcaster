@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 
 UNSET_ENTITY = sentinel.UNSET_ENTITY
 
-EntityType = TypeVar("EntityType", bound=Any)
+EntityType = TypeVar("EntityType", bound="ChainObject[Any]")
 
 
 class ChainObject(Generic[EntityType]):
@@ -56,12 +56,12 @@ class ChainObject(Generic[EntityType]):
             yield from entity.chain_tail
 
     @overload
-    def include(self, entity: EntityType, /) -> EntityType: ...
+    def include(self, entity: EntityType, /) -> EntityType: ...  # type: ignore[overload-overlap]
 
     @overload
     def include(self, *entities: EntityType) -> None: ...
 
-    def include(self: "ChainObject[Any]", *entities: "ChainObject[Any]") -> Any:
+    def include(self: EntityType, *entities: EntityType) -> Optional[EntityType]:
         if not entities:
             raise ValueError(
                 f"At least one {self.__sub_name__} must be provided to include.",
@@ -73,11 +73,9 @@ class ChainObject(Generic[EntityType]):
                     f"{self.__entity__.__name__}, not a {type(entity).__name__}.",
                 )
             entity._chain_bind(entity=self)  # noqa: SLF001
-        if len(entities) == 1:
-            return entities[-1]
-        return None
+        return entities[-1] if len(entities) == 1 else None
 
-    def _chain_bind(self: "ChainObject[Any]", entity: "ChainObject[Any]") -> None:
+    def _chain_bind(self: EntityType, entity: EntityType) -> None:
         if self.__chain_root__:
             raise RuntimeError(
                 f"{type(self).__name__} cannot be attached to another {self.__sub_name__}.",

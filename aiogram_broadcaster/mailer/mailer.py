@@ -8,7 +8,7 @@ from aiogram_broadcaster.contents.base import ContentType
 from aiogram_broadcaster.event import EventManager
 from aiogram_broadcaster.logger import logger
 from aiogram_broadcaster.placeholder import PlaceholderManager
-from aiogram_broadcaster.storage.base import BaseBCRStorage
+from aiogram_broadcaster.storage.base import BaseMailerStorage
 
 from .chat_engine import ChatEngine, ChatState
 from .settings import MailerSettings
@@ -24,7 +24,7 @@ class Mailer(Generic[ContentType]):
     _content: ContentType
     _event: EventManager
     _placeholder: PlaceholderManager
-    _storage: Optional[BaseBCRStorage]
+    _storage: Optional[BaseMailerStorage]
     _mailer_container: Dict[int, "Mailer"]
     _bot: Bot
     _contextual_data: Dict[str, Any]
@@ -42,7 +42,7 @@ class Mailer(Generic[ContentType]):
         content: ContentType,
         event: EventManager,
         placeholder: PlaceholderManager,
-        storage: Optional[BaseBCRStorage],
+        storage: Optional[BaseMailerStorage],
         mailer_container: Dict[int, "Mailer"],
         bot: Bot,
         contextual_data: Dict[str, Any],
@@ -57,10 +57,7 @@ class Mailer(Generic[ContentType]):
         self._mailer_container = mailer_container
         self._bot = bot
         self._contextual_data = contextual_data
-        self._contextual_data.update(
-            mailer=self,
-            bot=bot,
-        )
+        self._contextual_data.update(mailer=self, bot=self._bot)
 
         self._status = self._resolve_status()
         self._statistic = MailerStatistic(chat_engine=self._chat_engine)

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from .record import StorageRecord
 
 
-class BaseBCRStorage(ABC):
+class BaseMailerStorage(ABC):
     @abstractmethod
     async def get_mailer_ids(self) -> Set[int]:
         pass
@@ -34,6 +34,8 @@ class BaseBCRStorage(ABC):
         finally:
             await self.set(mailer_id=mailer_id, record=record)
 
-    @abstractmethod
-    async def close(self) -> None:
+    async def startup(self) -> None:  # noqa: B027
+        pass
+
+    async def shutdown(self) -> None:  # noqa: B027
         pass

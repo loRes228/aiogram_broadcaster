@@ -14,8 +14,8 @@ class MailerContainer:
         return f"{type(self).__name__}(total_mailers={len(self._mailers)})"
 
     def __str__(self) -> str:
-        mailers = ", ".join(map(repr, self._mailers.values()))
-        return f"{type(self).__name__}[{mailers}]"
+        mailers_string = ", ".join(map(repr, self._mailers.values()))
+        return f"{type(self).__name__}[{mailers_string}]"
 
     def __contains__(self, item: int) -> bool:
         return item in self._mailers

@@ -3,7 +3,7 @@ from typing import Any, AsyncGenerator, DefaultDict, Dict, Iterable, Optional, S
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from aiogram_broadcaster.storage.base import BaseBCRStorage
+from aiogram_broadcaster.storage.base import BaseMailerStorage
 
 
 class ChatState(str, Enum):
@@ -17,7 +17,7 @@ class ChatEngine(BaseModel):
 
     chats: DefaultDict[ChatState, Set[int]]
     mailer_id: Optional[int] = Field(default=None, exclude=True)
-    storage: Optional[BaseBCRStorage] = Field(default=None, exclude=True)
+    storage: Optional[BaseMailerStorage] = Field(default=None, exclude=True)
 
     def model_post_init(self, __context: Dict[str, Any]) -> None:
         if not __context:
