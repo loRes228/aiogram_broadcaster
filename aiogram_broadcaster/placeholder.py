@@ -30,7 +30,7 @@ class PlaceholderItem(ABC):
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         if "key" not in kwargs:
-            raise ValueError("Missing required argument 'key' when subclassing BasePlaceholder.")
+            raise ValueError("Missing required argument 'key' when subclassing PlaceholderItem.")
         cls.__key__ = kwargs.pop("key")
         super().__init_subclass__(**kwargs)
 
