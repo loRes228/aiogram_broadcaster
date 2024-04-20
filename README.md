@@ -154,7 +154,7 @@ broadcaster.event.include(event)
 
 #### Placeholders facilitate the insertion of dynamic content within texts, this feature allows for personalized messaging.
 
-> **_NOTE:_** `Placeholder` supports chained nesting, similar to
+> **_NOTE:_** `PlaceholderRouter` supports chained nesting, similar to
 > aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
