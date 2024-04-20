@@ -43,7 +43,7 @@ class SQLAlchemyMailerStorage(BaseMailerStorage):
         self.table = Table(
             self.table_name,
             MetaData(),
-            Column("id", BigInteger(), index=True, unique=True, nullable=False),
+            Column("id", BigInteger(), index=True, unique=True, nullable=False, primary_key=True),
             Column("data", String(), nullable=False),
         )
 
@@ -75,13 +75,13 @@ class SQLAlchemyMailerStorage(BaseMailerStorage):
 
     async def get_mailer_ids(self) -> Set[int]:
         statement = select(self.table.c.id)
-        async with self.session_maker.begin() as session:
+        async with self.session_maker() as session:
             result = await session.execute(statement=statement)
         return set(result.scalars().all())
 
     async def get(self, mailer_id: int) -> StorageRecord:
         statement = select(self.table.c.data).where(self.table.c.id == mailer_id)
-        async with self.session_maker.begin() as session:
+        async with self.session_maker() as session:
             result = await session.execute(statement=statement)
         return StorageRecord.model_validate_json(
             json_data=result.scalar_one(),
@@ -92,16 +92,19 @@ class SQLAlchemyMailerStorage(BaseMailerStorage):
         data = record.model_dump_json(exclude_defaults=True)
         insert_statement = insert(self.table).values(id=mailer_id, data=data)
         update_statement = update(self.table).where(self.table.c.id == mailer_id).values(data=data)
-        async with self.session_maker.begin() as session:
+        async with self.session_maker() as session:
             try:
                 await session.execute(statement=insert_statement)
             except IntegrityError:
+                await session.rollback()
                 await session.execute(statement=update_statement)
+            await session.commit()
 
     async def delete(self, mailer_id: int) -> None:
         statement = delete(self.table).where(self.table.c.id == mailer_id)
-        async with self.session_maker.begin() as session:
+        async with self.session_maker() as session:
             await session.execute(statement=statement)
+            await session.commit()
 
     async def startup(self) -> None:
         async with self.engine.begin() as connection:
