@@ -124,6 +124,16 @@ async def mailer_completed() -> None:
     """Triggered when the mailer successfully completes its operations."""
 
 
+@event.before_sent()
+async def mail_before_sent() -> None:
+    """
+    Triggered before sending content.
+
+    Exclusive parameters for this type of event.
+        chat_id (int): ID of the chat.
+    """
+
+
 @event.failed_sent()
 async def mail_failed_sent() -> None:
     """

@@ -14,16 +14,6 @@ from aiogram.types import (
 from .base import BaseContent
 
 
-ReplyMarkupType = Optional[
-    Union[
-        InlineKeyboardMarkup,
-        ReplyKeyboardMarkup,
-        ReplyKeyboardRemove,
-        ForceReply,
-    ]
-]
-
-
 class AudioContent(BaseContent):
     audio: Union[InputFile, str]
     caption: Optional[str] = None
@@ -35,7 +25,14 @@ class AudioContent(BaseContent):
     thumbnail: Optional[InputFile] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: ReplyMarkupType = None
+    reply_markup: Optional[
+        Union[
+            InlineKeyboardMarkup,
+            ReplyKeyboardMarkup,
+            ReplyKeyboardRemove,
+            ForceReply,
+        ]
+    ] = None
 
     async def __call__(self, chat_id: int) -> SendAudio:
         return SendAudio(
@@ -68,5 +65,12 @@ class AudioContent(BaseContent):
             thumbnail: Optional[InputFile] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: ReplyMarkupType = ...,
+            reply_markup: Optional[
+                Union[
+                    InlineKeyboardMarkup,
+                    ReplyKeyboardMarkup,
+                    ReplyKeyboardRemove,
+                    ForceReply,
+                ]
+            ] = ...,
         ) -> None: ...

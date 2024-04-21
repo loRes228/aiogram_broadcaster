@@ -4,7 +4,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class MailerSettings(BaseModel):
-    model_config = ConfigDict(validate_assignment=True)
+    model_config = ConfigDict(
+        frozen=True,
+        validate_assignment=True,
+    )
 
     interval: float = Field(default=1, ge=0)
     run_on_startup: bool = False

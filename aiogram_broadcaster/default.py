@@ -10,12 +10,12 @@ if version_info >= (3, 10):
 
 @dataclass(**_dataclass_properties)
 class DefaultMailerProperties:
-    interval: float = 1
+    interval: float = 0
     dynamic_interval: bool = False
     run_on_startup: bool = False
     handle_retry_after: bool = False
     destroy_on_complete: bool = False
-    preserve: bool = True
+    preserve: bool = False
 
     def __post_init__(self) -> None:
         if self.interval < 0:
@@ -43,7 +43,6 @@ class DefaultMailerProperties:
             destroy_on_complete = self.destroy_on_complete
         if preserve is None:
             preserve = self.preserve
-
         return DefaultMailerProperties(
             interval=interval,
             dynamic_interval=dynamic_interval,

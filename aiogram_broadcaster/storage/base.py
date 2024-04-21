@@ -1,12 +1,22 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, AsyncGenerator, Set
+from typing import Any, AsyncGenerator, Dict, Set
+
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny
+
+from aiogram_broadcaster.contents.base import BaseContent
+from aiogram_broadcaster.mailer.chat_engine import ChatsRegistry
+from aiogram_broadcaster.mailer.settings import MailerSettings
 
 
-if TYPE_CHECKING:
-    from .record import StorageRecord
+class StorageRecord(BaseModel):
+    model_config = ConfigDict(validate_assignment=True)
+
+    content: SerializeAsAny[BaseContent]
+    chats: ChatsRegistry
+    settings: MailerSettings
+    bot_id: int
+    data: Dict[str, Any] = Field(default_factory=dict)
 
 
 class BaseMailerStorage(ABC):
@@ -34,8 +44,10 @@ class BaseMailerStorage(ABC):
         finally:
             await self.set(mailer_id=mailer_id, record=record)
 
-    async def startup(self) -> None:  # noqa: B027
+    @abstractmethod
+    async def startup(self) -> None:
         pass
 
-    async def shutdown(self) -> None:  # noqa: B027
+    @abstractmethod
+    async def shutdown(self) -> None:
         pass

@@ -2,8 +2,7 @@ from typing import Any, Iterable, Optional, Set, Union
 
 from redis.asyncio import ConnectionPool, Redis
 
-from .base import BaseMailerStorage
-from .record import StorageRecord
+from .base import BaseMailerStorage, StorageRecord
 
 
 class KeyBuilder:
@@ -71,10 +70,7 @@ class RedisMailerStorage(BaseMailerStorage):
     async def get(self, mailer_id: int) -> StorageRecord:
         key = self.key_builder.build(mailer_id=mailer_id)
         data = await self.redis.get(name=key)
-        return StorageRecord.model_validate_json(
-            json_data=data,
-            context={"mailer_id": mailer_id, "storage": self},
-        )
+        return StorageRecord.model_validate_json(json_data=data)
 
     async def set(self, mailer_id: int, record: StorageRecord) -> None:
         key = self.key_builder.build(mailer_id=mailer_id)
@@ -84,6 +80,9 @@ class RedisMailerStorage(BaseMailerStorage):
     async def delete(self, mailer_id: int) -> None:
         key = self.key_builder.build(mailer_id=mailer_id)
         await self.redis.delete(key)
+
+    async def startup(self) -> None:
+        pass
 
     async def shutdown(self) -> None:
         await self.redis.aclose(close_connection_pool=True)

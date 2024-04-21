@@ -1,4 +1,5 @@
-from typing import Dict, Iterator, List, Optional
+from types import MappingProxyType
+from typing import Dict, Iterator, List, Mapping, Optional
 
 from .mailer import Mailer
 from .status import MailerStatus
@@ -24,7 +25,7 @@ class MailerContainer:
         return self._mailers[item]
 
     def __iter__(self) -> Iterator[Mailer]:
-        return iter(self._mailers.copy().values())
+        return iter(self.mailers.values())
 
     def __len__(self) -> int:
         return len(self._mailers)
@@ -43,8 +44,8 @@ class MailerContainer:
         return hash(self) == hash(other)
 
     @property
-    def mailers(self) -> Dict[int, Mailer]:
-        return self._mailers.copy()
+    def mailers(self) -> Mapping[int, Mailer]:
+        return MappingProxyType(mapping=self._mailers)
 
     def get_mailer(self, mailer_id: int) -> Optional[Mailer]:
         return self._mailers.get(mailer_id)

@@ -7,18 +7,15 @@ from aiogram.types import InputMediaAudio, InputMediaDocument, InputMediaPhoto, 
 from .base import BaseContent
 
 
-MediaType = List[
-    Union[
-        InputMediaAudio,
-        InputMediaDocument,
-        InputMediaPhoto,
-        InputMediaVideo,
-    ]
-]
-
-
 class MediaGroupContent(BaseContent):
-    media: MediaType
+    media: List[
+        Union[
+            InputMediaAudio,
+            InputMediaDocument,
+            InputMediaPhoto,
+            InputMediaVideo,
+        ]
+    ]
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
 
@@ -35,7 +32,14 @@ class MediaGroupContent(BaseContent):
         def __init__(
             self,
             *,
-            media: MediaType,
+            media: List[
+                Union[
+                    InputMediaAudio,
+                    InputMediaDocument,
+                    InputMediaPhoto,
+                    InputMediaVideo,
+                ]
+            ],
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
         ) -> None: ...

@@ -10,7 +10,7 @@ from aiogram_broadcaster.logger import logger
 from aiogram_broadcaster.placeholder import PlaceholderManager
 from aiogram_broadcaster.storage.base import BaseMailerStorage
 
-from .chat_engine import ChatEngine, ChatState
+from .chat_engine import ChatEngine, ChatsRegistry, ChatState
 from .settings import MailerSettings
 from .statistic import MailerStatistic
 from .status import MailerStatus
@@ -20,7 +20,6 @@ from .tasks import TaskManager
 class Mailer(Generic[ContentType]):
     _id: int
     _settings: MailerSettings
-    _chat_engine: ChatEngine
     _content: ContentType
     _event: EventManager
     _placeholder: PlaceholderManager
@@ -28,9 +27,10 @@ class Mailer(Generic[ContentType]):
     _mailer_container: Dict[int, "Mailer"]
     _bot: Bot
     _contextual_data: Dict[str, Any]
-    _status: MailerStatus
+    _chat_engine: ChatEngine
     _statistic: MailerStatistic
     _task: TaskManager
+    _status: MailerStatus
     _stop_event: Event
 
     def __init__(
@@ -38,7 +38,7 @@ class Mailer(Generic[ContentType]):
         *,
         id: int,  # noqa: A002
         settings: MailerSettings,
-        chat_engine: ChatEngine,
+        chats: ChatsRegistry,
         content: ContentType,
         event: EventManager,
         placeholder: PlaceholderManager,
@@ -49,7 +49,6 @@ class Mailer(Generic[ContentType]):
     ) -> None:
         self._id = id
         self._settings = settings
-        self._chat_engine = chat_engine
         self._content = content
         self._event = event
         self._placeholder = placeholder
@@ -59,9 +58,10 @@ class Mailer(Generic[ContentType]):
         self._contextual_data = contextual_data
         self._contextual_data.update(mailer=self, bot=self._bot)
 
-        self._status = self._resolve_status()
+        self._chat_engine = ChatEngine(registry=chats, mailer_id=self._id, storage=self._storage)
         self._statistic = MailerStatistic(chat_engine=self._chat_engine)
         self._task = TaskManager()
+        self._status = self._resolve_status()
         self._stop_event = Event()
         self._stop_event.set()
 
@@ -215,6 +215,8 @@ class Mailer(Generic[ContentType]):
         return True
 
     async def _send(self, chat_id: int) -> None:
+        if not self._settings.disable_events:
+            await self._event.emit_before_sent(chat_id=chat_id, **self._contextual_data)
         try:
             response = await self.send(chat_id=chat_id)
         except TelegramRetryAfter as error:

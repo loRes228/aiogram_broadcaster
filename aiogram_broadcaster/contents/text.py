@@ -14,16 +14,6 @@ from aiogram.types import (
 from .base import BaseContent
 
 
-ReplyMarkupType = Optional[
-    Union[
-        InlineKeyboardMarkup,
-        ReplyKeyboardMarkup,
-        ReplyKeyboardRemove,
-        ForceReply,
-    ]
-]
-
-
 class TextContent(BaseContent):
     text: str
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
@@ -31,7 +21,14 @@ class TextContent(BaseContent):
     link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = Default("link_preview")
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: ReplyMarkupType = None
+    reply_markup: Optional[
+        Union[
+            InlineKeyboardMarkup,
+            ReplyKeyboardMarkup,
+            ReplyKeyboardRemove,
+            ForceReply,
+        ]
+    ] = None
 
     async def __call__(self, chat_id: int) -> SendMessage:
         return SendMessage(
@@ -56,5 +53,12 @@ class TextContent(BaseContent):
             link_preview_options: Optional[LinkPreviewOptions] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: ReplyMarkupType = ...,
+            reply_markup: Optional[
+                Union[
+                    InlineKeyboardMarkup,
+                    ReplyKeyboardMarkup,
+                    ReplyKeyboardRemove,
+                    ForceReply,
+                ]
+            ] = ...,
         ) -> None: ...

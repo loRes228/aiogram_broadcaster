@@ -12,21 +12,18 @@ from aiogram.types import (
 from .base import BaseContent
 
 
-ReplyMarkupType = Optional[
-    Union[
-        InlineKeyboardMarkup,
-        ReplyKeyboardMarkup,
-        ReplyKeyboardRemove,
-        ForceReply,
-    ]
-]
-
-
 class DiceContent(BaseContent):
     emoji: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: ReplyMarkupType = None
+    reply_markup: Optional[
+        Union[
+            InlineKeyboardMarkup,
+            ReplyKeyboardMarkup,
+            ReplyKeyboardRemove,
+            ForceReply,
+        ]
+    ] = None
 
     async def __call__(self, chat_id: int) -> SendDice:
         return SendDice(
@@ -45,5 +42,12 @@ class DiceContent(BaseContent):
             emoji: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: ReplyMarkupType = ...,
+            reply_markup: Optional[
+                Union[
+                    InlineKeyboardMarkup,
+                    ReplyKeyboardMarkup,
+                    ReplyKeyboardRemove,
+                    ForceReply,
+                ]
+            ] = ...,
         ) -> None: ...

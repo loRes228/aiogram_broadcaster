@@ -20,8 +20,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from .base import BaseMailerStorage
-from .record import StorageRecord
+from .base import BaseMailerStorage, StorageRecord
 
 
 DEFAULT_TABLE_NAME = "mailers"
@@ -83,10 +82,7 @@ class SQLAlchemyMailerStorage(BaseMailerStorage):
         statement = select(self.table.c.data).where(self.table.c.id == mailer_id)
         async with self.session_maker() as session:
             result = await session.execute(statement=statement)
-        return StorageRecord.model_validate_json(
-            json_data=result.scalar_one(),
-            context={"mailer_id": mailer_id, "storage": self},
-        )
+        return StorageRecord.model_validate_json(json_data=result.scalar_one())
 
     async def set(self, mailer_id: int, record: StorageRecord) -> None:
         data = record.model_dump_json(exclude_defaults=True)

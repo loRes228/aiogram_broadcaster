@@ -1,15 +1,20 @@
 from asyncio import Lock
 from pathlib import Path
-from typing import Any, Dict, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Set, Union
 
 from aiofiles import open
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from .base import BaseMailerStorage
-from .record import StorageRecord
+from .base import BaseMailerStorage, StorageRecord
+
+
+if TYPE_CHECKING:
+    from os import PathLike
 
 
 class StorageRecords(BaseModel):
+    model_config = ConfigDict(validate_assignment=True)
+
     records: Dict[int, Any] = Field(default_factory=dict)
 
 
@@ -17,7 +22,7 @@ class FileMailerStorage(BaseMailerStorage):
     file: Path
     _lock: Optional[Lock]
 
-    def __init__(self, filename: Union[str, Path] = ".mailers.json") -> None:
+    def __init__(self, filename: Union[str, "PathLike[str]", Path] = ".mailers.json") -> None:
         if not isinstance(filename, Path):
             filename = Path(filename)
         self.file = filename
@@ -41,10 +46,7 @@ class FileMailerStorage(BaseMailerStorage):
     async def get(self, mailer_id: int) -> StorageRecord:
         async with self.lock:
             records = await self.read()
-            return StorageRecord.model_validate(
-                obj=records.records[mailer_id],
-                context={"mailer_id": mailer_id, "storage": self},
-            )
+            return StorageRecord.model_validate(obj=records.records[mailer_id])
 
     async def set(self, mailer_id: int, record: StorageRecord) -> None:
         async with self.lock:
@@ -59,10 +61,6 @@ class FileMailerStorage(BaseMailerStorage):
             await self.write(records=records)
 
     async def read(self) -> StorageRecords:
-        if not self.file.exists() or self.file.stat().st_size == 0:
-            records = StorageRecords()
-            await self.write(records=records)
-            return records
         async with open(file=self.file, mode="r", encoding="utf-8") as file:
             data = await file.read()
             return StorageRecords.model_validate_json(json_data=data)
@@ -71,3 +69,12 @@ class FileMailerStorage(BaseMailerStorage):
         async with open(file=self.file, mode="w", encoding="utf-8") as file:
             data = records.model_dump_json(exclude_defaults=True)
             await file.write(data)
+
+    async def startup(self) -> None:
+        if self.file.exists() and self.file.stat().st_size > 0:
+            return
+        records = StorageRecords()
+        await self.write(records=records)
+
+    async def shutdown(self) -> None:
+        pass

@@ -5,16 +5,13 @@ from .chat_action import ChatActionContent
 from .contact import ContactContent
 from .dice import DiceContent
 from .document import DocumentContent
-from .from_chat_copy import FromChatCopyContent
-from .from_chat_forward import FromChatForwardContent
+from .from_chat import FromChatCopyContent, FromChatForwardContent
 from .game import GameContent
 from .invoice import InvoiceContent
 from .key_based import KeyBasedContent
 from .location import LocationContent
 from .media_group import MediaGroupContent
-from .message_copy import MessageCopyContent
-from .message_forward import MessageForwardContent
-from .message_send import MessageSendContent
+from .message import MessageCopyContent, MessageForwardContent, MessageSendContent
 from .photo import PhotoContent
 from .poll import PollContent
 from .sticker import StickerContent

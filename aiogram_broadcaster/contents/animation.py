@@ -14,16 +14,6 @@ from aiogram.types import (
 from .base import BaseContent
 
 
-ReplyMarkupType = Optional[
-    Union[
-        InlineKeyboardMarkup,
-        ReplyKeyboardMarkup,
-        ReplyKeyboardRemove,
-        ForceReply,
-    ]
-]
-
-
 class AnimationContent(BaseContent):
     animation: Union[InputFile, str]
     duration: Optional[int] = None
@@ -36,7 +26,14 @@ class AnimationContent(BaseContent):
     has_spoiler: Optional[bool] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: ReplyMarkupType = None
+    reply_markup: Optional[
+        Union[
+            InlineKeyboardMarkup,
+            ReplyKeyboardMarkup,
+            ReplyKeyboardRemove,
+            ForceReply,
+        ]
+    ] = None
 
     async def __call__(self, chat_id: int) -> SendAnimation:
         return SendAnimation(
@@ -71,5 +68,12 @@ class AnimationContent(BaseContent):
             has_spoiler: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: ReplyMarkupType = ...,
+            reply_markup: Optional[
+                Union[
+                    InlineKeyboardMarkup,
+                    ReplyKeyboardMarkup,
+                    ReplyKeyboardRemove,
+                    ForceReply,
+                ]
+            ] = ...,
         ) -> None: ...

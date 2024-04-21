@@ -42,6 +42,7 @@ class EventRouter(ChainObject["EventRouter"], sub_name="event"):
     started: EventObserver
     stopped: EventObserver
     completed: EventObserver
+    before_sent: EventObserver
     success_sent: EventObserver
     failed_sent: EventObserver
     observers: Dict[str, EventObserver]
@@ -52,12 +53,14 @@ class EventRouter(ChainObject["EventRouter"], sub_name="event"):
         self.started = EventObserver()
         self.stopped = EventObserver()
         self.completed = EventObserver()
+        self.before_sent = EventObserver()
         self.success_sent = EventObserver()
         self.failed_sent = EventObserver()
         self.observers = {
             "started": self.started,
             "stopped": self.stopped,
             "completed": self.completed,
+            "before_sent": self.before_sent,
             "success_sent": self.success_sent,
             "failed_sent": self.failed_sent,
         }
@@ -84,6 +87,9 @@ class EventManager(EventRouter):
 
     async def emit_completed(self, **kwargs: Any) -> Dict[str, Any]:
         return await self.emit_event("completed", **kwargs)
+
+    async def emit_before_sent(self, **kwargs: Any) -> Dict[str, Any]:
+        return await self.emit_event("before_sent", **kwargs)
 
     async def emit_success_sent(self, **kwargs: Any) -> Dict[str, Any]:
         return await self.emit_event("success_sent", **kwargs)

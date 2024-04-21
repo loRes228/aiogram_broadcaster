@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from string import Template
+from types import MappingProxyType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -8,6 +9,7 @@ from typing import (
     Container,
     Dict,
     Generator,
+    Iterator,
     Mapping,
     Optional,
     Set,
@@ -47,15 +49,24 @@ class PlaceholderItem(ABC):
 
 
 class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"):
-    items: Dict[str, Any]
+    _items: Dict[str, Any]
 
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 
-        self.items = {}
+        self._items = {}
 
     def __setitem__(self, key: str, value: Any) -> None:
         self.add(key=key, value=value)
+
+    def __getitem__(self, item: str) -> Any:
+        return self._items[item]
+
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
+        return self.chain_items
+
+    def __contains__(self, item: str) -> bool:
+        return item in self.chain_keys
 
     def __call__(self, key: str) -> Callable[[CallbackType], CallbackType]:
         def wrapper(callback: CallbackType) -> CallbackType:
@@ -65,16 +76,25 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
         return wrapper
 
     @property
+    def items(self) -> Mapping[str, Any]:
+        return MappingProxyType(mapping=self._items)
+
+    @property
     def chain_keys(self) -> Generator[str, None, None]:
         for placeholder in self.chain_tail:
             yield from placeholder.items
+
+    @property
+    def chain_items(self) -> Generator[Tuple[str, Any], None, None]:
+        for placeholder in self.chain_tail:
+            yield from placeholder.items.items()
 
     def add(self, key: str, value: Any) -> Self:
         if key in self.chain_keys:
             raise ValueError(f"Key {key!r} is already exists.")
         if callable(value):
             value = CallableObject(callback=value)
-        self.items[key] = value
+        self._items[key] = value
         return self
 
     def register(self, *placeholders: PlaceholderItem) -> Self:
@@ -115,8 +135,7 @@ class PlaceholderManager(PlaceholderRouter):
     async def fetch_data(self, __select_keys: Container[str], /, **kwargs: Any) -> Dict[str, Any]:
         return {
             key: await value.call(**kwargs) if isinstance(value, CallableObject) else value
-            for placeholder in self.chain_tail
-            for key, value in placeholder.items.items()
+            for key, value in self.chain_items
             if key in __select_keys
         }
 

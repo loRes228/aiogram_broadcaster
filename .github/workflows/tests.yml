@@ -31,4 +31,4 @@ jobs:
           cd try_install
           python -m venv .venv
           .venv/bin/pip install ../dist/*.whl
-          .venv/bin/python -c "import aiogram_broadcaster; print(aiogram_broadcaster.__version__)"
+          .venv/bin/python -c "import aiogram_broadcaster;print(aiogram_broadcaster.__version__)"

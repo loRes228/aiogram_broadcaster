@@ -14,16 +14,6 @@ from aiogram.types import (
 from .base import BaseContent
 
 
-ReplyMarkupType = Optional[
-    Union[
-        InlineKeyboardMarkup,
-        ReplyKeyboardMarkup,
-        ReplyKeyboardRemove,
-        ForceReply,
-    ]
-]
-
-
 class VideoContent(BaseContent):
     video: Union[InputFile, str]
     duration: Optional[int] = None
@@ -37,7 +27,14 @@ class VideoContent(BaseContent):
     supports_streaming: Optional[bool] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
-    reply_markup: ReplyMarkupType = None
+    reply_markup: Optional[
+        Union[
+            InlineKeyboardMarkup,
+            ReplyKeyboardMarkup,
+            ReplyKeyboardRemove,
+            ForceReply,
+        ]
+    ] = None
 
     async def __call__(self, chat_id: int) -> SendVideo:
         return SendVideo(
@@ -74,5 +71,12 @@ class VideoContent(BaseContent):
             supports_streaming: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
-            reply_markup: ReplyMarkupType = ...,
+            reply_markup: Optional[
+                Union[
+                    InlineKeyboardMarkup,
+                    ReplyKeyboardMarkup,
+                    ReplyKeyboardRemove,
+                    ForceReply,
+                ]
+            ] = ...,
         ) -> None: ...

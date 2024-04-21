@@ -8,15 +8,14 @@ from .contents.base import BaseContent, ContentType
 from .default import DefaultMailerProperties
 from .event import EventManager
 from .logger import logger
-from .mailer.chat_engine import ChatEngine, ChatState
+from .mailer.chat_engine import ChatsRegistry
 from .mailer.container import MailerContainer
 from .mailer.group import MailerGroup
 from .mailer.mailer import Mailer
 from .mailer.settings import MailerSettings
 from .mailer.status import MailerStatus
 from .placeholder import PlaceholderManager
-from .storage.base import BaseMailerStorage
-from .storage.record import StorageRecord
+from .storage.base import BaseMailerStorage, StorageRecord
 
 
 class Broadcaster(MailerContainer):
@@ -121,7 +120,6 @@ class Broadcaster(MailerContainer):
             destroy_on_complete=destroy_on_complete,
             preserve=preserve,
         )
-
         if not chats:
             raise ValueError("At least one chat id must be provided.")
         if not bot and not self.bots:
@@ -131,18 +129,14 @@ class Broadcaster(MailerContainer):
                 f"Register the {type(content).__name__!r} content "
                 f"using the '{type(content).__name__}.register()' method.",
             )
-
         chats = set(chats)
-
         if bot is None:
             bot = self.bots[-1]
         if data is None:
             data = {}
-
         interval = properties.interval
         if properties.dynamic_interval:
             interval = max(0.1, interval / len(chats))
-
         mailer_id = hash(uuid4())
         settings = MailerSettings(
             interval=interval,
@@ -153,15 +147,11 @@ class Broadcaster(MailerContainer):
             exclude_placeholders=exclude_placeholders,
             preserved=properties.preserve,
         )
-        chat_engine = ChatEngine(
-            chats={ChatState.PENDING: chats},
-            mailer_id=mailer_id,
-            storage=self.storage if properties.preserve else None,
-        )
+        chats_registry = ChatsRegistry.from_iterable(chats=chats)
         mailer = Mailer(
             id=mailer_id,
             settings=settings,
-            chat_engine=chat_engine,
+            chats=chats_registry,
             content=content,
             event=self.event,
             placeholder=self.placeholder,
@@ -178,9 +168,9 @@ class Broadcaster(MailerContainer):
             return mailer
         record = StorageRecord(
             content=content,
-            chats=chat_engine,
+            chats=chats_registry,
             settings=settings,
-            bot=bot.id,
+            bot_id=bot.id,
             data=data,
         )
         try:
@@ -204,23 +194,23 @@ class Broadcaster(MailerContainer):
             except ValidationError:
                 logger.exception("Failed to restore mailer id=%d.", mailer_id)
                 continue
-            if record.bot not in bots:
+            if record.bot_id not in bots:
                 logger.error(
                     "Failed to restore mailer id=%d, bot with id=%d not defined.",
                     mailer_id,
-                    record.bot,
+                    record.bot_id,
                 )
                 continue
             mailer = Mailer(
                 id=mailer_id,
                 settings=record.settings,
-                chat_engine=record.chats,
+                chats=record.chats,
                 content=record.content,
                 event=self.event,
                 placeholder=self.placeholder,
                 storage=self.storage,
                 mailer_container=self._mailers,
-                bot=bots[record.bot],
+                bot=bots[record.bot_id],
                 contextual_data={**self.contextual_data, **record.data},
             )
             self._mailers[mailer_id] = mailer
