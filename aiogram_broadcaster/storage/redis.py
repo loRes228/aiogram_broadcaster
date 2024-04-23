@@ -11,7 +11,7 @@ class KeyBuilder:
 
     def __init__(
         self,
-        prefix: str = "bcr",
+        prefix: str = "mailer",
         seperator: str = ":",
     ) -> None:
         self.prefix = prefix
