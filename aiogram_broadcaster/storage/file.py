@@ -23,13 +23,8 @@ class FileMailerStorage(BaseMailerStorage):
     _lock: Optional[Lock]
 
     def __init__(self, filename: Union[str, "PathLike[str]", Path] = ".mailers.json") -> None:
-        if not isinstance(filename, Path):
-            filename = Path(filename)
-        self.file = filename
+        self.file = Path(filename)
         self._lock = None
-
-        if self.file.exists() and not self.file.is_file():
-            raise RuntimeError("The filename is not a file.")
 
     @property
     def lock(self) -> Lock:
@@ -40,25 +35,25 @@ class FileMailerStorage(BaseMailerStorage):
 
     async def get_mailer_ids(self) -> Set[int]:
         async with self.lock:
-            records = await self.read()
-            return set(records.records)
+            result = await self.read()
+            return set(result.records)
 
     async def get(self, mailer_id: int) -> StorageRecord:
         async with self.lock:
-            records = await self.read()
-            return StorageRecord.model_validate(obj=records.records[mailer_id])
+            result = await self.read()
+            return StorageRecord(**result.records[mailer_id])
 
     async def set(self, mailer_id: int, record: StorageRecord) -> None:
         async with self.lock:
-            records = await self.read()
-            records.records[mailer_id] = record.model_dump(mode="json", exclude_defaults=True)
-            await self.write(records=records)
+            result = await self.read()
+            result.records[mailer_id] = record.model_dump(mode="json", exclude_defaults=True)
+            await self.write(records=result)
 
     async def delete(self, mailer_id: int) -> None:
         async with self.lock:
-            records = await self.read()
-            del records.records[mailer_id]
-            await self.write(records=records)
+            result = await self.read()
+            del result.records[mailer_id]
+            await self.write(records=result)
 
     async def read(self) -> StorageRecords:
         async with open(file=self.file, mode="r", encoding="utf-8") as file:
@@ -71,10 +66,12 @@ class FileMailerStorage(BaseMailerStorage):
             await file.write(data)
 
     async def startup(self) -> None:
+        if self.file.exists() and not self.file.is_file():
+            raise RuntimeError(f"The filename '{self.file.name}' is not a file.")
         if self.file.exists() and self.file.stat().st_size > 0:
             return
-        records = StorageRecords()
-        await self.write(records=records)
+        data = StorageRecords()
+        await self.write(records=data)
 
     async def shutdown(self) -> None:
         pass

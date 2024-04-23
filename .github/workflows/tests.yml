@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install --editable .[dev,redis,sqlalchemy]
+        run: pip install --editable .[dev,redis,mongo,sqlalchemy]
 
       - name: Lint code
         run: make lint

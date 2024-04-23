@@ -267,6 +267,26 @@ content = GEOBasedContent(
 )
 ```
 
+## Lazy content
+
+#### Allows content to be generated dynamically at the time the message is sent. For example, you can customize different content for administrators and regular users.
+
+#### Usage:
+
+```python
+from aiogram_broadcaster.contents import LazyContent, TextContent
+
+
+class MyLazyContent(LazyContent):
+    async def __call__(self, chat_id: int) -> TextContent:
+        if chat_id == ADMIN_ID:
+            return TextContent(text="Content for administration!")
+        return TextContent(text="Content for users!")
+
+
+await broadcaster.create_mailer(content=LazyContent(), chats=...)
+```
+
 ## Tiered dependency injection
 
 #### Utilize in event system, key based content, placeholders, and more for comprehensive management of dependencies.

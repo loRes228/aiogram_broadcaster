@@ -9,6 +9,7 @@ from .from_chat import FromChatCopyContent, FromChatForwardContent
 from .game import GameContent
 from .invoice import InvoiceContent
 from .key_based import KeyBasedContent
+from .lazy import LazyContent
 from .location import LocationContent
 from .media_group import MediaGroupContent
 from .message import MessageCopyContent, MessageForwardContent, MessageSendContent
@@ -35,6 +36,7 @@ __all__ = (
     "GameContent",
     "InvoiceContent",
     "KeyBasedContent",
+    "LazyContent",
     "LocationContent",
     "MediaGroupContent",
     "MessageCopyContent",

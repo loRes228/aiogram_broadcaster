@@ -13,12 +13,12 @@ from pydantic import (
 )
 
 
-VALIDATOR_KEY = "__V"
-
 if TYPE_CHECKING:
     ContentType = TypeVar("ContentType", bound="BaseContent", default="BaseContent")
 else:
     ContentType = TypeVar("ContentType", bound="BaseContent")
+
+VALIDATOR_KEY = "__V"
 
 
 class BaseContent(BaseModel, ABC):

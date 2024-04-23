@@ -6,12 +6,14 @@ from typing import TYPE_CHECKING as _TYPE_CHECKING
 if _TYPE_CHECKING:
     from .base import BaseMailerStorage
     from .file import FileMailerStorage
+    from .mongodb import MongoDBMailerStorage
     from .redis import RedisMailerStorage
     from .sqlalchemy import SQLAlchemyMailerStorage
 
 __all__ = (
     "BaseMailerStorage",
     "FileMailerStorage",
+    "MongoDBMailerStorage",
     "RedisMailerStorage",
     "SQLAlchemyMailerStorage",
 )
@@ -27,6 +29,11 @@ def __getattr__(name: str) -> type:
         from .file import FileMailerStorage
 
         return FileMailerStorage
+
+    if name == "MongoDBMailerStorage":
+        from .mongodb import MongoDBMailerStorage
+
+        return MongoDBMailerStorage
 
     if name == "RedisMailerStorage":
         from .redis import RedisMailerStorage

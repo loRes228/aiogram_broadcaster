@@ -22,10 +22,11 @@ class KeyBuilder:
         pattern = (self.prefix, "*")
         return self.seperator.join(pattern)
 
-    def extract_mailer_ids(self, keys: Iterable[str]) -> Set[int]:
+    def extract_mailer_ids(self, keys: Iterable[Union[bytes, str]]) -> Set[int]:
         mailer_ids = set()
         for key in keys:
-            _, mailer_id = key.split(self.seperator)
+            key_string = key.decode() if isinstance(key, bytes) else key
+            _, mailer_id = key_string.split(self.seperator)
             mailer_ids.add(int(mailer_id))
         return mailer_ids
 
@@ -38,18 +39,18 @@ class RedisMailerStorage(BaseMailerStorage):
     redis: Redis
     key_builder: KeyBuilder
 
-    def __init__(
-        self,
-        redis: Union[Redis, ConnectionPool],
-        key_builder: Optional[KeyBuilder] = None,
-    ) -> None:
-        if isinstance(redis, ConnectionPool):
-            redis = Redis(connection_pool=redis)
+    def __init__(self, redis: Redis, key_builder: Optional[KeyBuilder] = None) -> None:
         self.redis = redis
         self.key_builder = key_builder or KeyBuilder()
 
-        if not self.redis.get_encoder().decode_responses:  # type: ignore[no-untyped-call]
-            raise RuntimeError("The 'decode_responses' must be set to True in the Redis client.")
+    @classmethod
+    def from_pool(
+        cls,
+        pool: ConnectionPool,
+        key_builder: Optional[KeyBuilder] = None,
+    ) -> "RedisMailerStorage":
+        redis = Redis.from_pool(connection_pool=pool)
+        return cls(redis=redis, key_builder=key_builder)
 
     @classmethod
     def from_url(
@@ -58,19 +59,18 @@ class RedisMailerStorage(BaseMailerStorage):
         key_builder: Optional[KeyBuilder] = None,
         **connection_options: Any,
     ) -> "RedisMailerStorage":
-        connection_options["decode_responses"] = True
-        pool = ConnectionPool.from_url(url=url, **connection_options)
-        redis = Redis.from_pool(connection_pool=pool)
+        connection_pool = ConnectionPool.from_url(url=url, **connection_options)
+        redis = Redis.from_pool(connection_pool=connection_pool)
         return cls(redis=redis, key_builder=key_builder)
 
     async def get_mailer_ids(self) -> Set[int]:
-        keys = await self.redis.keys(pattern=self.key_builder.pattern)
-        return self.key_builder.extract_mailer_ids(keys=keys)
+        result = await self.redis.keys(pattern=self.key_builder.pattern)
+        return self.key_builder.extract_mailer_ids(keys=result)
 
     async def get(self, mailer_id: int) -> StorageRecord:
         key = self.key_builder.build(mailer_id=mailer_id)
-        data = await self.redis.get(name=key)
-        return StorageRecord.model_validate_json(json_data=data)
+        result = await self.redis.get(name=key)
+        return StorageRecord.model_validate_json(json_data=result)
 
     async def set(self, mailer_id: int, record: StorageRecord) -> None:
         key = self.key_builder.build(mailer_id=mailer_id)

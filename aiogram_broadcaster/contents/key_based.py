@@ -24,10 +24,7 @@ class KeyBasedContent(BaseContent, register=False):
     def resolve_content(self, key: Any) -> BaseContent:
         if self.default:
             return self.__pydantic_extra__.get(key, self.default)
-        try:
-            return self.__pydantic_extra__[key]
-        except KeyError as error:
-            raise LookupError(f"Failed to resolve content by key={key!r}.") from error
+        return self.__pydantic_extra__[key]
 
     if TYPE_CHECKING:
 

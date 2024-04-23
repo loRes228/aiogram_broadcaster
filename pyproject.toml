@@ -28,6 +28,9 @@ dev = [
 redis = [
     "redis[hiredis]>=5.0.0",
 ]
+mongo = [
+    "motor>=3.0.0"
+]
 sqlalchemy = [
     "SQLAlchemy>=2.0.0",
 ]
