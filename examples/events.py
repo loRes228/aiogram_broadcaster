@@ -20,11 +20,13 @@ event = EventRouter(name=__name__)
 
 
 @router.message()
-async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any:
+async def process_any_message(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
     content = MessageSendContent(message=message)
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
+        bot=bot,
+        interval=1,
     )
     mailer.start()
 
@@ -51,7 +53,7 @@ async def mailer_completed(mailer: Mailer[MessageSendContent], bot: Bot) -> None
 
 
 @event.failed_sent()
-async def mailer_failed_sent(chay_id: int, error: Exception) -> None:  # noqa: ARG001, RUF029
+async def mailer_failed_sent(chat_id: int, error: Exception) -> None:  # noqa: ARG001, RUF029
     if not isinstance(error, TelegramForbiddenError):
         return
     # Do something...
@@ -65,7 +67,7 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot)
+    broadcaster = Broadcaster()
     broadcaster.event.include(event)
     broadcaster.setup(dispatcher=dispatcher)
 

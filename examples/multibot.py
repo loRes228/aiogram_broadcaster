@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any
+from typing import Any, Tuple
 
 from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message
@@ -16,14 +16,20 @@ router = Router(name=__name__)
 
 
 @router.message()
-async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any:
+async def process_any_message(
+    message: Message,
+    broadcaster: Broadcaster,
+    bots: Tuple[Bot, ...],
+) -> Any:
     content = MessageSendContent(message=message)
     mailers = await broadcaster.create_mailers(
+        *bots,
         content=content,
         chats=USER_IDS,
+        interval=1,
     )
     mailers.start()
-    await message.answer(text="Run broadcasting...")
+    await message.reply(text="Run broadcasting...")
 
 
 def main() -> None:
@@ -33,7 +39,7 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(*bots)
+    broadcaster = Broadcaster()
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(*bots)

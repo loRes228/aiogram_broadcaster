@@ -24,26 +24,28 @@ from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
 from aiogram_broadcaster.storage import FileMailerStorage
 
-TOKEN = "1234:Abc"
+TOKEN = "1234:Abc"  # noqa: S105
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
 
 
 @router.message()
-async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any:
+async def process_any_message(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
     # Creating content based on the Message
     content = MessageSendContent(message=message)
 
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
+        bot=bot,
+        interval=1,
     )
 
     # The mailer launch method starts mailing to chats as an asyncio task.
     mailer.start()
 
-    await message.answer(text="Run broadcasting...")
+    await message.reply(text="Run broadcasting...")
 
 
 def main() -> None:
@@ -62,6 +64,25 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+```
+
+## Storages
+
+#### Stores allow you to save mailer states to external storage.
+
+* #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/file.py) Saves the mailers to a file.
+* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/mongodb.py) Saves the mailers to a MongoDB.
+* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/redis.py) Saves the mailers to a Redis.
+* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/sqlalchemy.py) Saves the mailers to a SQLAlchemy.
+
+#### Usage:
+
+```python
+from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.storage import RedisMailerStorage
+
+storage = RedisMailerStorage.from_url(url="redis://localhost")
+broadcaster = Broadcaster(storage=storage)
 ```
 
 ## Creating a group of mailers based on many bots
@@ -277,14 +298,19 @@ content = GEOBasedContent(
 from aiogram_broadcaster.contents import LazyContent, TextContent
 
 
-class MyLazyContent(LazyContent):
-    async def __call__(self, chat_id: int) -> TextContent:
-        if chat_id == ADMIN_ID:
-            return TextContent(text="Content for administration!")
-        return TextContent(text="Content for users!")
+class TimeSensitiveContent(LazyContent):
+    async def __call__(self) -> TextContent:
+        hour = datetime.now().hour
+        if 6 <= hour < 12:
+            return TextContent(text="Good morning!")
+        if 12 <= hour < 18:
+            return TextContent(text="Good afternoon!")
+        if 18 <= hour < 24:
+            return TextContent(text="Good evening!")
+        return TextContent(text="Good night!")
 
 
-await broadcaster.create_mailer(content=LazyContent(), chats=...)
+await broadcaster.create_mailer(content=TimeSensitiveContent(), chats=...)
 ```
 
 ## Tiered dependency injection

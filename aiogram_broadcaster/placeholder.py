@@ -37,7 +37,7 @@ class PlaceholderItem(ABC):
         super().__init_subclass__(**kwargs)
 
     def __repr__(self) -> str:
-        return f"PlaceholderItem(key={self.__key__!r})"
+        return f"{type(self).__name__}(key={self.__key__!r})"
 
     if TYPE_CHECKING:
         __call__: Callable[..., Any]

@@ -1,14 +1,16 @@
+# ruff: noqa: PLR2004, DTZ005
+
 import logging
 import sys
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
 
 from aiogram import Bot, Dispatcher, Router
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
-from aiogram_broadcaster.contents import KeyBasedContent, TextContent
+from aiogram_broadcaster.contents import LazyContent, TextContent
 
 
 TOKEN = "1234:Abc"  # noqa: S105
@@ -17,25 +19,21 @@ USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 router = Router(name=__name__)
 
 
-class LanguageBasedContent(KeyBasedContent):
-    """Content based on the user's language."""
-
-    async def __call__(self, chat_id: int, bot: Bot) -> Optional[str]:
-        try:
-            member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
-        except TelegramBadRequest:
-            return None
-        else:
-            return member.user.language_code
+class TimeSensitiveContent(LazyContent):
+    async def __call__(self) -> TextContent:
+        hour = datetime.now().hour
+        if 6 <= hour < 12:
+            return TextContent(text="Good morning!")
+        if 12 <= hour < 18:
+            return TextContent(text="Good afternoon!")
+        if 18 <= hour < 24:
+            return TextContent(text="Good evening!")
+        return TextContent(text="Good night!")
 
 
 @router.message(CommandStart())
 async def process_start_command(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
-    content = LanguageBasedContent(
-        default=TextContent(text="Hello!"),
-        uk=TextContent(text="Привіт!"),
-        ru=TextContent(text="Привет!"),
-    )
+    content = TimeSensitiveContent()
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,

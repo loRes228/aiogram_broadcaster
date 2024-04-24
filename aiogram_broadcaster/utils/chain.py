@@ -2,9 +2,9 @@ from typing import Any, ClassVar, Generator, Generic, List, Optional, TypeVar, o
 from unittest.mock import sentinel
 
 
-UNSET_ENTITY = sentinel.UNSET_ENTITY
-
 EntityType = TypeVar("EntityType", bound="ChainObject[Any]")
+
+UNSET_ENTITY = sentinel.UNSET_ENTITY
 
 
 class ChainObject(Generic[EntityType]):

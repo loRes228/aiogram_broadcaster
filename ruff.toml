@@ -103,4 +103,4 @@ lines-after-imports = 2
 strict = true
 
 [lint.per-file-ignores]
-"examples/**" = ["D"]
+"tests/**" = ["S101"] # assert

@@ -66,10 +66,11 @@ class FileMailerStorage(BaseMailerStorage):
             await file.write(data)
 
     async def startup(self) -> None:
-        if self.file.exists() and not self.file.is_file():
-            raise RuntimeError(f"The filename '{self.file.name}' is not a file.")
-        if self.file.exists() and self.file.stat().st_size > 0:
-            return
+        if self.file.exists():
+            if not self.file.is_file():
+                raise RuntimeError(f"The filename '{self.file.name}' is not a file.")
+            if self.file.stat().st_size > 0:
+                return
         data = StorageRecords()
         await self.write(records=data)
 
