@@ -39,7 +39,7 @@ class ChatsMetric:
     def __str__(self) -> str:
         # fmt: off
         return ", ".join(
-            f"{metric_name}: {metric}"
+            f"{metric_name.replace('_', ' ')}: {metric}"
             for metric_name, metric in self.metrics.items()
         )
         # fmt: on

@@ -15,6 +15,7 @@ from .base import BaseContent
 class ContactContent(BaseContent):
     phone_number: str
     first_name: str
+    business_connection_id: Optional[str] = None
     last_name: Optional[str] = None
     vcard: Optional[str] = None
     disable_notification: Optional[bool] = None
@@ -33,6 +34,7 @@ class ContactContent(BaseContent):
             chat_id=chat_id,
             phone_number=self.phone_number,
             first_name=self.first_name,
+            business_connection_id=self.business_connection_id,
             last_name=self.last_name,
             vcard=self.vcard,
             disable_notification=self.disable_notification,
@@ -47,6 +49,7 @@ class ContactContent(BaseContent):
             *,
             phone_number: str,
             first_name: str,
+            business_connection_id: Optional[str] = ...,
             last_name: Optional[str] = ...,
             vcard: Optional[str] = None,
             disable_notification: Optional[bool] = ...,

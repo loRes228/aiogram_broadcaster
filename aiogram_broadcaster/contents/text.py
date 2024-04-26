@@ -16,6 +16,7 @@ from .base import BaseContent
 
 class TextContent(BaseContent):
     text: str
+    business_connection_id: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     entities: Optional[List[MessageEntity]] = None
     link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = Default("link_preview")
@@ -34,6 +35,7 @@ class TextContent(BaseContent):
         return SendMessage(
             chat_id=chat_id,
             text=self.text,
+            business_connection_id=self.business_connection_id,
             parse_mode=self.parse_mode,
             entities=self.entities,
             link_preview_options=self.link_preview_options,
@@ -48,6 +50,7 @@ class TextContent(BaseContent):
             self,
             *,
             text: str,
+            business_connection_id: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             entities: Optional[List[MessageEntity]] = ...,
             link_preview_options: Optional[LinkPreviewOptions] = ...,

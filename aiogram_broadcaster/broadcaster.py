@@ -4,10 +4,10 @@ from uuid import uuid4
 from aiogram import Bot, Dispatcher
 from pydantic_core import PydanticSerializationError, ValidationError
 
+from . import loggers
 from .contents.base import BaseContent, ContentType
-from .default import DefaultMailerProperties
+from .default_properties import DefaultMailerProperties
 from .event import EventManager
-from .logger import logger
 from .mailer.chat_engine import ChatsRegistry
 from .mailer.container import MailerContainer
 from .mailer.group import MailerGroup
@@ -23,7 +23,7 @@ class Broadcaster(MailerContainer):
     storage: Optional[BaseMailerStorage]
     default: DefaultMailerProperties
     context_key: str
-    contextual_data: Dict[str, Any]
+    context: Dict[str, Any]
     event: EventManager
     placeholder: PlaceholderManager
 
@@ -33,7 +33,7 @@ class Broadcaster(MailerContainer):
         storage: Optional[BaseMailerStorage] = None,
         default: Optional[DefaultMailerProperties] = None,
         context_key: str = "broadcaster",
-        **kwargs: Any,
+        **context: Any,
     ) -> None:
         super().__init__()
 
@@ -41,8 +41,8 @@ class Broadcaster(MailerContainer):
         self.storage = storage
         self.default = default or DefaultMailerProperties()
         self.context_key = context_key
-        self.contextual_data = kwargs
-        self.contextual_data.update(
+        self.context = context
+        self.context.update(
             {self.context_key: self},
             bots=self.bots,
         )
@@ -68,8 +68,8 @@ class Broadcaster(MailerContainer):
         preserve: Optional[bool] = None,
         disable_events: bool = False,
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        **kwargs: Any,
+        stored_context: Optional[Dict[str, Any]] = None,
+        **context: Any,
     ) -> MailerGroup:
         if not bots and not self.bots:
             raise ValueError("At least one bot must be specified.")
@@ -88,8 +88,8 @@ class Broadcaster(MailerContainer):
                 preserve=preserve,
                 disable_events=disable_events,
                 exclude_placeholders=exclude_placeholders,
-                data=data,
-                **kwargs,
+                stored_context=stored_context,
+                **context,
             )
             for bot in bots
         ]
@@ -109,8 +109,8 @@ class Broadcaster(MailerContainer):
         preserve: Optional[bool] = None,
         disable_events: bool = False,
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        **kwargs: Any,
+        stored_context: Optional[Dict[str, Any]] = None,
+        **context: Any,
     ) -> Mailer[ContentType]:
         properties = self.default.prepare(
             interval=interval,
@@ -125,15 +125,15 @@ class Broadcaster(MailerContainer):
         if not bot and not self.bots:
             raise ValueError("At least one bot must be specified.")
         if not content.is_registered():
-            raise RuntimeError(
+            raise ValueError(
                 f"Register the {type(content).__name__!r} content "
                 f"using the '{type(content).__name__}.register()' method.",
             )
         chats = set(chats)
         if bot is None:
             bot = self.bots[-1]
-        if data is None:
-            data = {}
+        if stored_context is None:
+            stored_context = {}
         interval = properties.interval
         if properties.dynamic_interval:
             interval = max(0.1, interval / len(chats))
@@ -158,9 +158,9 @@ class Broadcaster(MailerContainer):
             storage=self.storage if properties.preserve else None,
             mailer_container=self._mailers,
             bot=bot,
-            contextual_data={**self.contextual_data, **data, **kwargs},
+            context={**self.context, **stored_context, **context},
         )
-        logger.info("Mailer id=%d was created.", mailer_id)
+        loggers.pool.info("Mailer id=%d was created.", mailer_id)
         if not properties.preserve:
             return mailer
         self._mailers[mailer_id] = cast(Mailer, mailer)
@@ -171,7 +171,7 @@ class Broadcaster(MailerContainer):
             chats=chats_registry,
             settings=settings,
             bot_id=bot.id,
-            data=data,
+            context=stored_context,
         )
         try:
             record.model_dump_json(exclude_defaults=True)
@@ -189,13 +189,15 @@ class Broadcaster(MailerContainer):
             return
         bots = {bot.id: bot for bot in self.bots}
         for mailer_id in mailer_ids:
+            if mailer_id in self._mailers:
+                continue
             try:
                 record = await self.storage.get(mailer_id=mailer_id)
             except ValidationError:
-                logger.exception("Failed to restore mailer id=%d.", mailer_id)
+                loggers.pool.exception("Failed to restore mailer id=%d.", mailer_id)
                 continue
             if record.bot_id not in bots:
-                logger.error(
+                loggers.pool.error(
                     "Failed to restore mailer id=%d, bot with id=%d not defined.",
                     mailer_id,
                     record.bot_id,
@@ -211,24 +213,33 @@ class Broadcaster(MailerContainer):
                 storage=self.storage,
                 mailer_container=self._mailers,
                 bot=bots[record.bot_id],
-                contextual_data={**self.contextual_data, **record.data},
+                context={**self.context, **record.context},
             )
             self._mailers[mailer_id] = mailer
-            logger.info("Mailer id=%d restored from storage.", mailer_id)
+            loggers.pool.info("Mailer id=%d restored from storage.", mailer_id)
 
     async def run_startup_mailers(self) -> None:
         for mailer in self.get_mailers(MailerStatus.STOPPED):
             if mailer.settings.run_on_startup:
                 mailer.start()
 
-    def setup(self, dispatcher: Dispatcher, *, fetch_workflow_data: bool = True) -> "Broadcaster":
+    def setup(
+        self,
+        dispatcher: Dispatcher,
+        *,
+        fetch_dispatcher_context: bool = True,
+        restore_mailers: bool = True,
+        run_mailers: bool = True,
+    ) -> "Broadcaster":
         dispatcher[self.context_key] = self
-        self.contextual_data["dispatcher"] = dispatcher
-        if fetch_workflow_data:
-            self.contextual_data.update(dispatcher.workflow_data)
+        self.context["dispatcher"] = dispatcher
+        if fetch_dispatcher_context:
+            self.context.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.storage.startup)
-            dispatcher.startup.register(self.restore_mailers)
+            if restore_mailers:
+                dispatcher.startup.register(self.restore_mailers)
             dispatcher.shutdown.register(self.storage.shutdown)
-        dispatcher.startup.register(self.run_startup_mailers)
+        if run_mailers:
+            dispatcher.startup.register(self.run_startup_mailers)
         return self

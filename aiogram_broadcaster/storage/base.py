@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict, Set
+from typing import AsyncGenerator, Dict, Set
 
-from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, SerializeAsAny
 
 from aiogram_broadcaster.contents.base import BaseContent
 from aiogram_broadcaster.mailer.chat_engine import ChatsRegistry
@@ -16,7 +16,7 @@ class StorageRecord(BaseModel):
     chats: ChatsRegistry
     settings: MailerSettings
     bot_id: int
-    data: Dict[str, Any] = Field(default_factory=dict)
+    context: Dict[str, SerializeAsAny[JsonValue]] = Field(default_factory=dict)
 
 
 class BaseMailerStorage(ABC):

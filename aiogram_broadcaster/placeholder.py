@@ -28,16 +28,16 @@ ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
 class PlaceholderItem(ABC):
-    __key__: ClassVar[str]
+    key: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         if "key" not in kwargs:
             raise ValueError("Missing required argument 'key' when subclassing PlaceholderItem.")
-        cls.__key__ = kwargs.pop("key")
+        cls.key = kwargs.pop("key")
         super().__init_subclass__(**kwargs)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}(key={self.__key__!r})"
+        return f"{type(self).__name__}(key={self.key!r})"
 
     if TYPE_CHECKING:
         __call__: Callable[..., Any]
@@ -63,7 +63,7 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
         return self._items[item]
 
     def __iter__(self) -> Iterator[Tuple[str, Any]]:
-        return self.chain_items
+        return iter(self.chain_items)
 
     def __contains__(self, item: str) -> bool:
         return item in self.chain_keys
@@ -106,7 +106,7 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
                     f"The placeholder must be an instance of "
                     f"PlaceholderItem, not a {type(placeholder).__name__}.",
                 )
-            self.add(key=placeholder.__key__, value=placeholder.__call__)
+            self.add(key=placeholder.key, value=placeholder.__call__)
         return self
 
     def attach(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> Self:
@@ -121,7 +121,7 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
     def _chain_bind(self, entity: "PlaceholderRouter") -> None:
         if collusion := set(self.chain_keys) & set(entity.chain_keys):
             raise ValueError(
-                f"The {self.__sub_name__} name={self.name!r} "
+                f"The {self.__sub_name} name={self.name!r} "
                 f"already has the keys: {list(collusion)}.",
             )
         super()._chain_bind(entity=entity)
@@ -132,17 +132,18 @@ class PlaceholderManager(PlaceholderRouter):
 
     TEXT_FIELDS: ClassVar[Set[str]] = {"caption", "text"}
 
-    async def fetch_data(self, __select_keys: Container[str], /, **kwargs: Any) -> Dict[str, Any]:
+    async def fetch_data(self, __select_keys: Container[str], /, **context: Any) -> Dict[str, Any]:
         return {
-            key: await value.call(**kwargs) if isinstance(value, CallableObject) else value
+            key: await value.call(**context) if isinstance(value, CallableObject) else value
             for key, value in self.chain_items
             if key in __select_keys
         }
 
-    def extract_text_field(self, object: Any) -> Optional[Tuple[str, str]]:  # noqa: A002
-        for field in self.TEXT_FIELDS:
-            if (value := getattr(object, field, None)) and isinstance(value, str):
-                return field, value
+    def extract_text_field(self, model: BaseModel) -> Optional[Tuple[str, str]]:
+        mapped_model = dict(model)
+        for field_name in self.TEXT_FIELDS:
+            if (field_value := mapped_model.get(field_name)) and isinstance(field_value, str):
+                return field_name, field_value
         return None
 
     def extract_keys(self, template: Template) -> Set[str]:
@@ -158,12 +159,12 @@ class PlaceholderManager(PlaceholderRouter):
         __model: ModelType,
         __exclude_keys: Optional[Set[str]] = None,
         /,
-        **kwargs: Any,
+        **context: Any,
     ) -> ModelType:
         self_keys = set(self.chain_keys)
         if not self_keys or __exclude_keys == self_keys:
             return __model
-        field = self.extract_text_field(object=__model)
+        field = self.extract_text_field(model=__model)
         if not field:
             return __model
         field_name, field_value = field
@@ -174,7 +175,7 @@ class PlaceholderManager(PlaceholderRouter):
             select_keys -= __exclude_keys
         if not select_keys:
             return __model
-        data = await self.fetch_data(select_keys, **kwargs)
+        data = await self.fetch_data(select_keys, **context)
         if not data:
             return __model
         rendered_field = {field_name: template.safe_substitute(data)}

@@ -16,6 +16,7 @@ from .base import BaseContent
 
 class VideoContent(BaseContent):
     video: Union[InputFile, str]
+    business_connection_id: Optional[str] = None
     duration: Optional[int] = None
     width: Optional[int] = None
     height: Optional[int] = None
@@ -40,6 +41,7 @@ class VideoContent(BaseContent):
         return SendVideo(
             chat_id=chat_id,
             video=self.video,
+            business_connection_id=self.business_connection_id,
             duration=self.duration,
             width=self.width,
             height=self.height,
@@ -60,6 +62,7 @@ class VideoContent(BaseContent):
             self,
             *,
             video: Union[InputFile, str],
+            business_connection_id: Optional[str] = ...,
             duration: Optional[int] = ...,
             width: Optional[int] = ...,
             height: Optional[int] = ...,

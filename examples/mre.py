@@ -7,7 +7,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
-from aiogram_broadcaster.storage import FileMailerStorage
+from aiogram_broadcaster.storage.file import FileMailerStorage
 
 
 TOKEN = "1234:Abc"  # noqa: S105
@@ -26,6 +26,7 @@ async def process_any_message(message: Message, broadcaster: Broadcaster, bot: B
         chats=USER_IDS,
         bot=bot,
         interval=1,
+        preserve=True,
     )
 
     # The mailer launch method starts mailing to chats as an asyncio task.

@@ -17,6 +17,7 @@ from .base import BaseContent
 class PollContent(BaseContent):
     question: str
     options: List[str]
+    business_connection_id: Optional[str] = None
     is_anonymous: Optional[bool] = None
     type: Optional[str] = None
     allows_multiple_answers: Optional[bool] = None
@@ -43,6 +44,7 @@ class PollContent(BaseContent):
             chat_id=chat_id,
             question=self.question,
             options=self.options,
+            business_connection_id=self.business_connection_id,
             is_anonymous=self.is_anonymous,
             type=self.type,
             allows_multiple_answers=self.allows_multiple_answers,
@@ -65,6 +67,7 @@ class PollContent(BaseContent):
             *,
             question: str,
             options: List[str],
+            business_connection_id: Optional[str] = ...,
             is_anonymous: Optional[bool] = ...,
             type: Optional[str] = ...,  # noqa: A002
             allows_multiple_answers: Optional[bool] = ...,

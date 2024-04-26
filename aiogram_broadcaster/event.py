@@ -69,30 +69,30 @@ class EventRouter(ChainObject["EventRouter"], sub_name="event"):
 class EventManager(EventRouter):
     __chain_root__ = True
 
-    async def emit_event(self, __event_name: str, /, **kwargs: Any) -> Dict[str, Any]:
-        merged_kwargs: Dict[str, Any] = {}
+    async def emit_event(self, __event_name: str, /, **context: Any) -> Dict[str, Any]:
+        collected_data: Dict[str, Any] = {}
         with suppress(SkipEvent, SkipHandler, CancelHandler):
             for event in self.chain_tail:
                 for callback in event.observers[__event_name].callbacks:
-                    result = await callback.call(**kwargs, **merged_kwargs)
+                    result = await callback.call(**context, **collected_data)
                     if result and isinstance(result, dict):
-                        merged_kwargs.update(result)
-        return merged_kwargs
+                        collected_data.update(result)
+        return collected_data
 
-    async def emit_started(self, **kwargs: Any) -> Dict[str, Any]:
-        return await self.emit_event("started", **kwargs)
+    async def emit_started(self, **context: Any) -> Dict[str, Any]:
+        return await self.emit_event("started", **context)
 
-    async def emit_stopped(self, **kwargs: Any) -> Dict[str, Any]:
-        return await self.emit_event("stopped", **kwargs)
+    async def emit_stopped(self, **context: Any) -> Dict[str, Any]:
+        return await self.emit_event("stopped", **context)
 
-    async def emit_completed(self, **kwargs: Any) -> Dict[str, Any]:
-        return await self.emit_event("completed", **kwargs)
+    async def emit_completed(self, **context: Any) -> Dict[str, Any]:
+        return await self.emit_event("completed", **context)
 
-    async def emit_before_sent(self, **kwargs: Any) -> Dict[str, Any]:
-        return await self.emit_event("before_sent", **kwargs)
+    async def emit_before_sent(self, **context: Any) -> Dict[str, Any]:
+        return await self.emit_event("before_sent", **context)
 
-    async def emit_success_sent(self, **kwargs: Any) -> Dict[str, Any]:
-        return await self.emit_event("success_sent", **kwargs)
+    async def emit_success_sent(self, **context: Any) -> Dict[str, Any]:
+        return await self.emit_event("success_sent", **context)
 
-    async def emit_failed_sent(self, **kwargs: Any) -> Dict[str, Any]:
-        return await self.emit_event("failed_sent", **kwargs)
+    async def emit_failed_sent(self, **context: Any) -> Dict[str, Any]:
+        return await self.emit_event("failed_sent", **context)

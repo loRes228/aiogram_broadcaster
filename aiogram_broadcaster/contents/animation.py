@@ -16,6 +16,7 @@ from .base import BaseContent
 
 class AnimationContent(BaseContent):
     animation: Union[InputFile, str]
+    business_connection_id: Optional[str] = None
     duration: Optional[int] = None
     width: Optional[int] = None
     height: Optional[int] = None
@@ -39,6 +40,7 @@ class AnimationContent(BaseContent):
         return SendAnimation(
             chat_id=chat_id,
             animation=self.animation,
+            business_connection_id=self.business_connection_id,
             duration=self.duration,
             width=self.width,
             height=self.height,
@@ -58,6 +60,7 @@ class AnimationContent(BaseContent):
             self,
             *,
             animation: Union[InputFile, str],
+            business_connection_id: Optional[str] = ...,
             duration: Optional[int] = ...,
             width: Optional[int] = ...,
             height: Optional[int] = ...,

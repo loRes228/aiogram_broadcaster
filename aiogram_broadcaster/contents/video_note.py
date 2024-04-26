@@ -15,6 +15,7 @@ from .base import BaseContent
 
 class VideoNoteContent(BaseContent):
     video_note: Union[InputFile, str]
+    business_connection_id: Optional[str] = None
     duration: Optional[int] = None
     length: Optional[int] = None
     thumbnail: Optional[InputFile] = None
@@ -33,6 +34,7 @@ class VideoNoteContent(BaseContent):
         return SendVideoNote(
             chat_id=chat_id,
             video_note=self.video_note,
+            business_connection_id=self.business_connection_id,
             duration=self.duration,
             length=self.length,
             thumbnail=self.thumbnail,
@@ -47,6 +49,7 @@ class VideoNoteContent(BaseContent):
             self,
             *,
             video_note: Union[InputFile, str],
+            business_connection_id: Optional[str] = ...,
             duration: Optional[int] = ...,
             length: Optional[int] = ...,
             thumbnail: Optional[InputFile] = ...,

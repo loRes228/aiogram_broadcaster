@@ -16,10 +16,10 @@ class KeyBasedContent(BaseContent, register=False):
         if not self.default and not self.__pydantic_extra__:
             raise ValueError("At least one content must be specified.")
 
-    async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
-        key = await self._callback.call(self, **kwargs)
+    async def as_method(self, **context: Any) -> TelegramMethod[Any]:
+        key = await self._callback.call(self, **context)
         content = self.resolve_content(key=key)
-        return await content.as_method(**kwargs)
+        return await content.as_method(**context)
 
     def resolve_content(self, key: Any) -> BaseContent:
         if self.default:

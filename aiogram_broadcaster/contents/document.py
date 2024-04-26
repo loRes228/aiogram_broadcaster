@@ -16,6 +16,7 @@ from .base import BaseContent
 
 class DocumentContent(BaseContent):
     document: Union[InputFile, str]
+    business_connection_id: Optional[str] = None
     thumbnail: Optional[InputFile] = None
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
@@ -36,6 +37,7 @@ class DocumentContent(BaseContent):
         return SendDocument(
             chat_id=chat_id,
             document=self.document,
+            business_connection_id=self.business_connection_id,
             thumbnail=self.thumbnail,
             caption=self.caption,
             parse_mode=self.parse_mode,
@@ -52,6 +54,7 @@ class DocumentContent(BaseContent):
             self,
             *,
             document: Union[InputFile, str],
+            business_connection_id: Optional[str] = ...,
             thumbnail: Optional[InputFile] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,

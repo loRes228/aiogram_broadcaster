@@ -29,7 +29,7 @@ class BaseContent(BaseModel, ABC):
         arbitrary_types_allowed=True,
     )
 
-    __validators__: ClassVar[Dict[str, Type["BaseContent"]]] = {}
+    _validators: ClassVar[Dict[str, Type["BaseContent"]]] = {}
     _callback: ClassVar[CallableObject]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
@@ -46,19 +46,19 @@ class BaseContent(BaseModel, ABC):
         async def __call__(self, **kwargs: Any) -> Any:
             pass
 
-    async def as_method(self, **kwargs: Any) -> TelegramMethod[Any]:
-        method = await self._callback.call(self, **kwargs)
+    async def as_method(self, **context: Any) -> TelegramMethod[Any]:
+        method = await self._callback.call(self, **context)
         return cast(TelegramMethod[Any], method)
 
     @classmethod
     def is_registered(cls) -> bool:
-        return cls.__name__ in cls.__validators__
+        return cls.__name__ in cls._validators
 
     @classmethod
     def register(cls) -> None:
         if cls.is_registered():
             raise RuntimeError(f"The content {cls.__name__!r} is already registered.")
-        cls.__validators__[cls.__name__] = cls
+        cls._validators[cls.__name__] = cls
 
     @model_validator(mode="wrap")
     @classmethod
@@ -68,12 +68,12 @@ class BaseContent(BaseModel, ABC):
         if VALIDATOR_KEY not in value:
             return handler(value)
         validator_name: str = value.pop(VALIDATOR_KEY, None)
-        if validator_name not in cls.__validators__:
-            raise RuntimeError(
+        if validator_name not in cls._validators:
+            raise ValueError(
                 f"Content {validator_name!r} has not been registered, "
                 f"you can register using the '{validator_name}.register()' method.",
             )
-        return cls.__validators__[validator_name].model_validate(value)
+        return cls._validators[validator_name].model_validate(value)
 
     @model_serializer(mode="wrap", return_type=Any)
     def _serialize(self, handler: SerializerFunctionWrapHandler) -> Any:

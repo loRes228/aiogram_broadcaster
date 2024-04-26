@@ -15,6 +15,7 @@ from .base import BaseContent
 class LocationContent(BaseContent):
     latitude: float
     longitude: float
+    business_connection_id: Optional[str] = None
     horizontal_accuracy: Optional[float] = None
     live_period: Optional[int] = None
     heading: Optional[int] = None
@@ -35,6 +36,7 @@ class LocationContent(BaseContent):
             chat_id=chat_id,
             latitude=self.latitude,
             longitude=self.longitude,
+            business_connection_id=self.business_connection_id,
             horizontal_accuracy=self.horizontal_accuracy,
             live_period=self.live_period,
             heading=self.heading,
@@ -51,6 +53,7 @@ class LocationContent(BaseContent):
             *,
             latitude: float,
             longitude: float,
+            business_connection_id: Optional[str] = ...,
             horizontal_accuracy: Optional[float] = ...,
             live_period: Optional[int] = ...,
             heading: Optional[int] = ...,

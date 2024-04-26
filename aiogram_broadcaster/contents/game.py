@@ -9,6 +9,7 @@ from .base import BaseContent
 
 class GameContent(BaseContent):
     game_short_name: str
+    business_connection_id: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: Optional[InlineKeyboardMarkup] = None
@@ -17,6 +18,7 @@ class GameContent(BaseContent):
         return SendGame(
             chat_id=chat_id,
             game_short_name=self.game_short_name,
+            business_connection_id=self.business_connection_id,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
@@ -28,6 +30,7 @@ class GameContent(BaseContent):
             self,
             *,
             game_short_name: str,
+            business_connection_id: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
             reply_markup: Optional[InlineKeyboardMarkup] = ...,

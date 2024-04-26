@@ -16,6 +16,7 @@ from .base import BaseContent
 
 class PhotoContent(BaseContent):
     photo: Union[InputFile, str]
+    business_connection_id: Optional[str] = None
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
@@ -35,6 +36,7 @@ class PhotoContent(BaseContent):
         return SendPhoto(
             chat_id=chat_id,
             photo=self.photo,
+            business_connection_id=self.business_connection_id,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -50,6 +52,7 @@ class PhotoContent(BaseContent):
             self,
             *,
             photo: Union[InputFile, str],
+            business_connection_id: Optional[str] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,

@@ -16,6 +16,7 @@ class MediaGroupContent(BaseContent):
             InputMediaVideo,
         ]
     ]
+    business_connection_id: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
 
@@ -23,6 +24,7 @@ class MediaGroupContent(BaseContent):
         return SendMediaGroup(
             chat_id=chat_id,
             media=self.media,
+            business_connection_id=self.business_connection_id,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
         )
@@ -40,6 +42,7 @@ class MediaGroupContent(BaseContent):
                     InputMediaVideo,
                 ]
             ],
+            business_connection_id: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,
         ) -> None: ...

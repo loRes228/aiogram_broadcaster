@@ -1,9 +1,17 @@
-## A lightweight aiogram-based library for broadcasting Telegram messages.
+# aiogram_broadcaster
+
+![GitHub License](https://img.shields.io/github/license/loRes228/aiogram_broadcaster?style=plastic&logo=github&link=https%3A%2F%2Fgithub.com%2FloRes228%2Faiogram_broadcaster%3Ftab%3DMIT-1-ov-file)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/loRes228/aiogram_broadcaster/tests.yml?style=plastic&logo=github&link=https%3A%2F%2Fgithub.com%2FloRes228%2Faiogram_broadcaster%2Factions%2Fworkflows%2Ftests.yml)
+![GitHub last commit](https://img.shields.io/github/last-commit/loRes228/aiogram_broadcaster?style=plastic&logo=github)
+![Static Badge](https://img.shields.io/badge/python-3.8%2B-blue?style=plastic&logo=python&logoColor=blue&link=https%3A%2F%2Fwww.python.org%2Fdownloads%2F)
+![Static Badge](https://img.shields.io/badge/aiogram-3.4%2B-blue?style=plastic&logoColor=blue&link=https%3A%2F%2Fwww.python.org%2Fdownloads%2F)
+
+### **aiogram_broadcaster** is lightweight aiogram-based library for broadcasting Telegram messages.
 
 ## Installation
 
-```bash
-pip install git+https://github.com/loRes228/aiogram_broadcaster.git
+```commandline
+$ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 ```
 
 ## Creating a mailer and running broadcasting
@@ -22,7 +30,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
-from aiogram_broadcaster.storage import FileMailerStorage
+from aiogram_broadcaster.storage.file import FileMailerStorage
 
 TOKEN = "1234:Abc"  # noqa: S105
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
@@ -40,6 +48,7 @@ async def process_any_message(message: Message, broadcaster: Broadcaster, bot: B
         chats=USER_IDS,
         bot=bot,
         interval=1,
+        preserve=True,
     )
 
     # The mailer launch method starts mailing to chats as an asyncio task.
@@ -64,25 +73,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-```
-
-## Storages
-
-#### Stores allow you to save mailer states to external storage.
-
-* #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/file.py) Saves the mailers to a file.
-* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/mongodb.py) Saves the mailers to a MongoDB.
-* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/redis.py) Saves the mailers to a Redis.
-* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/sqlalchemy.py) Saves the mailers to a SQLAlchemy.
-
-#### Usage:
-
-```python
-from aiogram_broadcaster import Broadcaster
-from aiogram_broadcaster.storage import RedisMailerStorage
-
-storage = RedisMailerStorage.from_url(url="redis://localhost")
-broadcaster = Broadcaster(storage=storage)
 ```
 
 ## Creating a group of mailers based on many bots
@@ -247,9 +237,6 @@ photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 #### Usage:
 
 ```python
-from typing import Optional
-
-from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 
 from aiogram_broadcaster.contents import KeyBasedContent, TextContent
@@ -350,7 +337,7 @@ await broadcaster.create_mailer(content=..., chats=..., key=value)
 * #### Stored contextual data only for mailer
 
 ```python
-await broadcaster.create_mailer(content=..., chats=..., data={"key": "value"})
+await broadcaster.create_mailer(content=..., chats=..., stored_context={"key": "value"})
 ```
 
 * #### Event-to-Event
@@ -364,4 +351,31 @@ async def transfer_content(mailer: Mailer) -> Dict[str, Any]:
 @event.completed()
 async def mailer_completed(mailer_content: BaseContent) -> None:
     print(mailer_content)
+```
+
+## Storages
+
+#### Stores allow you to save mailer states to external storage.
+
+* #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/file.py) Saves the mailers to a file.
+* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/mongodb.py) Saves the mailers to a MongoDB.
+* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/redis.py) Saves the mailers to a Redis.
+* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/sqlalchemy.py) Saves the mailers using SQLAlchemy.
+
+#### Usage:
+
+```python
+from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.storage.redis import RedisMailerStorage
+
+# from aiogram_broadcaster.storage.file import FileMailerStorage
+# from aiogram_broadcaster.storage.mongodb import MongoDBMailerStorage
+# from aiogram_broadcaster.storage.sqlalchemy import SQLAlchemyMailerStorage
+
+# storage = FileMailerStorage()
+# storage = MongoDBMailerStorage.from_url(url="mongodb://localhost:27017")
+# storage = SQLAlchemyMailerStorage.from_url(url="sqlite+aiosqlite:///database.db")
+
+storage = RedisMailerStorage.from_url(url="redis://localhost:6379")
+broadcaster = Broadcaster(storage=storage)
 ```

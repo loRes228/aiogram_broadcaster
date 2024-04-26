@@ -17,6 +17,7 @@ class VenueContent(BaseContent):
     longitude: float
     title: str
     address: str
+    business_connection_id: Optional[str] = None
     foursquare_id: Optional[str] = None
     foursquare_type: Optional[str] = None
     google_place_id: Optional[str] = None
@@ -39,6 +40,7 @@ class VenueContent(BaseContent):
             longitude=self.longitude,
             title=self.title,
             address=self.address,
+            business_connection_id=self.business_connection_id,
             foursquare_id=self.foursquare_id,
             foursquare_type=self.foursquare_type,
             google_place_id=self.google_place_id,
@@ -57,6 +59,7 @@ class VenueContent(BaseContent):
             longitude: float,
             title: str,
             address: str,
+            business_connection_id: Optional[str] = ...,
             foursquare_id: Optional[str] = ...,
             foursquare_type: Optional[str] = ...,
             google_place_id: Optional[str] = ...,

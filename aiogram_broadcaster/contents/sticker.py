@@ -15,6 +15,7 @@ from .base import BaseContent
 
 class StickerContent(BaseContent):
     sticker: Union[InputFile, str]
+    business_connection_id: Optional[str] = None
     emoji: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
@@ -31,6 +32,7 @@ class StickerContent(BaseContent):
         return SendSticker(
             chat_id=chat_id,
             sticker=self.sticker,
+            business_connection_id=self.business_connection_id,
             emoji=self.emoji,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
@@ -43,6 +45,7 @@ class StickerContent(BaseContent):
             self,
             *,
             sticker: Union[InputFile, str],
+            business_connection_id: Optional[str] = ...,
             emoji: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[bool] = ...,

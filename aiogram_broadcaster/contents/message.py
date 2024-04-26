@@ -90,6 +90,7 @@ class MessageSendContent(BaseContent):
     message: Message
     disable_notification: Optional[bool] = None
     reply_markup: Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]] = None
+    business_connection_id: Optional[str] = None
     parse_mode: Optional[str] = None
 
     async def __call__(self, chat_id: int) -> TelegramMethod[Any]:
@@ -97,6 +98,7 @@ class MessageSendContent(BaseContent):
             chat_id=chat_id,
             disable_notification=self.disable_notification,
             reply_markup=self.reply_markup,
+            business_connection_id=self.business_connection_id,
             parse_mode=self.parse_mode,
         )
 
@@ -108,5 +110,6 @@ class MessageSendContent(BaseContent):
             message: Message,
             disable_notification: Optional[bool] = ...,
             reply_markup: Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]] = ...,
+            business_connection_id: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
         ) -> None: ...
