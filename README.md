@@ -75,6 +75,43 @@ if __name__ == "__main__":
     main()
 ```
 
+## Mailer
+
+#### The [Mailer](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/mailer.py) class facilitates the broadcasting of messages to multiple chats in Telegram. It manages the lifecycle of the broadcast process, including starting, stopping, and destroying the broadcast.
+
+#### Properties
+
+* #### id: Unique identifier for the mailer.
+* #### status: Current [status](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/status.py) of the mailer (e.g., STARTED, STOPPED, COMPLETED).
+* #### settings: Configuration settings for the mailer.
+* #### statistic: [MailerStatistic](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/statistic.py) instance containing statistics about the mailer's performance.
+* #### content: Content to be broadcasted.
+* #### context: Additional context data used during the broadcasting process.
+* #### bot: aiogram Bot instance used for interacting with the Telegram API.
+
+#### Methods
+
+* #### send(chat_id: int) -> Any: Sends the content to a specific chat identified by chat_id.
+* #### add_chats(chats: Iterable[int]) -> Set[int]: Adds new chats to the mailer's registry.
+* #### reset_chats() -> bool: Resets the state of all chats.
+* #### destroy() -> None: Destroys the mailer instance and cleans up resources.
+* #### stop() -> None: Stops the broadcasting process.
+* #### run() -> bool: Initiates the broadcasting process.
+* #### start() -> None: Starts the broadcasting process in background.
+* #### wait() -> None: Waits for the broadcasting process to complete.
+
+#### Usage:
+
+```python
+mailer = await broadcaster.create_mailer(content=..., chats=...)
+try:
+    logging.info("Mailer starting...")
+    await mailer.run()
+finally:
+    logging.info("Mailer shutdown...")
+    await mailer.destroy()
+```
+
 ## Creating a group of mailers based on many bots
 
 #### When using a multibot, it may be necessary to launch many mailings in several bots. For this case, there is a [MailerGroup](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/group.py) object that stores several mailers and can manage them.
@@ -378,4 +415,33 @@ from aiogram_broadcaster.storage.redis import RedisMailerStorage
 
 storage = RedisMailerStorage.from_url(url="redis://localhost:6379")
 broadcaster = Broadcaster(storage=storage)
+```
+
+## Default properties
+
+#### The [DefaultMailerProperties](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/default_properties.py) class defines the default properties for mailers created within the broadcaster. It allows setting various parameters like interval, dynamic_interval, run_on_startup, handle_retry_after, destroy_on_complete, and preserve. These properties provide flexibility and control over the behavior of mailers.
+
+#### Parameters:
+
+* #### interval: The interval (in seconds) between successive message broadcasts. It defaults to 0, indicating immediate broadcasting.
+* #### dynamic_interval: A boolean flag indicating whether the interval should be adjusted dynamically based on the number of chats. If set to True, the interval will be divided equally among the chats.
+* #### run_on_startup: A boolean flag indicating whether the mailer should start broadcasting messages automatically on bot startup.
+* #### handle_retry_after: A boolean flag indicating whether the mailer should handle the TelegramAPIError error automatically.
+* #### destroy_on_complete: A boolean flag indicating whether the mailer should be destroyed automatically upon completing its operations.
+* #### preserve: A boolean flag indicating whether the mailer's state should be preserved even after completion. If set to True, the mailer's state will be stored in the specified storage.
+
+#### Usage:
+
+```python
+from aiogram_broadcaster import Broadcaster, DefaultMailerProperties
+
+default = DefaultMailerProperties(
+    interval=60_000,
+    dynamic_interval=True,
+    run_on_startup=True,
+    handle_retry_after=True,
+    destroy_on_complete=True,
+    preserve=True,
+)
+broadcaster = Broadcaster(default=default)
 ```
