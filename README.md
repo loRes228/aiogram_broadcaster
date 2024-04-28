@@ -362,7 +362,7 @@ dispatcher = Dispatcher()
 dispatcher["key"] = "value"
 
 broadcaster = Broadcaster()
-broadcaster.setup(dispatcher=dispatcher, fetch_workflow_data=True)
+broadcaster.setup(dispatcher, fetch_dispatcher_context=True)
 ```
 
 * #### Contextual data only for mailer
