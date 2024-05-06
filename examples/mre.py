@@ -17,16 +17,16 @@ router = Router(name=__name__)
 
 
 @router.message()
-async def process_any_message(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
+async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any:
     # Creating content based on the Message
     content = MessageSendContent(message=message)
 
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
-        bot=bot,
         interval=1,
         preserve=True,
+        destroy_on_complete=True,
     )
 
     # The mailer launch method starts mailing to chats as an asyncio task.

@@ -2,6 +2,7 @@ from typing import Any, Dict, Iterable, Literal, Optional, Set, Tuple, Union, ca
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher
+from pydantic import JsonValue
 from pydantic_core import PydanticSerializationError, ValidationError
 
 from . import loggers
@@ -68,7 +69,7 @@ class Broadcaster(MailerContainer):
         preserve: Optional[bool] = None,
         disable_events: bool = False,
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
-        stored_context: Optional[Dict[str, Any]] = None,
+        stored_context: Optional[Dict[str, JsonValue]] = None,
         **context: Any,
     ) -> MailerGroup:
         if not bots and not self.bots:
@@ -109,7 +110,7 @@ class Broadcaster(MailerContainer):
         preserve: Optional[bool] = None,
         disable_events: bool = False,
         exclude_placeholders: Optional[Union[Literal[True], Set[str]]] = None,
-        stored_context: Optional[Dict[str, Any]] = None,
+        stored_context: Optional[Dict[str, JsonValue]] = None,
         **context: Any,
     ) -> Mailer[ContentType]:
         properties = self.default.prepare(
@@ -237,9 +238,9 @@ class Broadcaster(MailerContainer):
             self.context.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.storage.startup)
+            dispatcher.shutdown.register(self.storage.shutdown)
             if restore_mailers:
                 dispatcher.startup.register(self.restore_mailers)
-            dispatcher.shutdown.register(self.storage.shutdown)
         if run_mailers:
             dispatcher.startup.register(self.run_startup_mailers)
         return self

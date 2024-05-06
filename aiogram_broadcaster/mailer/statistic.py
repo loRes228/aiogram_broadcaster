@@ -1,4 +1,4 @@
-from typing import Dict, FrozenSet, Iterator, Set, SupportsInt
+from typing import Dict, FrozenSet, Iterator, Set, SupportsInt, Tuple
 
 from .chat_engine import ChatEngine, ChatState
 
@@ -43,6 +43,9 @@ class ChatsMetric:
             for metric_name, metric in self.metrics.items()
         )
         # fmt: on
+
+    def __getitem__(self, item: str) -> float:
+        return self.metrics[item]
 
     def __iter__(self) -> Iterator[int]:
         return iter(self.ids)
@@ -100,6 +103,12 @@ class MailerStatistic:
             f"{metric_name.replace('_', ' ').capitalize()} - {metric}"
             for metric_name, metric in self.metrics.items()
         )
+
+    def __getitem__(self, item: str) -> ChatsMetric:
+        return self.metrics[item]
+
+    def __iter__(self) -> Iterator[Tuple[str, ChatsMetric]]:
+        return iter(self.metrics.items())
 
     @property
     def total_chats(self) -> ChatsMetric:

@@ -140,6 +140,8 @@ class PlaceholderManager(PlaceholderRouter):
         }
 
     def extract_text_field(self, model: BaseModel) -> Optional[Tuple[str, str]]:
+        if not self.TEXT_FIELDS & model.model_fields_set:
+            return None
         mapped_model = dict(model)
         for field_name in self.TEXT_FIELDS:
             if (field_value := mapped_model.get(field_name)) and isinstance(field_value, str):

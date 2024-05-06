@@ -1,5 +1,5 @@
 from contextlib import suppress
-from typing import Any, Callable, Dict, List, NoReturn, Optional
+from typing import Any, Callable, Dict, Iterator, List, NoReturn, Optional, Tuple
 
 from aiogram.dispatcher.event.bases import CancelHandler, SkipHandler
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
@@ -64,6 +64,12 @@ class EventRouter(ChainObject["EventRouter"], sub_name="event"):
             "success_sent": self.success_sent,
             "failed_sent": self.failed_sent,
         }
+
+    def __getitem__(self, item: str) -> EventObserver:
+        return self.observers[item]
+
+    def __iter__(self) -> Iterator[Tuple[str, EventObserver]]:
+        return iter(self.observers.items())
 
 
 class EventManager(EventRouter):

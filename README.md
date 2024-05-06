@@ -32,23 +32,23 @@ from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
 from aiogram_broadcaster.storage.file import FileMailerStorage
 
-TOKEN = "1234:Abc"  # noqa: S105
-USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
+TOKEN = "1234:Abc"
+USER_IDS = {78238238, 78378343, 98765431, 12345678}
 
 router = Router(name=__name__)
 
 
 @router.message()
-async def process_any_message(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
+async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any:
     # Creating content based on the Message
     content = MessageSendContent(message=message)
 
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
-        bot=bot,
         interval=1,
         preserve=True,
+        destroy_on_complete=True,
     )
 
     # The mailer launch method starts mailing to chats as an asyncio task.
@@ -253,9 +253,9 @@ broadcaster.placeholder.register(NamePlaceholder())
 * #### Other registration methods
 
 ```python
-broadcaster.placeholder["name"] = function
-broadcaster.placeholder.add(key="key", value="value")
-broadcaster.placeholder.attach({"key": "value"}, key="value")
+placeholder["name"] = function
+placeholder.add(key="key", value="value")
+placeholder.attach({"key": "value"}, key="value")
 ```
 
 ### And then
@@ -292,49 +292,41 @@ class LanguageBasedContent(KeyBasedContent):
 
 
 content = LanguageBasedContent(
-    default=TextContent(text="Hello!"),
+    # default=TextContent(text="Hello!"),
     uk=TextContent(text="Привіт!"),
     ru=TextContent(text="Привет!"),
-)
-
-
-class GEOBasedContent(KeyBasedContent):
-    """Content based on the user's geographical location."""
-
-    async def __call__(self, chat_id: int, database: Database) -> str:
-        user = await database.get_user_by_id(chat_id=chat_id)
-        return user.country
-
-
-content = GEOBasedContent(
-    ukraine=TextContent(text="Новини для України!"),
-    usa=TextContent(text="News for U.S!"),
 )
 ```
 
 ## Lazy content
 
-#### Allows content to be generated dynamically at the time the message is sent. For example, you can customize different content for administrators and regular users.
+#### Allows content to be generated dynamically at the time the message is sent.
 
 #### Usage:
 
 ```python
-from aiogram_broadcaster.contents import LazyContent, TextContent
+from secrets import choice
+from typing import List
+
+from pydantic import SerializeAsAny
+
+from aiogram_broadcaster.contents import BaseContent, LazyContent, TextContent
 
 
-class TimeSensitiveContent(LazyContent):
-    async def __call__(self) -> TextContent:
-        hour = datetime.now().hour
-        if 6 <= hour < 12:
-            return TextContent(text="Good morning!")
-        if 12 <= hour < 18:
-            return TextContent(text="Good afternoon!")
-        if 18 <= hour < 24:
-            return TextContent(text="Good evening!")
-        return TextContent(text="Good night!")
+class RandomizedContent(LazyContent):
+    contents: List[SerializeAsAny[BaseContent]]
+
+    async def __call__(self) -> BaseContent:
+        return choice(self.contents)
 
 
-await broadcaster.create_mailer(content=TimeSensitiveContent(), chats=...)
+content = RandomizedContent(
+    contents=[
+        TextContent(text="Hello!"),
+        TextContent(text="Hi!"),
+    ],
+)
+await broadcaster.create_mailer(content=content, chats=...)
 ```
 
 ## Tiered dependency injection
@@ -377,7 +369,7 @@ await broadcaster.create_mailer(content=..., chats=..., key=value)
 await broadcaster.create_mailer(content=..., chats=..., stored_context={"key": "value"})
 ```
 
-* #### Event-to-Event
+* #### Event-to-event
 
 ```python
 @event.completed()

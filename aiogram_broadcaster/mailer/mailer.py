@@ -193,7 +193,7 @@ class Mailer(Generic[ContentType]):
             await self.destroy()
         if not self._settings.disable_events:
             await self._event.emit_completed(**self._context)
-        return completed
+        return True
 
     def start(self) -> None:
         if self._status is not MailerStatus.STOPPED:

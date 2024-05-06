@@ -12,6 +12,12 @@ class KeyBasedContent(BaseContent, register=False):
     default: Optional[SerializeAsAny[BaseContent]] = None
     __pydantic_extra__: Dict[str, SerializeAsAny[BaseContent]]
 
+    def __getitem__(self, item: str) -> BaseContent:
+        return self.__pydantic_extra__[item]
+
+    def __contains__(self, item: str) -> bool:
+        return item in self.__pydantic_extra__
+
     def model_post_init(self, __context: Any) -> None:
         if not self.default and not self.__pydantic_extra__:
             raise ValueError("At least one content must be specified.")
