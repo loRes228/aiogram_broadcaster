@@ -17,7 +17,7 @@
 * ### [Statistics](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#statistic-mailerstatistic-instance-containing-statistics-about-the-mailers-performance)
 * ### [Statuses](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#status-current-status-of-the-mailer-eg-started-stopped-completed)
 * ### Supports [multiple mailings](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#mailer)
-* ### Supports [multibot](https://github.com/loRes228/aiogram_broadcaster/blob/main/examples/multibot.py)
+* ### Supports [multibot](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#multibot)
 
 ## Installation
 
