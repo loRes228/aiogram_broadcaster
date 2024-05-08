@@ -54,7 +54,7 @@ class VideoNoteContent(BaseContent):
             length: Optional[int] = ...,
             thumbnail: Optional[InputFile] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

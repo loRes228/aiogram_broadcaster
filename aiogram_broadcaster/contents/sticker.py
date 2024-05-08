@@ -48,7 +48,7 @@ class StickerContent(BaseContent):
             business_connection_id: Optional[str] = ...,
             emoji: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

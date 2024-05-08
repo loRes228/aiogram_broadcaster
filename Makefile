@@ -10,5 +10,5 @@ lint:
 
 .PHONY: format
 format:
-	ruff check --fix ${CODE_DIRS}
 	ruff format ${CODE_DIRS}
+	ruff check --fix ${CODE_DIRS}

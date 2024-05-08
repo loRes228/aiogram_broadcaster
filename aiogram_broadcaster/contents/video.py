@@ -68,12 +68,12 @@ class VideoContent(BaseContent):
             height: Optional[int] = ...,
             thumbnail: Optional[InputFile] = ...,
             caption: Optional[str] = ...,
-            parse_mode: Optional[str] = ...,
+            parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,
             has_spoiler: Optional[bool] = ...,
             supports_streaming: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

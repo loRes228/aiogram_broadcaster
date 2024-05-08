@@ -54,11 +54,11 @@ class PhotoContent(BaseContent):
             photo: Union[InputFile, str],
             business_connection_id: Optional[str] = ...,
             caption: Optional[str] = ...,
-            parse_mode: Optional[str] = ...,
+            parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,
             has_spoiler: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

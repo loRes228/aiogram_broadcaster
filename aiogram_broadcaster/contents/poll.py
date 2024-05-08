@@ -6,6 +6,7 @@ from aiogram.methods import SendPoll
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
+    InputPollOption,
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -16,8 +17,10 @@ from .base import BaseContent
 
 class PollContent(BaseContent):
     question: str
-    options: List[str]
+    options: List[Union[InputPollOption, str]]
     business_connection_id: Optional[str] = None
+    question_parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
+    question_entities: Optional[List[MessageEntity]] = None
     is_anonymous: Optional[bool] = None
     type: Optional[str] = None
     allows_multiple_answers: Optional[bool] = None
@@ -45,6 +48,8 @@ class PollContent(BaseContent):
             question=self.question,
             options=self.options,
             business_connection_id=self.business_connection_id,
+            question_parse_mode=self.question_parse_mode,
+            question_entities=self.question_entities,
             is_anonymous=self.is_anonymous,
             type=self.type,
             allows_multiple_answers=self.allows_multiple_answers,
@@ -66,20 +71,22 @@ class PollContent(BaseContent):
             self,
             *,
             question: str,
-            options: List[str],
+            options: List[Union[InputPollOption, str]],
             business_connection_id: Optional[str] = ...,
+            question_parse_mode: Optional[Union[str, Default]] = ...,
+            question_entities: Optional[List[MessageEntity]] = ...,
             is_anonymous: Optional[bool] = ...,
             type: Optional[str] = ...,  # noqa: A002
             allows_multiple_answers: Optional[bool] = ...,
             correct_option_id: Optional[int] = ...,
             explanation: Optional[str] = ...,
-            explanation_parse_mode: Optional[str] = ...,
+            explanation_parse_mode: Optional[Union[str, Default]] = ...,
             explanation_entities: Optional[List[MessageEntity]] = ...,
             open_period: Optional[int] = ...,
             close_date: Optional[Union[datetime, timedelta, int]] = ...,
             is_closed: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

@@ -10,10 +10,10 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 authors = [
-    { name = "LORES" },
+    { name = "LORES" }
 ]
 dependencies = [
-    "aiogram>=3.4.0"
+    "aiogram>=3.6.0"
 ]
 
 [project.urls]
@@ -26,13 +26,13 @@ dev = [
     "types-aiofiles>=23.2.0"
 ]
 redis = [
-    "redis[hiredis]>=5.0.0",
+    "redis[hiredis]>=5.0.0"
 ]
 mongo = [
     "motor>=3.0.0"
 ]
 sqlalchemy = [
-    "SQLAlchemy>=2.0.0",
+    "SQLAlchemy>=2.0.0"
 ]
 
 [tool.hatch.version]

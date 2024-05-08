@@ -2,7 +2,10 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendInvoice
-from aiogram.types import InlineKeyboardMarkup, LabeledPrice
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    LabeledPrice,
+)
 
 from .base import BaseContent
 
@@ -89,6 +92,6 @@ class InvoiceContent(BaseContent):
             send_email_to_provider: Optional[bool] = ...,
             is_flexible: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[InlineKeyboardMarkup] = ...,
         ) -> None: ...

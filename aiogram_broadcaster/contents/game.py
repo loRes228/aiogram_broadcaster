@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendGame
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardMarkup,
+)
 
 from .base import BaseContent
 
@@ -32,6 +34,6 @@ class GameContent(BaseContent):
             game_short_name: str,
             business_connection_id: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[InlineKeyboardMarkup] = ...,
         ) -> None: ...

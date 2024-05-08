@@ -89,5 +89,5 @@ class FromChatForwardContent(BaseContent):
             from_chat_id: Union[int, str],
             message_id: int,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
         ) -> None: ...

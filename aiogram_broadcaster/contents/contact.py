@@ -51,9 +51,9 @@ class ContactContent(BaseContent):
             first_name: str,
             business_connection_id: Optional[str] = ...,
             last_name: Optional[str] = ...,
-            vcard: Optional[str] = None,
+            vcard: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

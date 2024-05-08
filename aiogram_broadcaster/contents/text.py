@@ -51,11 +51,11 @@ class TextContent(BaseContent):
             *,
             text: str,
             business_connection_id: Optional[str] = ...,
-            parse_mode: Optional[str] = ...,
+            parse_mode: Optional[Union[str, Default]] = ...,
             entities: Optional[List[MessageEntity]] = ...,
-            link_preview_options: Optional[LinkPreviewOptions] = ...,
+            link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

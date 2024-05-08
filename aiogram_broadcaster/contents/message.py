@@ -1,7 +1,24 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from aiogram.client.default import Default
-from aiogram.methods import CopyMessage, ForwardMessage, TelegramMethod
+from aiogram.methods import (
+    CopyMessage,
+    ForwardMessage,
+    SendAnimation,
+    SendAudio,
+    SendContact,
+    SendDice,
+    SendDocument,
+    SendLocation,
+    SendMessage,
+    SendPhoto,
+    SendPoll,
+    SendSticker,
+    SendVenue,
+    SendVideo,
+    SendVideoNote,
+    SendVoice,
+)
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -48,10 +65,10 @@ class MessageCopyContent(BaseContent):
             *,
             message: Message,
             caption: Optional[str] = ...,
-            parse_mode: Optional[str] = ...,
+            parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,
@@ -82,7 +99,7 @@ class MessageForwardContent(BaseContent):
             *,
             message: Message,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
         ) -> None: ...
 
 
@@ -93,7 +110,26 @@ class MessageSendContent(BaseContent):
     business_connection_id: Optional[str] = None
     parse_mode: Optional[str] = None
 
-    async def __call__(self, chat_id: int) -> TelegramMethod[Any]:
+    async def __call__(
+        self,
+        chat_id: int,
+    ) -> Union[
+        ForwardMessage,
+        SendAnimation,
+        SendAudio,
+        SendContact,
+        SendDocument,
+        SendLocation,
+        SendMessage,
+        SendPhoto,
+        SendPoll,
+        SendDice,
+        SendSticker,
+        SendVenue,
+        SendVideo,
+        SendVideoNote,
+        SendVoice,
+    ]:
         return self.message.send_copy(
             chat_id=chat_id,
             disable_notification=self.disable_notification,

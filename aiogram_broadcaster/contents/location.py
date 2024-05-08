@@ -59,7 +59,7 @@ class LocationContent(BaseContent):
             heading: Optional[int] = ...,
             proximity_alert_radius: Optional[int] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

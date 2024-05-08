@@ -44,5 +44,5 @@ class MediaGroupContent(BaseContent):
             ],
             business_connection_id: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
         ) -> None: ...
