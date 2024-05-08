@@ -13,7 +13,7 @@
 * ### [Event system](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#event-system-1)
 * ### [Placeholders](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#placeholders) (variables in texts)
 * ### Flexible contents ([LazyContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#lazy-content), [KeyBasedContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#key-based-content))
-* ### [Storages](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#storages)
+* ### [Storages](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#storages-1)
 * ### [Statistics](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#statistic-mailerstatistic-instance-containing-statistics-about-the-mailers-performance)
 * ### [Statuses](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#status-current-status-of-the-mailer-eg-started-stopped-completed)
 * ### Supports [multiple mailings](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#mailer)
