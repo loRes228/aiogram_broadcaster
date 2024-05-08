@@ -8,6 +8,17 @@
 
 ### **aiogram_broadcaster** is lightweight aiogram-based library for broadcasting Telegram messages.
 
+# Features
+
+* ### [Event system](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#event-system-1)
+* ### [Placeholders](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#placeholders) (variables in texts)
+* ### Flexible contents ([LazyContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#lazy-content), [KeyBasedContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#key-based-content))
+* ### [Storages](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#storages)
+* ### [Statistics](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#statistic-mailerstatistic-instance-containing-statistics-about-the-mailers-performance)
+* ### [Statuses](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#status-current-status-of-the-mailer-eg-started-stopped-completed)
+* ### Supports [multiple mailings](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#mailer)
+* ### Supports [multibot](https://github.com/loRes228/aiogram_broadcaster/blob/main/examples/multibot.py)
+
 ## Installation
 
 ```commandline
@@ -112,7 +123,7 @@ finally:
     await mailer.destroy()
 ```
 
-## Creating a group of mailers based on many bots
+## Multibot
 
 #### When using a multibot, it may be necessary to launch many mailings in several bots. For this case, there is a [MailerGroup](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/group.py) object that stores several mailers and can manage them.
 
@@ -139,7 +150,7 @@ mailer_group = await broadcaster.create_mailers(
 await mailer_group.run()
 ```
 
-## Event management system for broadcasting
+## Event system
 
 #### The event system empowers you to effectively manage events throughout the broadcast process.
 
@@ -208,7 +219,7 @@ async def mail_successful_sent() -> None:
 broadcaster.event.include(event)
 ```
 
-## Placeholders for dynamic content insertion
+## Placeholders
 
 #### Placeholders facilitate the insertion of dynamic content within texts, this feature allows for personalized messaging.
 
@@ -265,7 +276,7 @@ text_content = TextContent(text="Hello, $name!")
 photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 ```
 
-## Creating personalized content
+## Key-based content
 
 #### This module provides utilities to create personalized content targeted to specific users or groups based on their language preferences or geographical location, etc.
 
