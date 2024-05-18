@@ -8,8 +8,9 @@ from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster, EventRouter, Mailer
+from aiogram_broadcaster import Broadcaster, EventRouter
 from aiogram_broadcaster.contents import MessageSendContent
+from aiogram_broadcaster.mailer import Mailer
 
 
 TOKEN = "1234:Abc"  # noqa: S105

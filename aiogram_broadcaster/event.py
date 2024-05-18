@@ -1,18 +1,9 @@
-from contextlib import suppress
-from typing import Any, Callable, Dict, Iterator, List, NoReturn, Optional, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
-from aiogram.dispatcher.event.bases import CancelHandler, SkipHandler
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
 
 from .utils.chain import ChainObject
-
-
-class SkipEvent(Exception):  # noqa: N818
-    pass
-
-
-def skip_event() -> NoReturn:
-    raise SkipEvent
+from .utils.interrupt import suppress_interrupt
 
 
 class EventObserver:
@@ -20,6 +11,12 @@ class EventObserver:
 
     def __init__(self) -> None:
         self.callbacks = []
+
+    def __iter__(self) -> Iterator[CallbackType]:
+        return iter(callback.callback for callback in self.callbacks)
+
+    def __len__(self) -> int:
+        return len(self.callbacks)
 
     def __call__(self) -> Callable[[CallbackType], CallbackType]:
         def wrapper(callback: CallbackType) -> CallbackType:
@@ -68,16 +65,13 @@ class EventRouter(ChainObject["EventRouter"], sub_name="event"):
     def __getitem__(self, item: str) -> EventObserver:
         return self.observers[item]
 
-    def __iter__(self) -> Iterator[Tuple[str, EventObserver]]:
-        return iter(self.observers.items())
-
 
 class EventManager(EventRouter):
     __chain_root__ = True
 
     async def emit_event(self, __event_name: str, /, **context: Any) -> Dict[str, Any]:
         collected_data: Dict[str, Any] = {}
-        with suppress(SkipEvent, SkipHandler, CancelHandler):
+        with suppress_interrupt():
             for event in self.chain_tail:
                 for callback in event.observers[__event_name].callbacks:
                     result = await callback.call(**context, **collected_data)

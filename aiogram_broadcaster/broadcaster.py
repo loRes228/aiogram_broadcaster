@@ -7,7 +7,7 @@ from pydantic_core import PydanticSerializationError, ValidationError
 
 from . import loggers
 from .contents.base import BaseContent, ContentType
-from .default_properties import DefaultMailerProperties
+from .defaults import DefaultMailerProperties
 from .event import EventManager
 from .mailer.chat_engine import ChatsRegistry
 from .mailer.container import MailerContainer

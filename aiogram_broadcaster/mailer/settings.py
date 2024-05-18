@@ -9,7 +9,7 @@ class MailerSettings(BaseModel):
         validate_assignment=True,
     )
 
-    interval: float = Field(default=1, ge=0)
+    interval: float = Field(default=0, ge=0)
     run_on_startup: bool = False
     disable_events: bool = False
     handle_retry_after: bool = False

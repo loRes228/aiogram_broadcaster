@@ -8,16 +8,16 @@
 
 ### **aiogram_broadcaster** is lightweight aiogram-based library for broadcasting Telegram messages.
 
-# Features
+## Features
 
-* ### [Event system](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#event-system-1)
-* ### [Placeholders](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#placeholders) (variables in texts)
-* ### Flexible contents ([LazyContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#lazy-content), [KeyBasedContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#key-based-content))
-* ### [Storages](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#storages-1)
-* ### [Statistics](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#statistic-mailerstatistic-instance-containing-statistics-about-the-mailers-performance)
-* ### [Statuses](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#status-current-status-of-the-mailer-eg-started-stopped-completed)
-* ### Supports [multiple mailings](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#mailer)
-* ### Supports [multibot](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#multibot)
+* #### [Event system](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#event-system-1)
+* #### [Placeholders](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#placeholders) (variables in texts)
+* #### Flexible contents ([LazyContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#lazy-content), [KeyBasedContent](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#key-based-content))
+* #### [Storages](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#storages-1)
+* #### [Statistics](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#statistic-mailerstatistic-instance-containing-statistics-about-the-mailers-performance)
+* #### [Statuses](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#status-current-status-of-the-mailer-eg-started-stopped-completed)
+* #### Supports [multiple mailings](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#mailer)
+* #### Supports [multibot](https://github.com/loRes228/aiogram_broadcaster?tab=readme-ov-file#multibot)
 
 ## Installation
 
@@ -340,9 +340,9 @@ content = RandomizedContent(
 await broadcaster.create_mailer(content=content, chats=...)
 ```
 
-## Tiered dependency injection
+## Dependency injection
 
-#### Utilize in event system, key based content, placeholders, and more for comprehensive management of dependencies.
+#### It is used for comprehensive dependency management, used in event system, key-based/lazy content, placeholders and so on.
 
 #### Usage:
 
@@ -395,7 +395,7 @@ async def mailer_completed(mailer_content: BaseContent) -> None:
 
 ## Storages
 
-#### Stores allow you to save mailer states to external storage.
+#### Storage allow you to save mailer states to external storage.
 
 * #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/file.py) Saves the mailers to a file.
 * #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/mongodb.py) Saves the mailers to a MongoDB.

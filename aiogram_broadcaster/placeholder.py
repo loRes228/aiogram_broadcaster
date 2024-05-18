@@ -22,6 +22,7 @@ from pydantic import BaseModel
 from typing_extensions import Self
 
 from .utils.chain import ChainObject
+from .utils.interrupt import suppress_interrupt
 
 
 ModelType = TypeVar("ModelType", bound=BaseModel)
@@ -60,7 +61,7 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
         self.add(key=key, value=value)
 
     def __getitem__(self, item: str) -> Any:
-        return self._items[item]
+        return dict(self.chain_items)[item]
 
     def __iter__(self) -> Iterator[Tuple[str, Any]]:
         return iter(self.chain_items)
@@ -97,23 +98,23 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
         self._items[key] = value
         return self
 
-    def register(self, *placeholders: PlaceholderItem) -> Self:
-        if not placeholders:
-            raise ValueError("At least one placeholder must be provided to register.")
-        for placeholder in placeholders:
-            if not isinstance(placeholder, PlaceholderItem):
+    def register(self, *items: PlaceholderItem) -> Self:
+        if not items:
+            raise ValueError("At least one placeholder item must be provided to register.")
+        for item in items:
+            if not isinstance(item, PlaceholderItem):
                 raise TypeError(
-                    f"The placeholder must be an instance of "
-                    f"PlaceholderItem, not a {type(placeholder).__name__}.",
+                    f"The placeholder item must be an instance of "
+                    f"PlaceholderItem, not a {type(item).__name__}.",
                 )
-            self.add(key=placeholder.key, value=placeholder.__call__)
+            self.add(key=item.key, value=item.__call__)
         return self
 
     def attach(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> Self:
         if __mapping:
             kwargs.update(__mapping)
         if not kwargs:
-            raise ValueError("At least one keyword must be specified to attaching.")
+            raise ValueError("At least one keyword argument must be specified to attaching.")
         for key, value in kwargs.items():
             self.add(key=key, value=value)
         return self
@@ -133,11 +134,15 @@ class PlaceholderManager(PlaceholderRouter):
     TEXT_FIELDS: ClassVar[Set[str]] = {"caption", "text"}
 
     async def fetch_data(self, __select_keys: Container[str], /, **context: Any) -> Dict[str, Any]:
-        return {
-            key: await value.call(**context) if isinstance(value, CallableObject) else value
-            for key, value in self.chain_items
-            if key in __select_keys
-        }
+        data = {}
+        for key, value in self.chain_items:
+            if key not in __select_keys:
+                continue
+            with suppress_interrupt():
+                data[key] = (
+                    await value.call(**context) if isinstance(value, CallableObject) else value
+                )
+        return data
 
     def extract_text_field(self, model: BaseModel) -> Optional[Tuple[str, str]]:
         if not self.TEXT_FIELDS & model.model_fields_set:
