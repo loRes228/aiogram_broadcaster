@@ -1,4 +1,4 @@
-name: Deploy
+name: PyPI Publish
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  pypi-publish:
-    name: PyPI Publish
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -18,15 +18,15 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.x"
 
-      - name: Install build dependencies
-        run: python -m pip install --upgrade build
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip build
 
-      - name: Build source distribution
-        run: python -m build .
+      - name: Build package
+        run: python -m build
 
-      - name: Publish package distributions to PyPI
+      - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
