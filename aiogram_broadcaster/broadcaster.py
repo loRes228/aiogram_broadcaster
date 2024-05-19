@@ -7,13 +7,12 @@ from pydantic_core import PydanticSerializationError, ValidationError
 
 from . import loggers
 from .contents.base import BaseContent, ContentType
-from .defaults import DefaultMailerProperties
 from .event import EventManager
 from .mailer.chat_engine import ChatsRegistry
 from .mailer.container import MailerContainer
 from .mailer.group import MailerGroup
 from .mailer.mailer import Mailer
-from .mailer.settings import MailerSettings
+from .mailer.settings import DefaultMailerSettings, MailerSettings
 from .mailer.status import MailerStatus
 from .placeholder import PlaceholderManager
 from .storage.base import BaseMailerStorage, StorageRecord
@@ -22,7 +21,7 @@ from .storage.base import BaseMailerStorage, StorageRecord
 class Broadcaster(MailerContainer):
     bots: Tuple[Bot, ...]
     storage: Optional[BaseMailerStorage]
-    default: DefaultMailerProperties
+    default: DefaultMailerSettings
     context_key: str
     context: Dict[str, Any]
     event: EventManager
@@ -32,7 +31,7 @@ class Broadcaster(MailerContainer):
         self,
         *bots: Bot,
         storage: Optional[BaseMailerStorage] = None,
-        default: Optional[DefaultMailerProperties] = None,
+        default: Optional[DefaultMailerSettings] = None,
         context_key: str = "broadcaster",
         **context: Any,
     ) -> None:
@@ -40,7 +39,7 @@ class Broadcaster(MailerContainer):
 
         self.bots = bots
         self.storage = storage
-        self.default = default or DefaultMailerProperties()
+        self.default = default or DefaultMailerSettings()
         self.context_key = context_key
         self.context = context
         self.context.update(
@@ -133,18 +132,17 @@ class Broadcaster(MailerContainer):
         chats = set(chats)
         if bot is None:
             bot = self.bots[-1]
+        if properties.dynamic_interval:
+            properties.interval = max(0.1, properties.interval / len(chats))
         if stored_context is None:
             stored_context = {}
-        interval = properties.interval
-        if properties.dynamic_interval:
-            interval = max(0.1, interval / len(chats))
         mailer_id = hash(uuid4())
         settings = MailerSettings(
-            interval=interval,
+            interval=properties.interval,
             run_on_startup=properties.run_on_startup,
-            disable_events=disable_events,
             handle_retry_after=properties.handle_retry_after,
             destroy_on_complete=properties.destroy_on_complete,
+            disable_events=disable_events,
             exclude_placeholders=exclude_placeholders,
             preserved=properties.preserve,
         )

@@ -1,9 +1,9 @@
 __all__ = (
+    "DefaultMailerSettings",
     "Mailer",
-    "MailerStatistic",
     "MailerStatus",
 )
 
 from .mailer import Mailer
-from .statistic import MailerStatistic
+from .settings import DefaultMailerSettings
 from .status import MailerStatus

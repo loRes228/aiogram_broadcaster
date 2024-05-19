@@ -7,6 +7,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
+from aiogram_broadcaster.mailer import DefaultMailerSettings
 from aiogram_broadcaster.storage.file import FileMailerStorage
 
 
@@ -24,8 +25,6 @@ async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any
     mailer = await broadcaster.create_mailer(
         content=content,
         chats=USER_IDS,
-        interval=1,
-        preserve=True,
         destroy_on_complete=True,
     )
 
@@ -43,7 +42,8 @@ def main() -> None:
     dispatcher.include_router(router)
 
     storage = FileMailerStorage()
-    broadcaster = Broadcaster(bot, storage=storage)
+    default = DefaultMailerSettings(interval=1, preserve=True)
+    broadcaster = Broadcaster(bot, storage=storage, default=default)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)

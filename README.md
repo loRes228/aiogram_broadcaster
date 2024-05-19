@@ -93,10 +93,10 @@ if __name__ == "__main__":
 #### Properties
 
 * #### id: Unique identifier for the mailer.
-* #### status: Current [status](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/status.py) of the mailer (e.g., STARTED, STOPPED, COMPLETED).
+* #### status: Current [mailer status](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/status.py) of the mailer (e.g., STARTED, STOPPED, COMPLETED).
 * #### settings: Configuration settings for the mailer.
-* #### statistic: [MailerStatistic](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/statistic.py) instance containing statistics about the mailer's performance.
-* #### content: Content to be broadcasted.
+* #### statistic: Statistic instance containing statistics about the mailer's performance.
+* #### content: Content to be broadcast.
 * #### context: Additional context data used during the broadcasting process.
 * #### bot: aiogram Bot instance used for interacting with the Telegram API.
 
@@ -420,9 +420,9 @@ storage = RedisMailerStorage.from_url(url="redis://localhost:6379")
 broadcaster = Broadcaster(storage=storage)
 ```
 
-## Default properties
+## Default mailer settings
 
-#### The [DefaultMailerProperties](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/default_properties.py) class defines the default properties for mailers created within the broadcaster. It allows setting various parameters like interval, dynamic_interval, run_on_startup, handle_retry_after, destroy_on_complete, and preserve. These properties provide flexibility and control over the behavior of mailers.
+#### The [DefaultMailerSettings](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/mailer/settings.py) class defines the default properties for mailers created within the broadcaster. It allows setting various parameters like interval, dynamic_interval, run_on_startup, handle_retry_after, destroy_on_complete, and preserve. These properties provide flexibility and control over the behavior of mailers.
 
 #### Parameters:
 
@@ -436,9 +436,10 @@ broadcaster = Broadcaster(storage=storage)
 #### Usage:
 
 ```python
-from aiogram_broadcaster import Broadcaster, DefaultMailerProperties
+from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster.mailer import DefaultMailerSettings
 
-default = DefaultMailerProperties(
+default = DefaultMailerSettings(
     interval=60_000,
     dynamic_interval=True,
     run_on_startup=True,
