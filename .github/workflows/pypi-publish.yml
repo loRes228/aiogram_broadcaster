@@ -1,4 +1,4 @@
-name: PYPI-Publish
+name: "PyPI publish"
 
 on:
   push:
@@ -7,9 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
+  publish:
+    name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -24,27 +26,7 @@ jobs:
       - name: Build source distribution
         run: python -m build .
 
-      - name: Publish artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/*
-
-  publish:
-    name: Publish
-    needs: build
-    if: "success()"
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Publish a Python distribution to PyPI
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
