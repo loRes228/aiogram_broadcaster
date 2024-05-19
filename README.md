@@ -5,6 +5,8 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/loRes228/aiogram_broadcaster?style=plastic&logo=github)
 ![Static Badge](https://img.shields.io/badge/python-3.8%2B-blue?style=plastic&logo=python&logoColor=blue&link=https%3A%2F%2Fwww.python.org%2Fdownloads%2F)
 ![Static Badge](https://img.shields.io/badge/aiogram-3.4%2B-blue?style=plastic&logoColor=blue&link=https%3A%2F%2Fwww.python.org%2Fdownloads%2F)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/aiogram-broadcaster)
+![PyPI - Version](https://img.shields.io/pypi/v/aiogram-broadcaster)
 
 ### **aiogram_broadcaster** is lightweight aiogram-based library for broadcasting Telegram messages.
 
@@ -22,7 +24,7 @@
 ## Installation
 
 ```commandline
-$ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
+$ pip install aiogram-broadcaster
 ```
 
 ## Creating a mailer and running broadcasting
