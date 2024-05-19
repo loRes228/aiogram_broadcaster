@@ -12,9 +12,37 @@ license = "MIT"
 authors = [
     { name = "LORES" }
 ]
+classifiers = [
+    "Typing :: Typed",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = [
+    "telegram",
+    "bot",
+    "api",
+    "framework",
+    "wrapper",
+    "asyncio",
+    "broadcaster",
+    "boadcasting",
+    "broadcast",
+    "broadcaster",
+    "mailing",
+    "mailing-system",
+]
 dependencies = [
     "aiogram>=3.6.0"
 ]
+
 
 [project.urls]
 Source = "https://github.com/loRes228/aiogram_broadcaster"
