@@ -6,14 +6,15 @@ on:
       - main
     tags:
       - 'v0.*'
-  workflow_dispatch:
 
 jobs:
   pypi-publish:
     name: PyPI Publish
     runs-on: ubuntu-latest
+
     permissions:
       id-token: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,9 +22,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
-        run: python -m pip install --upgrade pip build
+        run: python -m pip install --upgrade build pip
 
       - name: Build package
         run: python -m build
