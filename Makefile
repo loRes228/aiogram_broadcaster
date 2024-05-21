@@ -1,21 +1,30 @@
-CODE_DIRS = aiogram_broadcaster examples
+PACKAGE_DIRECTORY = aiogram_broadcaster
+EXAMPLES_DIRECTORY = examples
+CODE_DIRECTORIES = ${PACKAGE_DIRECTORY} ${EXAMPLES_DIRECTORY}
 
+
+# =====================================
+# Environment
+# =====================================
+
+.PHONY: clean
+clean:
+	rm --force --recursive {.cache}
+	rm --force --recursive `find . -type d -name __pycache__`
+
+
+# =====================================
+# Code quality
+# =====================================
 
 .PHONY: lint
 lint:
-	mypy ${CODE_DIRS}
-	ruff check ${CODE_DIRS}
-	ruff format --check ${CODE_DIRS}
+	mypy ${CODE_DIRECTORIES}
+	ruff check ${CODE_DIRECTORIES}
+	ruff format --check ${CODE_DIRECTORIES}
 
 
 .PHONY: format
 format:
-	ruff format ${CODE_DIRS}
-	ruff check --fix ${CODE_DIRS}
-
-
-.PHONY: release
-release:
-	git add .
-	git commit -m "Release $(shell hatch version)"
-	git tag v$(shell hatch version)
+	ruff format ${CODE_DIRECTORIES}
+	ruff check --fix ${CODE_DIRECTORIES}
