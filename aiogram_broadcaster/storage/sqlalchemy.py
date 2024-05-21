@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from typing_extensions import Self
 
 from .base import BaseMailerStorage, StorageRecord
 
@@ -52,7 +53,7 @@ class SQLAlchemyMailerStorage(BaseMailerStorage):
         engine: AsyncEngine,
         table_name: str = DEFAULT_TABLE_NAME,
         **session_options: Any,
-    ) -> "SQLAlchemyMailerStorage":
+    ) -> Self:
         session_maker = async_sessionmaker(bind=engine, **session_options)
         return cls(session_maker=session_maker, table_name=table_name)
 
@@ -63,7 +64,7 @@ class SQLAlchemyMailerStorage(BaseMailerStorage):
         table_name: str = DEFAULT_TABLE_NAME,
         engine_options: Optional[Dict[str, Any]] = None,
         session_options: Optional[Dict[str, Any]] = None,
-    ) -> "SQLAlchemyMailerStorage":
+    ) -> Self:
         engine = create_async_engine(url=url, **(engine_options or {}))
         session_maker = async_sessionmaker(bind=engine, **(session_options or {}))
         return cls(session_maker=session_maker, table_name=table_name)

@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, Iterator, List, Optional
 
 from aiogram.dispatcher.event.handler import CallableObject, CallbackType
+from typing_extensions import Self
 
 from .utils.chain import ChainObject
 from .utils.interrupt import suppress_interrupt
@@ -25,7 +26,7 @@ class EventObserver:
 
         return wrapper
 
-    def register(self, *callbacks: CallbackType) -> "EventObserver":
+    def register(self, *callbacks: CallbackType) -> Self:
         if not callbacks:
             raise ValueError("At least one callback must be provided to register.")
         for callback in callbacks:

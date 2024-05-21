@@ -1,6 +1,7 @@
 from typing import Any, Set
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
+from typing_extensions import Self
 
 from .base import BaseMailerStorage, StorageRecord
 
@@ -33,7 +34,7 @@ class MongoDBMailerStorage(BaseMailerStorage):
         database_name: str = DEFAULT_DATABASE_NAME,
         collection_name: str = DEFAULT_COLLECTION_NAME,
         **client_options: Any,
-    ) -> "MongoDBMailerStorage":
+    ) -> Self:
         client = AsyncIOMotorClient(url, **client_options)
         return cls(client=client, database_name=database_name, collection_name=collection_name)
 

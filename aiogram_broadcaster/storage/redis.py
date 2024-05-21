@@ -1,6 +1,7 @@
 from typing import Any, Optional, Set, Union
 
 from redis.asyncio import ConnectionPool, Redis
+from typing_extensions import Self
 
 from .base import BaseMailerStorage, StorageRecord
 
@@ -30,7 +31,7 @@ class RedisMailerStorage(BaseMailerStorage):
         pool: ConnectionPool,
         key_prefix: str = DEFAULT_KEY_PREFIX,
         key_seperator: str = DEFAULT_KEY_SEPERATOR,
-    ) -> "RedisMailerStorage":
+    ) -> Self:
         redis = Redis.from_pool(connection_pool=pool)
         return cls(redis=redis, key_prefix=key_prefix, key_seperator=key_seperator)
 
@@ -41,7 +42,7 @@ class RedisMailerStorage(BaseMailerStorage):
         key_prefix: str = DEFAULT_KEY_PREFIX,
         key_seperator: str = DEFAULT_KEY_SEPERATOR,
         **connection_options: Any,
-    ) -> "RedisMailerStorage":
+    ) -> Self:
         connection_pool = ConnectionPool.from_url(url=url, **connection_options)
         redis = Redis.from_pool(connection_pool=connection_pool)
         return cls(redis=redis, key_prefix=key_prefix, key_seperator=key_seperator)

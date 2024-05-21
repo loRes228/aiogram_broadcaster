@@ -4,6 +4,7 @@ from uuid import uuid4
 from aiogram import Bot, Dispatcher
 from pydantic import JsonValue
 from pydantic_core import PydanticSerializationError, ValidationError
+from typing_extensions import Self
 
 from . import loggers
 from .contents.base import BaseContent, ContentType
@@ -229,7 +230,7 @@ class Broadcaster(MailerContainer):
         fetch_dispatcher_context: bool = True,
         restore_mailers: bool = True,
         run_mailers: bool = True,
-    ) -> "Broadcaster":
+    ) -> Self:
         dispatcher[self.context_key] = self
         self.context["dispatcher"] = dispatcher
         if fetch_dispatcher_context:
