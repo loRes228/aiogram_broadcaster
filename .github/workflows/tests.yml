@@ -37,20 +37,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: pyproject.toml
 
-      - name: Install dependencies on Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      - name: Install dependencies
         run: pip install --editable .[dev,redis,mongo,sqlalchemy]
 
-      - name: Lint code on Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      - name: Lint code
         run: make lint
 
-      - name: Check installable on Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      - name: Check installable
         run: |
           pip install build
           python -m build --wheel
