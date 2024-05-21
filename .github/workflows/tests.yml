@@ -16,7 +16,6 @@ jobs:
     name: Tests
 
     strategy:
-      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -57,7 +56,7 @@ jobs:
 
       - name: Check installable
         run: |
-          python -m build --wheel
+          python -m build --wheel .
           python -m venv ./venv
           ./venv/${{ env.VENV_BIN }}/pip install ./dist/*.whl
-          ./venv/${{ env.VENV_BIN }}/python -c 'import aiogram_broadcaster; print(aiogram_broadcaster.__version__)'
+          ./venv/${{ env.VENV_BIN }}/python -c 'import aiogram_broadcaster;print(aiogram_broadcaster.__version__)'
