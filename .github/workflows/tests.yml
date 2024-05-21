@@ -54,8 +54,6 @@ jobs:
         run: |
           pip install build
           python -m build --wheel
-          mkdir try_install
-          cd try_install
-          virtualenv .venv
-          .venv/${{ env.VENV_BIN }}/pip install ../dist/*.whl
-          .venv/${{ env.VENV_BIN }}/python -c 'import aiogram_broadcaster; print(aiogram_broadcaster.__version__)'
+          python -m venv ./venv
+          ./venv/${{ env.VENV_BIN }}/pip install ./dist/*.whl
+          ./venv/${{ env.VENV_BIN }}/python -c 'import aiogram_broadcaster; print(aiogram_broadcaster.__version__)'
