@@ -24,13 +24,15 @@ class TaskManager:
 
     def start(self, target: Coroutine[Any, Any, Any]) -> None:
         if self._task:
-            return
+            raise RuntimeError("Task is already started.")
         self._task = create_task(target)
         self._task.add_done_callback(self._on_task_done)
 
     async def wait(self) -> None:
-        if not self._task or self._waited:
-            return
+        if not self._task:
+            raise RuntimeError("No task for wait.")
+        if self._waited:
+            raise RuntimeError("Task is already waited.")
         self._waited = True
         await self._task
 
