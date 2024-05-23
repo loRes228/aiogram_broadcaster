@@ -39,7 +39,7 @@ ignore = [
     "PLR0915", # too-many-statements
     "PLR0916", # too-many-boolean-expressions
     "PLR0917", # too-many-positional
-    "PLR1702", # too-many-nested-blocks
+    "PLR1702" # too-many-nested-blocks
 ]
 
 [lint.isort]
