@@ -53,7 +53,7 @@ jobs:
         run: make test
 
       - name: Check installable
-        run: >
+        run: |
           python -m build --wheel .
           python -m venv ./venv
           ./venv/${{ env.VENV_BIN }}/pip install ./dist/*.whl
