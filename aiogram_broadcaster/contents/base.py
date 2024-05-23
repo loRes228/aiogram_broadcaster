@@ -56,9 +56,17 @@ class BaseContent(BaseModel, ABC):
 
     @classmethod
     def register(cls) -> None:
+        if cls is BaseContent:
+            raise TypeError("BaseContent cannot be registered.")
         if cls.is_registered():
             raise RuntimeError(f"The content {cls.__name__!r} is already registered.")
         cls._validators[cls.__name__] = cls
+
+    @classmethod
+    def unregister(cls) -> None:
+        if not cls.is_registered():
+            raise RuntimeError(f"The content {cls.__name__!r} is not registered.")
+        del cls._validators[cls.__name__]
 
     @model_validator(mode="wrap")
     @classmethod
