@@ -12,6 +12,7 @@ from typing import (
     Iterator,
     Mapping,
     Optional,
+    Protocol,
     Set,
     Tuple,
     TypeVar,
@@ -26,6 +27,10 @@ from .utils.interrupt import suppress_interrupt
 
 
 ModelType = TypeVar("ModelType", bound=BaseModel)
+
+
+class Mappable(Protocol):
+    def __iter__(self) -> Iterator[Tuple[str, Any]]: ...
 
 
 class PlaceholderItem(ABC):
@@ -122,7 +127,7 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
     def _chain_bind(self, entity: "PlaceholderRouter") -> None:
         if collusion := set(self.chain_keys) & set(entity.chain_keys):
             raise ValueError(
-                f"The {self.__sub_name} name={self.name!r} "
+                f"The PlaceholderRouter(name={self.name!r}) "
                 f"already has the keys: {list(collusion)}.",
             )
         super()._chain_bind(entity=entity)
@@ -134,7 +139,9 @@ class PlaceholderManager(PlaceholderRouter):
     TEXT_FIELDS: ClassVar[Set[str]] = {"caption", "text"}
 
     async def fetch_data(self, __select_keys: Container[str], /, **context: Any) -> Dict[str, Any]:
-        data = {}
+        data: Dict[str, Any] = {}
+        if not __select_keys:
+            return data
         for key, value in self.chain_items:
             if key not in __select_keys:
                 continue
@@ -144,9 +151,7 @@ class PlaceholderManager(PlaceholderRouter):
                 )
         return data
 
-    def extract_text_field(self, model: BaseModel) -> Optional[Tuple[str, str]]:
-        if not self.TEXT_FIELDS & model.model_fields_set:
-            return None
+    def extract_text_field(self, model: Mappable) -> Optional[Tuple[str, str]]:
         mapped_model = dict(model)
         for field_name in self.TEXT_FIELDS:
             if (field_value := mapped_model.get(field_name)) and isinstance(field_value, str):
