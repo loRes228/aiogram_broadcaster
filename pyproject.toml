@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Typing :: Typed",
+    "Typing :: Typed"
 ]
 keywords = [
     "api",
@@ -41,22 +41,24 @@ keywords = [
     "mailing",
     "mailing-system",
     "telegram",
-    "wrapper",
+    "wrapper"
 ]
 dependencies = [
     "aiogram>=3.6.0"
 ]
 
-
-[project.urls]
-Repository = "https://github.com/loRes228/aiogram_broadcaster"
-
-
 [project.optional-dependencies]
 dev = [
-    "mypy>=1.9.0",
-    "ruff>=0.3.2",
+    "mypy>=1.10.0",
+    "ruff>=0.4.0",
     "types-aiofiles>=23.2.0"
+]
+test = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-lazy-fixtures>=1.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-html>=4.1.0"
 ]
 redis = [
     "redis[hiredis]>=5.0.0"
@@ -67,6 +69,9 @@ mongo = [
 sqlalchemy = [
     "SQLAlchemy>=2.0.0"
 ]
+
+[project.urls]
+Repository = "https://github.com/loRes228/aiogram_broadcaster"
 
 
 [tool.hatch.version]

@@ -5,5 +5,7 @@
 .cache/
 .codegen/
 dist/
+reports/
 __pycache__/
 .python-version
+.coverage
