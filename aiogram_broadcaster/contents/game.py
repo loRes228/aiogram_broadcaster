@@ -1,10 +1,8 @@
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendGame
-from aiogram.types import (
-    InlineKeyboardMarkup,
-)
+from aiogram.types import InlineKeyboardMarkup
 
 from .base import BaseContent
 
@@ -24,6 +22,7 @@ class GameContent(BaseContent):
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -36,4 +35,5 @@ class GameContent(BaseContent):
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[InlineKeyboardMarkup] = ...,
+            **kwargs: Any,
         ) -> None: ...

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import CopyMessage, ForwardMessage
@@ -41,6 +41,7 @@ class FromChatCopyContent(BaseContent):
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -51,10 +52,10 @@ class FromChatCopyContent(BaseContent):
             from_chat_id: Union[int, str],
             message_id: int,
             caption: Optional[str] = ...,
-            parse_mode: Optional[str] = ...,
+            parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,
             disable_notification: Optional[bool] = ...,
-            protect_content: Optional[bool] = ...,
+            protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,
@@ -63,6 +64,7 @@ class FromChatCopyContent(BaseContent):
                     ForceReply,
                 ]
             ] = ...,
+            **kwargs: Any,
         ) -> None: ...
 
 
@@ -79,6 +81,7 @@ class FromChatForwardContent(BaseContent):
             message_id=self.message_id,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -90,4 +93,5 @@ class FromChatForwardContent(BaseContent):
             message_id: int,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            **kwargs: Any,
         ) -> None: ...

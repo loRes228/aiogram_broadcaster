@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendSticker
@@ -37,6 +37,7 @@ class StickerContent(BaseContent):
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -57,4 +58,5 @@ class StickerContent(BaseContent):
                     ForceReply,
                 ]
             ] = ...,
+            **kwargs: Any,
         ) -> None: ...

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendVideo
@@ -54,6 +54,7 @@ class VideoContent(BaseContent):
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -82,4 +83,5 @@ class VideoContent(BaseContent):
                     ForceReply,
                 ]
             ] = ...,
+            **kwargs: Any,
         ) -> None: ...

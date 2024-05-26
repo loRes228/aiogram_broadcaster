@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import (
@@ -56,6 +56,7 @@ class MessageCopyContent(BaseContent):
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -77,6 +78,7 @@ class MessageCopyContent(BaseContent):
                     ForceReply,
                 ]
             ] = ...,
+            **kwargs: Any,
         ) -> None: ...
 
 
@@ -90,6 +92,7 @@ class MessageForwardContent(BaseContent):
             chat_id=chat_id,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -100,6 +103,7 @@ class MessageForwardContent(BaseContent):
             message: Message,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            **kwargs: Any,
         ) -> None: ...
 
 
@@ -148,4 +152,5 @@ class MessageSendContent(BaseContent):
             reply_markup: Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]] = ...,
             business_connection_id: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
+            **kwargs: Any,
         ) -> None: ...

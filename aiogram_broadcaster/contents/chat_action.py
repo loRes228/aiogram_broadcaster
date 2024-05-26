@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from aiogram.methods import SendChatAction
 
@@ -14,6 +14,7 @@ class ChatActionContent(BaseContent):
             chat_id=chat_id,
             action=self.action,
             business_connection_id=self.business_connection_id,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -23,4 +24,5 @@ class ChatActionContent(BaseContent):
             *,
             action: str,
             business_connection_id: Optional[str] = ...,
+            **kwargs: Any,
         ) -> None: ...

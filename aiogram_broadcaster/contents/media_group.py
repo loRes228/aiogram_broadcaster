@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from aiogram.client.default import Default
 from aiogram.methods import SendMediaGroup
@@ -27,6 +27,7 @@ class MediaGroupContent(BaseContent):
             business_connection_id=self.business_connection_id,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            **(self.model_extra or {}),
         )
 
     if TYPE_CHECKING:
@@ -45,4 +46,5 @@ class MediaGroupContent(BaseContent):
             business_connection_id: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            **kwargs: Any,
         ) -> None: ...

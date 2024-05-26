@@ -23,7 +23,7 @@ VALIDATOR_KEY = "__V"
 
 class BaseContent(BaseModel, ABC):
     model_config = ConfigDict(
-        extra="forbid",
+        extra="allow",
         frozen=True,
         validate_assignment=True,
         arbitrary_types_allowed=True,
