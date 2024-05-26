@@ -23,8 +23,16 @@
 
 ## Installation
 
+* #### From PyPI
+
 ```commandline
-$ pip install aiogram-broadcaster
+$ pip install -U aiogram-broadcaster
+```
+
+* #### From GitHub (_Development build_)
+
+```commandline
+$ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 ```
 
 ## Creating a mailer and running broadcasting
@@ -56,19 +64,18 @@ async def process_any_message(message: Message, broadcaster: Broadcaster) -> Any
     # Creating content based on the Message
     content = MessageSendContent(message=message)
 
-& logo = github
-mailer = await broadcaster.create_mailer(
-    content=content,
-    chats=USER_IDS,
-    interval=1,
-    preserve=True,
-    destroy_on_complete=True,
-)
+    mailer = await broadcaster.create_mailer(
+        content=content,
+        chats=USER_IDS,
+        interval=1,
+        preserve=True,
+        destroy_on_complete=True,
+    )
 
-# The mailer launch method starts mailing to chats as an asyncio task.
-mailer.start()
+    # The mailer launch method starts mailing to chats as an asyncio task.
+    mailer.start()
 
-await message.reply(text="Run broadcasting...")
+    await message.reply(text="Run broadcasting...")
 
 
 def main() -> None:
@@ -157,8 +164,8 @@ await mailer_group.run()
 
 #### The event system empowers you to effectively manage events throughout the broadcast process.
 
-> **_NOTE:_** `EventRouter` supports chained nesting, similar to
-> aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
+> [!NOTE]
+> `EventRouter` supports chained nesting, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
@@ -226,8 +233,8 @@ broadcaster.event.include(event)
 
 #### Placeholders facilitate the insertion of dynamic content within texts, this feature allows for personalized messaging.
 
-> **_NOTE:_** `PlaceholderRouter` supports chained nesting, similar to
-> aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
+> [!NOTE]
+> PlaceholderRouter` supports chained nesting, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
@@ -283,7 +290,8 @@ photo_content = PhotoContent(photo=..., caption="Photo especially for $name!")
 
 #### This module provides utilities to create personalized content targeted to specific users or groups based on their language preferences or geographical location, etc.
 
-> **_NOTE:_** If the default key is not specified, an error will be given if the key is not found.
+> [!NOTE]
+> If the default key is not specified, an error will be given if the key is not found.
 
 #### Usage:
 
