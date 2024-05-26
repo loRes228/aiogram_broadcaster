@@ -13,7 +13,7 @@ from aiogram_broadcaster.contents import MessageSendContent
 from aiogram_broadcaster.mailer import Mailer
 
 
-TOKEN = "1234:Abc"  # noqa: S105
+TOKEN = "1234:Abc"
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
@@ -54,7 +54,7 @@ async def mailer_completed(mailer: Mailer[MessageSendContent], bot: Bot) -> None
 
 
 @event.failed_sent()
-async def mailer_failed_sent(chat_id: int, error: Exception) -> None:  # noqa: ARG001, RUF029
+async def mailer_failed_sent(chat_id: int, error: Exception) -> None:
     if not isinstance(error, TelegramForbiddenError):
         return
     # Do something...

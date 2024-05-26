@@ -11,7 +11,7 @@ from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import KeyBasedContent, TextContent
 
 
-TOKEN = "1234:Abc"  # noqa: S105
+TOKEN = "1234:Abc"
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
