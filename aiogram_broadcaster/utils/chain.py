@@ -1,10 +1,7 @@
 from typing import Any, ClassVar, Generator, Generic, List, Optional, TypeVar, overload
-from unittest.mock import sentinel
 
 
 EntityType = TypeVar("EntityType", bound="ChainObject[Any]")
-
-UNSET_ENTITY = sentinel.UNSET_ENTITY
 
 
 class ChainObject(Generic[EntityType]):
@@ -92,7 +89,8 @@ class ChainObject(Generic[EntityType]):
             )
         if self.__chain_root__:
             raise RuntimeError(
-                f"{type(self).__name__} cannot be attached to another {self.__chain_sub_name__}.",
+                f"{type(self).__name__}(name={self.name!r}) cannot be attached to "
+                f"another {self.__chain_sub_name__}.",
             )
         self.head = entity
         entity.tail.append(self)
