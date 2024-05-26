@@ -1,6 +1,8 @@
 PACKAGE_DIRECTORY = aiogram_broadcaster
 EXAMPLES_DIRECTORY = examples
 TESTS_DIRECTORY = tests
+REPORTS_DIRECTORY = reports
+CODE_DIRECTORIES = ${PACKAGE_DIRECTORY} ${TESTS_DIRECTORY} ${EXAMPLES_DIRECTORY}
 
 
 all: lint
@@ -12,7 +14,7 @@ all: lint
 
 .PHONY: clean
 clean:
-	rm --force --recursive {.cache.,.coverage,reports}
+	rm --force --recursive {.cache,.coverage,reports}
 	rm --force --recursive `find . -type d -name __pycache__`
 
 
@@ -20,25 +22,21 @@ clean:
 # Code quality
 # =====================================
 
-CODE_DIRECTORIES = ${PACKAGE_DIRECTORY} ${EXAMPLES_DIRECTORY}
-
 .PHONY: lint
 lint:
-	mypy ${CODE_DIRECTORIES}
-	ruff check ${CODE_DIRECTORIES}
+	mypy ${PACKAGE_DIRECTORY}
+	ruff check ${PACKAGE_DIRECTORY}
 	ruff format --check ${CODE_DIRECTORIES}
 
 .PHONY: format
 format:
 	ruff format ${CODE_DIRECTORIES}
-	ruff check --fix ${CODE_DIRECTORIES}
+	ruff check --fix ${PACKAGE_DIRECTORY}
 
 
 # =====================================
 # Testing
 # =====================================
-
-REPORTS_DIRECTORY = reports
 
 .PHONY: test
 test:
@@ -50,6 +48,7 @@ test-report:
 	coverage html --directory "${REPORTS_DIRECTORY}/coverage"
 
 .PHONY: test-report-view
-test-report-view: test-report
+test-report-view:
+	-$(MAKE) test-report
 	python -m webbrowser "${CURDIR}/${REPORTS_DIRECTORY}/tests/index.html"
 	python -m webbrowser "${CURDIR}/${REPORTS_DIRECTORY}/coverage/index.html"
