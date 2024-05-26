@@ -5,16 +5,18 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aiogram_broadcaster"
-dynamic = ["version"]
 description = "A lightweight aiogram-based library for broadcasting Telegram messages."
-readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+readme = "README.md"
+license = { file = "LICENSE" }
 authors = [
     { name = "LORES" }
 ]
+dynamic = [
+    "version"
+]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Framework :: AsyncIO",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
@@ -71,8 +73,83 @@ sqlalchemy = [
 ]
 
 [project.urls]
-Repository = "https://github.com/loRes228/aiogram_broadcaster"
+Repository = "https://github.com/loRes228/aiogram_broadcaster.git"
+Issues = "https://github.com/loRes228/aiogram_broadcaster/issues"
 
 
 [tool.hatch.version]
 path = "aiogram_broadcaster/__meta__.py"
+
+
+[tool.ruff]
+cache-dir = ".cache/ruff"
+line-length = 99
+namespace-packages = [
+    "examples"
+]
+output-format = "full"
+preview = true
+show-fixes = true
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "ALL"
+]
+ignore = [
+    "D", # pydocstyle
+    "CPY", # flake8-copyright
+    "FA", # flake8-future-annotations
+    "ANN", # flake8-annotations
+    "EM", # flake8-errmsg
+    "TRY003", # raise-vanilla-args
+    "PLR6301", # no-self-use
+    "PLR0904", # too-many-public-methods
+    "PLR0911", # too-many-return-statements
+    "PLR0912", # too-many-branches
+    "PLR0913", # too-many-arguments
+    "PLR0914", # too-many-locals
+    "PLR0915", # too-many-statements
+    "PLR0916", # too-many-boolean-expressions
+    "PLR0917", # too-many-positional
+    "PLR1702" # too-many-nested-blocks
+]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+
+[tool.ruff.lint.per-file-ignores]
+"tests/test_*.py" = [
+    "S101" # assert
+]
+
+
+[tool.mypy]
+python_version = "3.8"
+cache_dir = ".cache/mypy"
+strict = true
+pretty = true
+plugins = [
+    "pydantic.mypy",
+    "sqlalchemy.ext.mypy.plugin"
+]
+
+
+[tool.pytest.ini_options]
+cache_dir = ".cache/pytest"
+testpaths = "tests"
+python_files = "test_*.py"
+python_functions = "test_*"
+python_classes = "Test*"
+asyncio_mode = "auto"
+
+
+[tool.coverage.report]
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@(abc\\.)?abstractmethod"
+]
