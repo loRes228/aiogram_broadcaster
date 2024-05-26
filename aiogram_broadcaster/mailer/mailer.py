@@ -81,6 +81,12 @@ class Mailer(Generic[ContentType]):
     def __bool__(self) -> bool:
         return self._status is MailerStatus.COMPLETED
 
+    def __int__(self) -> int:
+        return self._id
+
+    def __index__(self) -> int:
+        return self._id
+
     def __hash__(self) -> int:
         return hash(self._id)
 

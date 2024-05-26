@@ -59,6 +59,9 @@ class ChatsMetric:
     def __int__(self) -> int:
         return self.total
 
+    def __index__(self) -> int:
+        return self.total
+
     def __bool__(self) -> bool:
         return self.range == 0
 
