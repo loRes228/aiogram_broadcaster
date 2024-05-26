@@ -127,7 +127,7 @@ class PlaceholderRouter(ChainObject["PlaceholderRouter"], sub_name="placeholder"
     def _chain_bind(self, entity: "PlaceholderRouter") -> None:
         if collusion := set(self.chain_keys) & set(entity.chain_keys):
             raise ValueError(
-                f"The PlaceholderRouter(name={self.name!r}) "
+                f"The PlaceholderRouter(name={entity.name!r}) "
                 f"already has the keys: {list(collusion)}.",
             )
         super()._chain_bind(entity=entity)
@@ -173,8 +173,12 @@ class PlaceholderManager(PlaceholderRouter):
         /,
         **context: Any,
     ) -> ModelType:
+        if __exclude_keys is None:
+            __exclude_keys = set()
         self_keys = set(self.chain_keys)
-        if not self_keys or __exclude_keys == self_keys:
+        if not self_keys:
+            return __model
+        if not self_keys - __exclude_keys:
             return __model
         field = self.extract_text_field(model=__model)
         if not field:
@@ -182,9 +186,7 @@ class PlaceholderManager(PlaceholderRouter):
         field_name, field_value = field
         template = Template(template=field_value)
         template_keys = self.extract_keys(template=template)
-        select_keys = self_keys & template_keys
-        if __exclude_keys:
-            select_keys -= __exclude_keys
+        select_keys = (self_keys & template_keys) - __exclude_keys
         if not select_keys:
             return __model
         data = await self.fetch_data(select_keys, **context)
