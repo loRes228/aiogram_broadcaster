@@ -30,11 +30,14 @@ class BaseContent(BaseModel, ABC):
     )
 
     _validators: ClassVar[Dict[str, Type["BaseContent"]]] = {}
-    _callback: ClassVar[CallableObject]
+    _callback: CallableObject
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        cls._callback = CallableObject(callback=cls.__call__)
-        if kwargs.pop("register", True):
+    def __init_subclass__(
+        cls,
+        register: bool = True,  # noqa: FBT001, FBT002
+        **kwargs: Any,
+    ) -> None:
+        if register:
             cls.register()
         super().__init_subclass__(**kwargs)
 
@@ -47,7 +50,7 @@ class BaseContent(BaseModel, ABC):
             pass
 
     async def as_method(self, **context: Any) -> TelegramMethod[Any]:
-        method = await self._callback.call(self, **context)
+        method = await self._callback.call(**context)
         return cast(TelegramMethod[Any], method)
 
     @classmethod
@@ -67,6 +70,9 @@ class BaseContent(BaseModel, ABC):
         if not cls.is_registered():
             raise RuntimeError(f"The content {cls.__name__!r} is not registered.")
         del cls._validators[cls.__name__]
+
+    def model_post_init(self, __context: Any) -> None:
+        self._callback = CallableObject(callback=self.__call__)
 
     @model_validator(mode="wrap")
     @classmethod

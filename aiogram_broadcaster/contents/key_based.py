@@ -21,12 +21,13 @@ class KeyBasedContent(BaseContent, register=False):
         return item in self.__pydantic_extra__
 
     async def as_method(self, **context: Any) -> TelegramMethod[Any]:
-        key = await self._callback.call(self, **context)
+        key = await self._callback.call(**context)
         return await self[key].as_method(**context)
 
     def model_post_init(self, __context: Any) -> None:
         if not self.default and not self.__pydantic_extra__:
             raise ValueError("At least one content must be specified.")
+        super().model_post_init(__context)
 
     if TYPE_CHECKING:
 
