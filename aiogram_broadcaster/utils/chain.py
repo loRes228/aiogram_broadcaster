@@ -1,10 +1,10 @@
-from typing import Any, ClassVar, Generator, Generic, List, Optional, TypeVar, overload
+from typing import Any, ClassVar, Generator, Generic, List, Optional, TypeVar
 
 
-EntityType = TypeVar("EntityType", bound="ChainObject[Any]")
+EntityType = TypeVar("EntityType", bound="Chain[Any]")
 
 
-class ChainObject(Generic[EntityType]):
+class Chain(Generic[EntityType]):
     __chain_entity__: EntityType
     __chain_sub_name__: ClassVar[str]
     __chain_root__: ClassVar[bool]
@@ -12,15 +12,15 @@ class ChainObject(Generic[EntityType]):
     head: Optional[EntityType]
     tail: List[EntityType]
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
+    def __init_subclass__(cls, sub_name: Optional[str] = None, **kwargs: Any) -> None:
         if not hasattr(cls, "__chain_entity__"):
             cls.__chain_root__ = False
             cls.__chain_entity__ = cls
-            cls.__chain_sub_name__ = kwargs.pop("sub_name", cls.__name__.lower())
+            cls.__chain_sub_name__ = sub_name or cls.__name__.lower()
         super().__init_subclass__(**kwargs)
 
     def __init__(self, name: Optional[str] = None) -> None:
-        self.name = hex(id(self)) if name is None else name
+        self.name = name or hex(id(self))
         self.head = None
         self.tail = []
 
@@ -53,16 +53,10 @@ class ChainObject(Generic[EntityType]):
         for entity in self.tail:
             yield from entity.chain_tail
 
-    @overload
-    def include(self: EntityType, entity: EntityType, /) -> EntityType: ...  # type: ignore[overload-overlap]
-
-    @overload
-    def include(self: EntityType, *entities: EntityType) -> None: ...
-
-    def include(self: EntityType, *entities: EntityType) -> Optional[EntityType]:
+    def bind(self: EntityType, *entities: EntityType) -> EntityType:
         if not entities:
             raise ValueError(
-                f"At least one {self.__chain_sub_name__} must be provided to include.",
+                f"At least one {self.__chain_sub_name__} must be provided to bind.",
             )
         for entity in entities:
             if not isinstance(entity, self.__chain_entity__):
@@ -71,12 +65,12 @@ class ChainObject(Generic[EntityType]):
                     f"{self.__chain_entity__.__name__}, not a {type(entity).__name__}.",
                 )
             entity._chain_bind(entity=self)  # noqa: SLF001
-        return entities[-1] if len(entities) == 1 else None
+        return entities[-1] if len(entities) == 1 else self
 
     def _chain_bind(self: EntityType, entity: EntityType) -> None:
         if self == entity:
             raise ValueError(
-                f"Cannot include the {self.__chain_sub_name__} on itself.",
+                f"Cannot bind the {self.__chain_sub_name__} on itself.",
             )
         if self.head:
             raise RuntimeError(
