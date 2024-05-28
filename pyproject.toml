@@ -12,6 +12,9 @@ license = { file = "LICENSE" }
 authors = [
     { name = "LORES" }
 ]
+maintainers = [
+    { name = "LORES" }
+]
 dynamic = [
     "version"
 ]
@@ -84,9 +87,6 @@ path = "aiogram_broadcaster/__meta__.py"
 [tool.ruff]
 cache-dir = ".cache/ruff"
 line-length = 99
-namespace-packages = [
-    "examples"
-]
 output-format = "full"
 preview = true
 show-fixes = true
@@ -98,12 +98,16 @@ docstring-code-format = true
 select = [
     "ALL"
 ]
+extend-select = [
+    "ANN204" # missing-return-type-special-method
+]
 ignore = [
     "D", # pydocstyle
     "CPY", # flake8-copyright
     "FA", # flake8-future-annotations
     "ANN", # flake8-annotations
     "EM", # flake8-errmsg
+    "ICN", # flake8-import-conventions
     "TRY003", # raise-vanilla-args
     "PLR6301", # no-self-use
     "PLR0904", # too-many-public-methods
@@ -116,20 +120,34 @@ ignore = [
     "PLR0917", # too-many-positional
     "PLR1702" # too-many-nested-blocks
 ]
-
-[tool.ruff.lint.isort]
-lines-after-imports = 2
+logger-objects = [
+    "aiogram_broadcaster.utils.loggers.pool",
+    "aiogram_broadcaster.utils.loggers.mailer"
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/test_*.py" = [
     "S101" # assert
 ]
 
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+force-wrap-aliases = true
+combine-as-imports = true
+
+[tool.ruff.lint.pylint]
+allow-magic-value-types = []
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+
 
 [tool.mypy]
 python_version = "3.8"
 cache_dir = ".cache/mypy"
 strict = true
+show_error_context = true
+show_column_numbers = true
 pretty = true
 plugins = [
     "pydantic.mypy",
@@ -140,14 +158,14 @@ plugins = [
 [tool.pytest.ini_options]
 cache_dir = ".cache/pytest"
 testpaths = "tests"
-python_files = "test_*.py"
-python_functions = "test_*"
-python_classes = "Test*"
 asyncio_mode = "auto"
 
 
+[tool.coverage.run]
+parallel = true
+
 [tool.coverage.report]
-exclude_also = [
+exclude_lines = [
     "if __name__ == .__main__.:",
     "pragma: no cover",
     "if TYPE_CHECKING:",
