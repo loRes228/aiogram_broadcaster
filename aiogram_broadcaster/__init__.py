@@ -1,12 +1,16 @@
 __all__ = (
     "Broadcaster",
-    "EventRouter",
+    "DefaultMailerSettings",
+    "EventRegistry",
+    "Mailer",
+    "MailerStatus",
     "PlaceholderItem",
-    "PlaceholderRouter",
+    "PlaceholderRegistry",
     "__version__",
 )
 
 from .__meta__ import __version__
 from .broadcaster import Broadcaster
-from .event import EventRouter
-from .placeholder import PlaceholderItem, PlaceholderRouter
+from .event import EventRegistry
+from .mailer import DefaultMailerSettings, Mailer, MailerStatus
+from .placeholder import PlaceholderItem, PlaceholderRegistry
