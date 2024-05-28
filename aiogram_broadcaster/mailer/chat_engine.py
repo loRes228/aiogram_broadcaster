@@ -2,10 +2,11 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, AsyncGenerator, DefaultDict, Iterable, Optional, Set
 
 from pydantic import BaseModel, ConfigDict
+from typing_extensions import Self
 
 
 if TYPE_CHECKING:
-    from aiogram_broadcaster.storage.base import BaseMailerStorage
+    from aiogram_broadcaster.storages.base import BaseMailerStorage
 
 
 class ChatState(str, Enum):
@@ -24,8 +25,8 @@ class ChatsRegistry(BaseModel):
         cls,
         chats: Iterable[int],
         state: ChatState = ChatState.PENDING,
-    ) -> "ChatsRegistry":
-        return ChatsRegistry(chats={state: chats})
+    ) -> Self:
+        return cls(chats={state: chats})
 
 
 class ChatEngine:
