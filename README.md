@@ -26,13 +26,13 @@
 * #### From PyPI
 
 ```commandline
-$ pip install -U aiogram-broadcaster
+pip install -U aiogram-broadcaster
 ```
 
 * #### From GitHub (_Development build_)
 
 ```commandline
-$ pip install git+https://github.com/loRes228/aiogram_broadcaster.git
+pip install git+https://github.com/loRes228/aiogram_broadcaster.git
 ```
 
 ## Creating a mailer and running broadcasting
@@ -51,7 +51,7 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster
 from aiogram_broadcaster.contents import MessageSendContent
-from aiogram_broadcaster.storage.file import FileMailerStorage
+from aiogram_broadcaster.storages.file import FileMailerStorage
 
 TOKEN = "1234:Abc"
 USER_IDS = {78238238, 78378343, 98765431, 12345678}
@@ -165,14 +165,14 @@ await mailer_group.run()
 #### The event system empowers you to effectively manage events throughout the broadcast process.
 
 > [!NOTE]
-> `EventRouter` supports chained nesting, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
+> `EventRegistry` supports chained nesting, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
 ```python
-from aigoram_broadcaster import EventRouter
+from aigoram_broadcaster import EventRegistry
 
-event = EventRouter(name=__name__)
+event = EventRegistry(name=__name__)
 
 
 # Define event handlers
@@ -226,7 +226,7 @@ async def mail_successful_sent() -> None:
 
 
 # Include the event instance in the broadcaster
-broadcaster.event.include(event)
+broadcaster.event.bind(event)
 ```
 
 ## Placeholders
@@ -234,16 +234,17 @@ broadcaster.event.include(event)
 #### Placeholders facilitate the insertion of dynamic content within texts, this feature allows for personalized messaging.
 
 > [!NOTE]
-> PlaceholderRouter` supports chained nesting, similar to aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
+> `PlaceholderRegistry` supports chained nesting, similar to
+> aiogram [Router](https://docs.aiogram.dev/en/latest/dispatcher/router.html#nested-routers).
 
 #### Usage:
 
 * #### Function-based
 
 ```python
-from aiogram_broadcaster import PlaceholderRouter
+from aiogram_broadcaster import PlaceholderRegistry
 
-placeholder = PlaceholderRouter(name=__name__)
+placeholder = PlaceholderRegistry(name=__name__)
 
 
 @placeholder(key="name")
@@ -253,7 +254,7 @@ async def get_username(chat_id: int, bot: Bot) -> str:
     return member.user.first_name
 
 
-broadcaster.placeholder.include(placeholder)
+broadcaster.placeholder.bind(placeholder)
 ```
 
 * #### Class-based
@@ -275,8 +276,7 @@ broadcaster.placeholder.register(NamePlaceholder())
 
 ```python
 placeholder["name"] = function
-placeholder.add(key="key", value="value")
-placeholder.attach({"key": "value"}, key="value")
+placeholder.add({"key": "value"}, name=function)
 ```
 
 ### And then
@@ -408,24 +408,25 @@ async def mailer_completed(mailer_content: BaseContent) -> None:
 
 #### Storage allow you to save mailer states to external storage.
 
-* #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/file.py) Saves the mailers to a file.
-* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/mongodb.py) Saves the mailers to a MongoDB.
-* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/redis.py) Saves the mailers to a Redis.
-* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storage/sqlalchemy.py) Saves the mailers using SQLAlchemy.
+* #### [BaseMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/base.py) Abstract class of storage.
+* #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/file.py) Saves the mailers to a file.
+* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/mongodb.py) Saves the mailers to a MongoDB.
+* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/redis.py) Saves the mailers to a Redis.
+* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/sqlalchemy.py) Saves the mailers using SQLAlchemy.
 
 #### Usage:
 
 ```python
 from aiogram_broadcaster import Broadcaster
-from aiogram_broadcaster.storage.redis import RedisMailerStorage
+from aiogram_broadcaster.storages.redis import RedisMailerStorage
 
-# from aiogram_broadcaster.storage.file import FileMailerStorage
-# from aiogram_broadcaster.storage.mongodb import MongoDBMailerStorage
-# from aiogram_broadcaster.storage.sqlalchemy import SQLAlchemyMailerStorage
+# from aiogram_broadcaster.storages.file import FileMailerStorage
+# from aiogram_broadcaster.storages.mongodb import MongoDBMailerStorage
+# from aiogram_broadcaster.storages.sqlalchemy import SQLAlchemyMailerStorage
 
-# storage = FileMailerStorage()
-# storage = MongoDBMailerStorage.from_url(url="mongodb://localhost:27017")
-# storage = SQLAlchemyMailerStorage.from_url(url="sqlite+aiosqlite:///database.db")
+# storages = FileMailerStorage()
+# storages = MongoDBMailerStorage.from_url(url="mongodb://localhost:27017")
+# storages = SQLAlchemyMailerStorage.from_url(url="sqlite+aiosqlite:///database.db")
 
 storage = RedisMailerStorage.from_url(url="redis://localhost:6379")
 broadcaster = Broadcaster(storage=storage)
