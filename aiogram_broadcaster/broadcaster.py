@@ -6,17 +6,17 @@ from pydantic import JsonValue
 from pydantic_core import PydanticSerializationError, ValidationError
 from typing_extensions import Self
 
-from . import loggers
 from .contents.base import BaseContent, ContentType
-from .event import EventManager
+from .event.manager import EventManager
 from .mailer.chat_engine import ChatsRegistry
 from .mailer.container import MailerContainer
 from .mailer.group import MailerGroup
 from .mailer.mailer import Mailer
 from .mailer.settings import DefaultMailerSettings, MailerSettings
 from .mailer.status import MailerStatus
-from .placeholder import PlaceholderManager
-from .storage.base import BaseMailerStorage, StorageRecord
+from .placeholder.manager import PlaceholderManager
+from .storages.base import BaseMailerStorage, StorageRecord
+from .utils import loggers
 
 
 class Broadcaster(MailerContainer):
@@ -216,7 +216,7 @@ class Broadcaster(MailerContainer):
                 context={**self.context, **record.context},
             )
             self._mailers[mailer_id] = mailer
-            loggers.pool.info("Mailer id=%d restored from storage.", mailer_id)
+            loggers.pool.info("Mailer id=%d restored from storages.", mailer_id)
 
     async def run_startup_mailers(self) -> None:
         for mailer in self.get_mailers(MailerStatus.STOPPED):

@@ -22,7 +22,7 @@ class MailerSettings(BaseModel):
 
 _dataclass_properties: Dict[str, Any] = {}
 if version_info >= (3, 10):
-    _dataclass_properties.update(slots=True, kw_only=True)
+    _dataclass_properties.update(slots=True, kw_only=True)  # pragma: no cover
 
 
 @dataclass(**_dataclass_properties)

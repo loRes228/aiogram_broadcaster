@@ -8,16 +8,15 @@ from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster, EventRouter
+from aiogram_broadcaster import Broadcaster, EventRegistry, Mailer
 from aiogram_broadcaster.contents import MessageSendContent
-from aiogram_broadcaster.mailer import Mailer
 
 
 TOKEN = "1234:Abc"
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
-event = EventRouter(name=__name__)
+event = EventRegistry(name=__name__)
 
 
 @router.message()
@@ -69,7 +68,7 @@ def main() -> None:
     dispatcher.include_router(router)
 
     broadcaster = Broadcaster()
-    broadcaster.event.include(event)
+    broadcaster.event.bind(event)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)

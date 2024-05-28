@@ -9,7 +9,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster, PlaceholderItem, PlaceholderRouter
+from aiogram_broadcaster import Broadcaster, PlaceholderItem, PlaceholderRegistry
 from aiogram_broadcaster.contents import TextContent
 
 
@@ -17,7 +17,7 @@ TOKEN = "1234:Abc"
 USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
 
 router = Router(name=__name__)
-placeholder = PlaceholderRouter(name=__name__)
+placeholder = PlaceholderRegistry(name=__name__)
 
 
 @placeholder(key="mention")
@@ -64,7 +64,7 @@ def main() -> None:
     dispatcher.include_router(router)
 
     broadcaster = Broadcaster()
-    broadcaster.placeholder.include(placeholder)
+    broadcaster.placeholder.bind(placeholder)
     broadcaster.placeholder.register(TimePlaceholder())
     broadcaster.setup(dispatcher=dispatcher)
 

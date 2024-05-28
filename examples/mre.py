@@ -5,10 +5,9 @@ from typing import Any
 from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster
+from aiogram_broadcaster import Broadcaster, DefaultMailerSettings
 from aiogram_broadcaster.contents import MessageSendContent
-from aiogram_broadcaster.mailer import DefaultMailerSettings
-from aiogram_broadcaster.storage.file import FileMailerStorage
+from aiogram_broadcaster.storages.file import FileMailerStorage
 
 
 TOKEN = "1234:Abc"

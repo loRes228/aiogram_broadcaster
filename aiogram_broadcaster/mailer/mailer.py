@@ -4,11 +4,11 @@ from typing import Any, Dict, Generic, Iterable, Optional, Set
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
-from aiogram_broadcaster import loggers
 from aiogram_broadcaster.contents.base import ContentType
-from aiogram_broadcaster.event import EventManager
-from aiogram_broadcaster.placeholder import PlaceholderManager
-from aiogram_broadcaster.storage.base import BaseMailerStorage
+from aiogram_broadcaster.event.manager import EventManager
+from aiogram_broadcaster.placeholder.manager import PlaceholderManager
+from aiogram_broadcaster.storages.base import BaseMailerStorage
+from aiogram_broadcaster.utils import loggers
 
 from .chat_engine import ChatEngine, ChatsRegistry, ChatState
 from .settings import MailerSettings
