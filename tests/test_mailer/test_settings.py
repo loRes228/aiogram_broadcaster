@@ -59,7 +59,7 @@ class TestDefaultMailerSettings:
         assert prepared_settings.preserve is True
         assert prepared_settings.destroy_on_complete is False
 
-    @pytest.mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10 or higher.")
+    @pytest.mark.skipif(sys.version_info < (3, 12), reason="Requires Python 3.12 or higher.")
     def test_dataclass_params(self):
         dataclass_params = DefaultMailerSettings.__dataclass_params__
         assert dataclass_params.slots is True
