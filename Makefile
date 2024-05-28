@@ -40,11 +40,11 @@ format:
 
 .PHONY: test
 test:
-	pytest
+	pytest -vv
 
 .PHONY: test-report
 test-report:
-	pytest --cov ${PACKAGE_DIRECTORY} --html "${REPORTS_DIRECTORY}/tests/index.html"
+	pytest -vv --cov ${PACKAGE_DIRECTORY} --html "${REPORTS_DIRECTORY}/tests/index.html"
 	coverage html --directory "${REPORTS_DIRECTORY}/coverage"
 
 .PHONY: test-report-view
