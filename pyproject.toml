@@ -159,9 +159,11 @@ plugins = [
 cache_dir = ".cache/pytest"
 testpaths = "tests"
 asyncio_mode = "auto"
+addopts = "-vv"
 
 
 [tool.coverage.run]
+data_file = ".cache/.coverage"
 parallel = true
 
 [tool.coverage.report]

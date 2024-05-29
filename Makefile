@@ -1,8 +1,9 @@
 PACKAGE_DIRECTORY = aiogram_broadcaster
 EXAMPLES_DIRECTORY = examples
 TESTS_DIRECTORY = tests
-REPORTS_DIRECTORY = reports
 CODE_DIRECTORIES = ${PACKAGE_DIRECTORY} ${TESTS_DIRECTORY} ${EXAMPLES_DIRECTORY}
+CACHE_DIRECTORY = .cache
+REPORTS_DIRECTORY = ${CACHE_DIRECTORY}/reports
 
 
 all: lint
@@ -14,7 +15,7 @@ all: lint
 
 .PHONY: clean
 clean:
-	rm --force --recursive {.cache,.coverage,reports}
+	rm --force --recursive "${CACHE_DIRECTORY}"
 	rm --force --recursive `find . -type d -name __pycache__`
 
 
@@ -40,11 +41,11 @@ format:
 
 .PHONY: test
 test:
-	pytest -vv
+	pytest
 
 .PHONY: test-report
 test-report:
-	pytest -vv --cov ${PACKAGE_DIRECTORY} --html "${REPORTS_DIRECTORY}/tests/index.html"
+	pytest --cov ${PACKAGE_DIRECTORY} --html "${REPORTS_DIRECTORY}/tests/index.html"
 	coverage html --directory "${REPORTS_DIRECTORY}/coverage"
 
 .PHONY: test-report-view
