@@ -216,7 +216,7 @@ class Broadcaster(MailerContainer):
                 context={**self.context, **record.context},
             )
             self._mailers[mailer_id] = mailer
-            loggers.pool.info("Mailer id=%d restored from storages.", mailer_id)
+            loggers.pool.info("Mailer id=%d restored from storage.", mailer_id)
 
     async def run_startup_mailers(self) -> None:
         for mailer in self.get_mailers(MailerStatus.STOPPED):
