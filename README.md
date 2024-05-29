@@ -32,7 +32,7 @@ pip install -U aiogram-broadcaster
 * #### From GitHub (_Development build_)
 
 ```commandline
-pip install git+https://github.com/loRes228/aiogram_broadcaster.git
+pip install https://github.com/loRes228/aiogram_broadcaster/archive/refs/heads/dev.zip
 ```
 
 ## Creating a mailer and running broadcasting
@@ -395,13 +395,13 @@ await broadcaster.create_mailer(content=..., chats=..., stored_context={"key": "
 
 ```python
 @event.completed()
-async def transfer_content(mailer: Mailer) -> Dict[str, Any]:
-    return {"mailer_content": mailer.content}
+async def transfer_content() -> Dict[str, Any]:
+    return {"my_data": 1}
 
 
 @event.completed()
-async def mailer_completed(mailer_content: BaseContent) -> None:
-    print(mailer_content)
+async def mailer_completed(my_data: 1) -> None:
+    print(my_data)
 ```
 
 ## Storages
