@@ -1,14 +1,12 @@
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from aiogram.methods import TelegramMethod
-from pydantic import ConfigDict, SerializeAsAny
+from pydantic import SerializeAsAny
 
 from .base import BaseContent
 
 
 class KeyBasedContent(BaseContent, register=False):
-    model_config = ConfigDict(extra="allow")
-
     default: Optional[SerializeAsAny[BaseContent]] = None
     __pydantic_extra__: Dict[str, SerializeAsAny[BaseContent]]
 
