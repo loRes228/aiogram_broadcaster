@@ -1,11 +1,11 @@
-from typing import Any, ClassVar, Generator, Generic, List, Optional, TypeVar
+from typing import Any, ClassVar, Generator, Generic, List, Optional, Type, TypeVar
 
 
 EntityType = TypeVar("EntityType", bound="Chain[Any]")
 
 
 class Chain(Generic[EntityType]):
-    __chain_entity__: EntityType
+    __chain_entity__: Type[EntityType]
     __chain_sub_name__: ClassVar[str]
     __chain_root__: ClassVar[bool]
     name: str
