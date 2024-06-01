@@ -38,15 +38,6 @@ class TestEventObserver:
         ):
             observer.register()
 
-    def test_register_non_callable(self):
-        observer = EventObserver()
-
-        with pytest.raises(
-            TypeError,
-            match="The callback must be callable.",
-        ):
-            observer.register("not a callable")
-
     def test_callable_registration(self):
         observer = EventObserver()
 

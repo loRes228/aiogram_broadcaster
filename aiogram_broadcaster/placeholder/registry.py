@@ -62,13 +62,7 @@ class PlaceholderRegistry(Chain["PlaceholderRegistry"], sub_name="placeholder"):
     def register(self, *items: PlaceholderItem) -> Self:
         if not items:
             raise ValueError("At least one placeholder item must be provided to register.")
-        for item in items:
-            if not isinstance(item, PlaceholderItem):
-                raise TypeError(
-                    f"The placeholder item must be an instance of "
-                    f"PlaceholderItem, not a {type(item).__name__}.",
-                )
-            self.placeholders.add(item.as_placeholder())
+        self.placeholders.update(item.as_placeholder() for item in items)
         return self
 
     def add(self, __mapping: Optional[Mapping[str, Any]] = None, /, **kwargs: Any) -> Self:
@@ -76,8 +70,9 @@ class PlaceholderRegistry(Chain["PlaceholderRegistry"], sub_name="placeholder"):
             kwargs.update(__mapping)
         if not kwargs:
             raise ValueError("At least one argument must be provided.")
-        for key, value in kwargs.items():
-            self[key] = value
+        self.placeholders.update(
+            Placeholder(key=key, value=value) for key, value in kwargs.items()
+        )
         return self
 
     def _chain_bind(self, entity: "PlaceholderRegistry") -> None:

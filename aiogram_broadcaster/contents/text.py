@@ -22,6 +22,7 @@ class TextContent(BaseContent):
     link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = Default("link_preview")
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    message_effect_id: Optional[str] = None
     reply_markup: Optional[
         Union[
             InlineKeyboardMarkup,
@@ -41,6 +42,7 @@ class TextContent(BaseContent):
             link_preview_options=self.link_preview_options,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            message_effect_id=self.message_effect_id,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -57,6 +59,7 @@ class TextContent(BaseContent):
             link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            message_effect_id: Optional[str] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

@@ -17,6 +17,7 @@ class DiceContent(BaseContent):
     emoji: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    message_effect_id: Optional[str] = None
     reply_markup: Optional[
         Union[
             InlineKeyboardMarkup,
@@ -33,6 +34,7 @@ class DiceContent(BaseContent):
             emoji=self.emoji,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            message_effect_id=self.message_effect_id,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -46,6 +48,7 @@ class DiceContent(BaseContent):
             emoji: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            message_effect_id: Optional[str] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

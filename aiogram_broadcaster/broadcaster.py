@@ -54,7 +54,7 @@ class Broadcaster(MailerContainer):
     def as_group(self) -> MailerGroup:
         if not self._mailers:
             raise RuntimeError("No mailers for grouping.")
-        return MailerGroup(*self._mailers.values())
+        return MailerGroup(*self)
 
     async def create_mailers(
         self,
@@ -189,7 +189,7 @@ class Broadcaster(MailerContainer):
             return
         bots = {bot.id: bot for bot in self.bots}
         for mailer_id in mailer_ids:
-            if mailer_id in self._mailers:
+            if mailer_id in self:
                 continue
             try:
                 record = await self.storage.get(mailer_id=mailer_id)

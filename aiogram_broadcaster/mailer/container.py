@@ -12,10 +12,10 @@ class MailerContainer:
         self._mailers = {mailer.id: mailer for mailer in mailers}
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}(total_mailers={len(self._mailers)})"
+        return f"{type(self).__name__}(total_mailers={len(self)})"
 
     def __str__(self) -> str:
-        mailers_string = ", ".join(map(repr, self._mailers.values()))
+        mailers_string = ", ".join(map(repr, self))
         return f"{type(self).__name__}[{mailers_string}]"
 
     def __contains__(self, item: int) -> bool:
@@ -25,7 +25,7 @@ class MailerContainer:
         return self._mailers[item]
 
     def __iter__(self) -> Iterator[Mailer]:
-        return iter(self.mailers.values())
+        return iter(self._mailers.values())
 
     def __len__(self) -> int:
         return len(self._mailers)
@@ -33,7 +33,7 @@ class MailerContainer:
     def __bool__(self) -> bool:
         if not self._mailers:
             return False
-        return all(self._mailers.values())
+        return all(self)
 
     def __hash__(self) -> int:
         return hash(frozenset(self._mailers))
@@ -52,5 +52,5 @@ class MailerContainer:
 
     def get_mailers(self, *statuses: MailerStatus) -> List[Mailer]:
         if not statuses:
-            return list(self._mailers.values())
-        return [mailer for mailer in self._mailers.values() if mailer.status in statuses]
+            return list(self)
+        return [mailer for mailer in self if mailer.status in statuses]

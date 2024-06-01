@@ -19,6 +19,7 @@ class FromChatCopyContent(BaseContent):
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[List[MessageEntity]] = None
+    show_caption_above_media: Optional[Union[bool, Default]] = Default("show_caption_above_media")
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     reply_markup: Optional[
@@ -38,6 +39,7 @@ class FromChatCopyContent(BaseContent):
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
+            show_caption_above_media=self.show_caption_above_media,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             reply_markup=self.reply_markup,
@@ -54,6 +56,7 @@ class FromChatCopyContent(BaseContent):
             caption: Optional[str] = ...,
             parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[List[MessageEntity]] = ...,
+            show_caption_above_media: Optional[Union[bool, Default]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
             reply_markup: Optional[

@@ -26,13 +26,13 @@
 * #### From PyPI
 
 ```commandline
-pip install -U aiogram-broadcaster
+pip install --upgrade aiogram-broadcaster
 ```
 
 * #### From GitHub (_Development build_)
 
 ```commandline
-pip install https://github.com/loRes228/aiogram_broadcaster/archive/refs/heads/dev.zip
+pip install https://github.com/loRes228/aiogram_broadcaster/archive/refs/heads/dev.zip --fore-reinstall
 ```
 
 ## Creating a mailer and running broadcasting
@@ -410,9 +410,9 @@ async def mailer_completed(my_data: 1) -> None:
 
 * #### [BaseMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/base.py) Abstract class of storage.
 * #### [FileMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/file.py) Saves the mailers to a file.
-* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/mongodb.py) Saves the mailers to a MongoDB.
-* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/redis.py) Saves the mailers to a Redis.
-* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/sqlalchemy.py) Saves the mailers using SQLAlchemy.
+* #### [MongoDBMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/mongodb.py) Saves the mailers to a MongoDB. (Extra: mongo)
+* #### [RedisMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/redis.py) Saves the mailers to a Redis. (Extra: redis)
+* #### [SQLAlchemyMailerStorage](https://github.com/loRes228/aiogram_broadcaster/blob/main/aiogram_broadcaster/storages/sqlalchemy.py) Saves the mailers using SQLAlchemy. (Extra: sqlalchemy)
 
 #### Usage:
 

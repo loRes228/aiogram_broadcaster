@@ -26,8 +26,5 @@ class EventObserver:
     def register(self, *callbacks: CallbackType) -> Self:
         if not callbacks:
             raise ValueError("At least one callback must be provided to register.")
-        for callback in callbacks:
-            if not callable(callback):
-                raise TypeError("The callback must be callable.")
-            self.callbacks.append(CallableObject(callback=callback))
+        self.callbacks.extend(CallableObject(callback=callback) for callback in callbacks)
         return self

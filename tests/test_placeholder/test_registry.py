@@ -30,8 +30,6 @@ class TestPlaceholderRegistry:
         registry.register(item1, item2)
         assert registry.placeholders == {item1.as_placeholder(), item2.as_placeholder()}
         registry = PlaceholderRegistry()
-        with pytest.raises(TypeError):
-            registry.register("invalid_type")
         assert registry.register(item2) == registry
         with pytest.raises(
             ValueError,
