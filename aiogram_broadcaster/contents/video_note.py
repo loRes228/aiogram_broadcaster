@@ -21,6 +21,7 @@ class VideoNoteContent(BaseContent):
     thumbnail: Optional[InputFile] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    message_effect_id: Optional[str] = None
     reply_markup: Optional[
         Union[
             InlineKeyboardMarkup,
@@ -40,6 +41,7 @@ class VideoNoteContent(BaseContent):
             thumbnail=self.thumbnail,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            message_effect_id=self.message_effect_id,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -56,6 +58,7 @@ class VideoNoteContent(BaseContent):
             thumbnail: Optional[InputFile] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            message_effect_id: Optional[str] = ...,
             reply_markup: Optional[
                 Union[
                     InlineKeyboardMarkup,

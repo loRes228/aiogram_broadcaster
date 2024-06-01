@@ -11,9 +11,9 @@ class InvoiceContent(BaseContent):
     title: str
     description: str
     payload: str
-    provider_token: str
     currency: str
     prices: List[LabeledPrice]
+    provider_token: Optional[str] = None
     max_tip_amount: Optional[int] = None
     suggested_tip_amounts: Optional[List[int]] = None
     start_parameter: Optional[str] = None
@@ -31,6 +31,7 @@ class InvoiceContent(BaseContent):
     is_flexible: Optional[bool] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    message_effect_id: Optional[str] = None
     reply_markup: Optional[InlineKeyboardMarkup] = None
 
     async def __call__(self, chat_id: int) -> SendInvoice:
@@ -39,9 +40,9 @@ class InvoiceContent(BaseContent):
             title=self.title,
             description=self.description,
             payload=self.payload,
-            provider_token=self.provider_token,
             currency=self.currency,
             prices=self.prices,
+            provider_token=self.provider_token,
             max_tip_amount=self.max_tip_amount,
             suggested_tip_amounts=self.suggested_tip_amounts,
             start_parameter=self.start_parameter,
@@ -59,6 +60,7 @@ class InvoiceContent(BaseContent):
             is_flexible=self.is_flexible,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            message_effect_id=self.message_effect_id,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -71,9 +73,9 @@ class InvoiceContent(BaseContent):
             title: str,
             description: str,
             payload: str,
-            provider_token: str,
             currency: str,
             prices: List[LabeledPrice],
+            provider_token: Optional[str] = ...,
             max_tip_amount: Optional[int] = ...,
             suggested_tip_amounts: Optional[List[int]] = ...,
             start_parameter: Optional[str] = ...,
@@ -91,6 +93,7 @@ class InvoiceContent(BaseContent):
             is_flexible: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            message_effect_id: Optional[str] = ...,
             reply_markup: Optional[InlineKeyboardMarkup] = ...,
             **kwargs: Any,
         ) -> None: ...
