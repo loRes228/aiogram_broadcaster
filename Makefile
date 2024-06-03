@@ -53,3 +53,12 @@ test-report-view:
 	-$(MAKE) test-report
 	python -m webbrowser "${CURDIR}/${REPORTS_DIRECTORY}/tests/index.html"
 	python -m webbrowser "${CURDIR}/${REPORTS_DIRECTORY}/coverage/index.html"
+
+
+# =====================================
+# Project
+# =====================================
+
+.PHONY: release
+release:
+	git tag "v$(shell hatch version)"
