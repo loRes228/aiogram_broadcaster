@@ -6,7 +6,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/aiogram-broadcaster?style=plastic&color=blue&logo=pypi)](https://pypi.org/project/aiogram-broadcaster/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/aiogram-broadcaster?style=plastic&color=green&logo=pypi)](https://pypi.org/project/aiogram-broadcaster/)
 [![PyPI - Python Version](https://img.shields.io/badge/python-3.8%2B-blue?style=plastic&logo=python)](https://www.python.org/downloads/)
-[![Static Badge](https://img.shields.io/badge/aiogram-3.6%2B-blue?style=plastic&logoColor=blue&link=https%3A%2F%2Fwww.python.org%2Fdownloads%2F&logo=pypi)](https://aiogram.dev)
+[![Static Badge](https://img.shields.io/badge/aiogram-3.7%2B-blue?style=plastic&logoColor=blue&link=https%3A%2F%2Fwww.python.org%2Fdownloads%2F&logo=pypi)](https://aiogram.dev)
 
 ### **aiogram_broadcaster** is lightweight aiogram-based library for broadcasting Telegram messages.
 
@@ -32,7 +32,7 @@ pip install --upgrade aiogram-broadcaster
 * #### From GitHub (_Development build_)
 
 ```commandline
-pip install https://github.com/loRes228/aiogram_broadcaster/archive/refs/heads/dev.zip --fore-reinstall
+pip install --force-reinstall https://github.com/loRes228/aiogram_broadcaster/archive/refs/heads/dev.zip
 ```
 
 ## Creating a mailer and running broadcasting

@@ -1,5 +1,5 @@
 .venv/
-.tests/
+.dev/
 .idea/
 .vscode/
 .cache/
