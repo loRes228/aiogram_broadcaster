@@ -1,8 +1,20 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+# THIS CODE WAS AUTO-GENERATED VIA `butcher`
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Optional,
+    Union,
+)
 
 from aiogram.client.default import Default
-from aiogram.methods import SendInvoice
-from aiogram.types import InlineKeyboardMarkup, LabeledPrice
+from aiogram.methods import (
+    SendInvoice,
+)
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    LabeledPrice,
+)
 
 from .base import BaseContent
 
@@ -12,10 +24,10 @@ class InvoiceContent(BaseContent):
     description: str
     payload: str
     currency: str
-    prices: List[LabeledPrice]
+    prices: list[LabeledPrice]
     provider_token: Optional[str] = None
     max_tip_amount: Optional[int] = None
-    suggested_tip_amounts: Optional[List[int]] = None
+    suggested_tip_amounts: Optional[list[int]] = None
     start_parameter: Optional[str] = None
     provider_data: Optional[str] = None
     photo_url: Optional[str] = None
@@ -74,10 +86,10 @@ class InvoiceContent(BaseContent):
             description: str,
             payload: str,
             currency: str,
-            prices: List[LabeledPrice],
+            prices: list[LabeledPrice],
             provider_token: Optional[str] = ...,
             max_tip_amount: Optional[int] = ...,
-            suggested_tip_amounts: Optional[List[int]] = ...,
+            suggested_tip_amounts: Optional[list[int]] = ...,
             start_parameter: Optional[str] = ...,
             provider_data: Optional[str] = ...,
             photo_url: Optional[str] = ...,

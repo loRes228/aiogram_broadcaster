@@ -1,37 +1,43 @@
-from typing import Any, Dict
+from typing import Any
 
 from aiogram_broadcaster.utils.interrupt import suppress_interrupt
 
-from .registry import EventRegistry
+from .event import Event
 
 
-class EventManager(EventRegistry):
+class EventManager(Event):
     __chain_root__ = True
 
-    async def emit_event(self, __event_name: str, /, **context: Any) -> Dict[str, Any]:
-        collected_data: Dict[str, Any] = {}
-        with suppress_interrupt():
-            for registry in self.chain_tail:
-                for callback in registry.observers[__event_name].callbacks:
-                    result = await callback.call(**context, **collected_data)
-                    if result and isinstance(result, dict):
-                        collected_data.update(result)
-        return collected_data
+    async def emit_event(self, event_name: str, /, **context: Any) -> None:
+        with suppress_interrupt(stack_level=2):
+            for event in self.chain_tail:
+                with suppress_interrupt(stack_level=1):
+                    for handler in event.observers[event_name].handlers:
+                        filter_result, filter_data = await handler.check(**context)
+                        if not filter_result:
+                            continue
+                        context.update(filter_data)
+                        handler_result: Any = await handler.call(**context)
+                        if isinstance(handler_result, dict):
+                            context.update(handler_result)
 
-    async def emit_started(self, **context: Any) -> Dict[str, Any]:
-        return await self.emit_event("started", **context)
+    async def emit_created(self, **context: Any) -> None:
+        await self.emit_event("created", **context)
 
-    async def emit_stopped(self, **context: Any) -> Dict[str, Any]:
-        return await self.emit_event("stopped", **context)
+    async def emit_destroyed(self, **context: Any) -> None:
+        await self.emit_event("destroyed", **context)
 
-    async def emit_completed(self, **context: Any) -> Dict[str, Any]:
-        return await self.emit_event("completed", **context)
+    async def emit_started(self, **context: Any) -> None:
+        await self.emit_event("started", **context)
 
-    async def emit_before_sent(self, **context: Any) -> Dict[str, Any]:
-        return await self.emit_event("before_sent", **context)
+    async def emit_stopped(self, **context: Any) -> None:
+        await self.emit_event("stopped", **context)
 
-    async def emit_success_sent(self, **context: Any) -> Dict[str, Any]:
-        return await self.emit_event("success_sent", **context)
+    async def emit_completed(self, **context: Any) -> None:
+        await self.emit_event("completed", **context)
 
-    async def emit_failed_sent(self, **context: Any) -> Dict[str, Any]:
-        return await self.emit_event("failed_sent", **context)
+    async def emit_failed_send(self, **context: Any) -> None:
+        await self.emit_event("failed_send", **context)
+
+    async def emit_success_send(self, **context: Any) -> None:
+        await self.emit_event("success_send", **context)

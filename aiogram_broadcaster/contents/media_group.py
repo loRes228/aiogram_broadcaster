@@ -1,21 +1,28 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+# THIS CODE WAS AUTO-GENERATED VIA `butcher`
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Optional,
+    Union,
+)
 
 from aiogram.client.default import Default
-from aiogram.methods import SendMediaGroup
-from aiogram.types import InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo
+from aiogram.methods import (
+    SendMediaGroup,
+)
+from aiogram.types import (
+    InputMediaAudio,
+    InputMediaDocument,
+    InputMediaPhoto,
+    InputMediaVideo,
+)
 
 from .base import BaseContent
 
 
 class MediaGroupContent(BaseContent):
-    media: List[
-        Union[
-            InputMediaAudio,
-            InputMediaDocument,
-            InputMediaPhoto,
-            InputMediaVideo,
-        ]
-    ]
+    media: list[Union[InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo]]
     business_connection_id: Optional[str] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
@@ -37,13 +44,8 @@ class MediaGroupContent(BaseContent):
         def __init__(
             self,
             *,
-            media: List[
-                Union[
-                    InputMediaAudio,
-                    InputMediaDocument,
-                    InputMediaPhoto,
-                    InputMediaVideo,
-                ]
+            media: list[
+                Union[InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo]
             ],
             business_connection_id: Optional[str] = ...,
             disable_notification: Optional[bool] = ...,

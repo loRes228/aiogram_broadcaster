@@ -6,17 +6,18 @@ __all__ = (
     "ContactContent",
     "DiceContent",
     "DocumentContent",
-    "FromChatCopyContent",
-    "FromChatForwardContent",
+    "FromChatCopyMessageContent",
+    "FromChatCopyMessagesContent",
+    "FromChatForwardMessageContent",
+    "FromChatForwardMessagesContent",
     "GameContent",
     "InvoiceContent",
-    "KeyBasedContent",
-    "LazyContent",
     "LocationContent",
     "MediaGroupContent",
     "MessageCopyContent",
     "MessageForwardContent",
     "MessageSendContent",
+    "PaidMediaContent",
     "PhotoContent",
     "PollContent",
     "StickerContent",
@@ -25,8 +26,11 @@ __all__ = (
     "VideoContent",
     "VideoNoteContent",
     "VoiceContent",
+    "adapters",
 )
 
+
+from . import adapters
 from .animation import AnimationContent
 from .audio import AudioContent
 from .base import BaseContent
@@ -34,14 +38,18 @@ from .chat_action import ChatActionContent
 from .contact import ContactContent
 from .dice import DiceContent
 from .document import DocumentContent
-from .from_chat import FromChatCopyContent, FromChatForwardContent
+from .from_chat_copy_message import FromChatCopyMessageContent
+from .from_chat_copy_messages import FromChatCopyMessagesContent
+from .from_chat_forward_message import FromChatForwardMessageContent
+from .from_chat_forward_messages import FromChatForwardMessagesContent
 from .game import GameContent
 from .invoice import InvoiceContent
-from .key_based import KeyBasedContent
-from .lazy import LazyContent
 from .location import LocationContent
 from .media_group import MediaGroupContent
-from .message import MessageCopyContent, MessageForwardContent, MessageSendContent
+from .message_copy import MessageCopyContent
+from .message_forward import MessageForwardContent
+from .message_send import MessageSendContent
+from .paid_media import PaidMediaContent
 from .photo import PhotoContent
 from .poll import PollContent
 from .sticker import StickerContent

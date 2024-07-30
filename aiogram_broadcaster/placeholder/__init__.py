@@ -1,7 +1,4 @@
-__all__ = (
-    "PlaceholderItem",
-    "PlaceholderRegistry",
-)
+__all__ = ("Placeholder",)
 
-from .item import PlaceholderItem
-from .registry import PlaceholderRegistry
+
+from .placeholder import Placeholder

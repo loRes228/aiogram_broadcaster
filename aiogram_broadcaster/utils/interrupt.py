@@ -1,21 +1,25 @@
-from contextlib import suppress
-from functools import partial
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass
 from typing import NoReturn
 
-from aiogram.dispatcher.event.bases import CancelHandler, SkipHandler
+
+DEFAULT_STACK_LEVEL = 1
 
 
+@dataclass
 class Interrupt(Exception):  # noqa: N818
-    pass
+    stack_level: int = DEFAULT_STACK_LEVEL
 
 
-def interrupt() -> NoReturn:
-    raise Interrupt
+def interrupt(stack_level: int = DEFAULT_STACK_LEVEL) -> NoReturn:
+    raise Interrupt(stack_level=stack_level)
 
 
-suppress_interrupt = partial(
-    suppress,
-    Interrupt,
-    CancelHandler,
-    SkipHandler,
-)
+@contextmanager
+def suppress_interrupt(stack_level: int = DEFAULT_STACK_LEVEL) -> Iterator[None]:
+    try:
+        yield
+    except Interrupt as error:
+        if stack_level < error.stack_level:
+            raise

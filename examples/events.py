@@ -1,62 +1,64 @@
 import logging
 import sys
-from typing import Any
 
-from aiogram import Bot, Dispatcher, Router, html
+from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import Message
 
-from aiogram_broadcaster import Broadcaster, EventRegistry, Mailer
+from aiogram_broadcaster import Broadcaster, Event, Mailer
 from aiogram_broadcaster.contents import MessageSendContent
+from aiogram_broadcaster.intervals import SimpleInterval
+from aiogram_broadcaster.utils.events import destroy_on_complete, retry_after_handler
 
 
-TOKEN = "1234:Abc"
-USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
+TOKEN = "123:Abc"
+CHATS = {230912392, 122398104, 39431920120}
+
 
 router = Router(name=__name__)
-event = EventRegistry(name=__name__)
+event = Event(name=__name__)
 
 
 @router.message()
-async def process_any_message(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
+async def process_any_message(message: Message, broadcaster: Broadcaster) -> None:
     content = MessageSendContent(message=message)
+    interval = SimpleInterval(interval=0.4)
     mailer = await broadcaster.create_mailer(
+        chats=CHATS,
         content=content,
-        chats=USER_IDS,
-        bot=bot,
-        interval=1,
+        interval=interval,
+        destroy_on_complete=True,
     )
     mailer.start()
 
 
 @event.started()
-async def mailer_started(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
-    await mailer.content.message.as_(bot=bot).reply(text="Start broadcasting...")
+async def process_mailer_started(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
+    await mailer.content.message.as_(bot=bot).reply(text="Broadcasting started.")
 
 
 @event.stopped()
-async def mailer_stopped(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
-    await mailer.content.message.as_(bot=bot).reply(text="Stop broadcasting...")
+async def process_mailer_stopped(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
+    await mailer.content.message.as_(bot=bot).reply(text="Broadcasting stopped.")
 
 
 @event.completed()
-async def mailer_completed(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
+async def process_mailer_completed(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
     await mailer.content.message.as_(bot=bot).reply(
         text=(
-            "Broadcasting completed!\n"
-            f"Mailer ID: {mailer.id}\n"
-            f"{html.blockquote(str(mailer.statistic))}"
+            "Broadcasting completed."
+            f"Total chats: {len(mailer.chats.total)}\n"
+            f"Processed chats: {len(mailer.chats.processed)} | "
+            f"{mailer.chats.processed % mailer.chats.total:.2f}%\n"
+            f"Pending chats: {len(mailer.chats.pending)} | "
+            f"{mailer.chats.pending % mailer.chats.total:.2f}%\n"
+            f"Failed chats: {len(mailer.chats.failed)} | "
+            f"{mailer.chats.failed % mailer.chats.total:.2f}%\n"
+            f"Success chats: {len(mailer.chats.success)} | "
+            f"{mailer.chats.success % mailer.chats.total:.2f}%\n"
         ),
     )
-
-
-@event.failed_sent()
-async def mailer_failed_sent(chat_id: int, error: Exception) -> None:
-    if not isinstance(error, TelegramForbiddenError):
-        return
-    # Do something...
 
 
 def main() -> None:
@@ -65,11 +67,13 @@ def main() -> None:
     default = DefaultBotProperties(parse_mode=ParseMode.HTML)
     bot = Bot(token=TOKEN, default=default)
     dispatcher = Dispatcher()
-    dispatcher.include_router(router)
 
-    broadcaster = Broadcaster()
-    broadcaster.event.bind(event)
+    broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)
+    broadcaster.event.bind(event)
+
+    # Enable builtin events
+    broadcaster.event.bind(destroy_on_complete.event, retry_after_handler.event)
 
     dispatcher.run_polling(bot)
 

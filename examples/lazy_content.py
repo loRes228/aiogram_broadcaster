@@ -1,56 +1,54 @@
 import logging
 import sys
 from secrets import choice
-from typing import Any, List
 
 from aiogram import Bot, Dispatcher, Router
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from pydantic import SerializeAsAny
 
 from aiogram_broadcaster import Broadcaster
-from aiogram_broadcaster.contents import BaseContent, LazyContent, TextContent
+from aiogram_broadcaster.contents import BaseContent, TextContent
+from aiogram_broadcaster.contents.adapters import LazyContentAdapter
 
 
-TOKEN = "1234:Abc"
-USER_IDS = {78238238, 78378343, 98765431, 12345678}  # Your user IDs list
+TOKEN = "123:Abc"
+CHATS = {230912392, 122398104, 39431920120}
+
 
 router = Router(name=__name__)
 
 
-class RandomizedContent(LazyContent):
-    contents: List[SerializeAsAny[BaseContent]]
+class RandomizedContentAdapter(LazyContentAdapter):
+    contents: list[SerializeAsAny[BaseContent]]
 
     async def __call__(self) -> BaseContent:
         return choice(self.contents)
 
 
 @router.message(CommandStart())
-async def process_start_command(message: Message, broadcaster: Broadcaster, bot: Bot) -> Any:
-    content = RandomizedContent(
+async def process_start_command(message: Message, broadcaster: Broadcaster) -> None:
+    content = RandomizedContentAdapter(
         contents=[
-            TextContent(text="Hello!"),
-            TextContent(text="Hi!"),
+            TextContent(text="Привет!"),
+            TextContent(text="Добрый день!"),
+            TextContent(text="Здравствуйте!"),
         ],
     )
-    mailer = await broadcaster.create_mailer(
-        content=content,
-        chats=USER_IDS,
-        bot=bot,
-        interval=1,
-    )
+    mailer = await broadcaster.create_mailer(chats=CHATS, content=content)
     mailer.start()
-    await message.answer(text="Run broadcasting...")
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-    bot = Bot(token=TOKEN)
+    default = DefaultBotProperties(parse_mode=ParseMode.HTML)
+    bot = Bot(token=TOKEN, default=default)
     dispatcher = Dispatcher()
-    dispatcher.include_router(router)
 
-    broadcaster = Broadcaster()
+    broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)
 
     dispatcher.run_polling(bot)

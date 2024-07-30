@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 [project]
 name = "aiogram_broadcaster"
 description = "A lightweight aiogram-based library for broadcasting Telegram messages."
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -25,12 +25,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed"
@@ -49,35 +47,43 @@ keywords = [
     "wrapper"
 ]
 dependencies = [
-    "aiogram>=3.7.0"
+    "aiogram>=3.10.0"
 ]
 
 [project.optional-dependencies]
+all = [
+    "aiogram_broadcaster[dev,test,butcher,sqlalchemy,mongo,redis,jinja]"
+]
 dev = [
     "mypy>=1.10.0",
-    "ruff>=0.4.0",
-    "types-aiofiles>=23.2.0"
+    "ruff>=0.5.0",
+    "types-aiofiles>=24.1.0",
+    "motor-types>=1.0.0b4"
 ]
 test = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
-    "pytest-lazy-fixtures>=1.0.0",
-    "pytest-cov>=5.0.0",
-    "pytest-html>=4.1.0"
+]
+butcher = [
+    "jinja2>=3.1.0"
+]
+sqlalchemy = [
+    "sqlalchemy>=2.0.0"
+]
+mongo = [
+    "motor>=3.5.0"
 ]
 redis = [
     "redis[hiredis]>=5.0.0"
 ]
-mongo = [
-    "motor>=3.0.0"
+jinja = [
+    "jinja2>=3.1.0"
 ]
-sqlalchemy = [
-    "SQLAlchemy>=2.0.0"
-]
+
 
 [project.urls]
 Homepage = "https://github.com/loRes228/aiogram_broadcaster.git"
-Documentation = "https://github.com/loRes228/aiogram_broadcaster#readme"
+Documentation = "https://github.com/loRes228/aiogram_broadcaster/wiki"
 "Source code" = "https://github.com/loRes228/aiogram_broadcaster.git"
 "Issue Tracker" = "https://github.com/loRes228/aiogram_broadcaster/issues"
 
@@ -85,8 +91,12 @@ Documentation = "https://github.com/loRes228/aiogram_broadcaster#readme"
 [tool.hatch.version]
 path = "aiogram_broadcaster/__meta__.py"
 
+[tool.hatch.envs.default]
+path = ".venv"
+
 
 [tool.ruff]
+target-version = "py39"
 cache-dir = ".cache/ruff"
 line-length = 99
 output-format = "full"
@@ -101,7 +111,7 @@ select = [
     "ALL"
 ]
 extend-select = [
-    "ANN204" # missing-return-type-special-method
+    "ANN204", # missing-return-type-special-method
 ]
 ignore = [
     "D", # pydocstyle
@@ -120,15 +130,15 @@ ignore = [
     "PLR0915", # too-many-statements
     "PLR0916", # too-many-boolean-expressions
     "PLR0917", # too-many-positional
-    "PLR1702" # too-many-nested-blocks
+    "PLR1702", # too-many-nested-blocks
+    "PLW3201" # bad-dunder-method-name
 ]
 logger-objects = [
-    "aiogram_broadcaster.utils.loggers.pool",
-    "aiogram_broadcaster.utils.loggers.mailer"
+    "aiogram_broadcaster.utils.logger.logger"
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/test_*.py" = [
+"tests/**/test_*.py" = [
     "S101" # assert
 ]
 
@@ -145,7 +155,7 @@ strict = true
 
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 cache_dir = ".cache/mypy"
 strict = true
 show_error_context = true
@@ -160,18 +170,5 @@ plugins = [
 [tool.pytest.ini_options]
 cache_dir = ".cache/pytest"
 testpaths = "tests"
-asyncio_mode = "auto"
 addopts = "-vv"
-
-
-[tool.coverage.run]
-data_file = ".cache/.coverage"
-parallel = true
-
-[tool.coverage.report]
-exclude_lines = [
-    "if __name__ == .__main__.:",
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "@(abc\\.)?abstractmethod"
-]
+asyncio_mode = "auto"
