@@ -20,7 +20,6 @@ router = Router(name=__name__)
 @router.message()
 async def process_any_message(message: Message, broadcaster: Broadcaster) -> None:
     content = MessageSendContent(message=message)
-    content = MessageSendContent(message=message)
     mailer_group = await broadcaster.create_mailers(chats=CHATS, content=content)
     mailer_group.start()
 
