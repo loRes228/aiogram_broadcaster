@@ -47,7 +47,7 @@ async def process_mailer_stopped(mailer: Mailer[MessageSendContent], bot: Bot) -
 async def process_mailer_completed(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
     await mailer.content.message.as_(bot=bot).reply(
         text=(
-            "Broadcasting completed."
+            "Broadcasting completed.\n"
             f"Total chats: {len(mailer.chats.total)}\n"
             f"Processed chats: {len(mailer.chats.processed)} | "
             f"{mailer.chats.processed % mailer.chats.total:.2f}%\n"
@@ -67,6 +67,7 @@ def main() -> None:
     default = DefaultBotProperties(parse_mode=ParseMode.HTML)
     bot = Bot(token=TOKEN, default=default)
     dispatcher = Dispatcher()
+    dispatcher.include_router(router)
 
     broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)

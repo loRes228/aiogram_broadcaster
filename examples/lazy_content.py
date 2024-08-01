@@ -32,9 +32,9 @@ class RandomizedContentAdapter(LazyContentAdapter):
 async def process_start_command(message: Message, broadcaster: Broadcaster) -> None:
     content = RandomizedContentAdapter(
         contents=[
-            TextContent(text="Привет!"),
-            TextContent(text="Добрый день!"),
-            TextContent(text="Здравствуйте!"),
+            TextContent(text="Hi there!"),
+            TextContent(text="Greetings!"),
+            TextContent(text="Hey! How's it going?"),
         ],
     )
     mailer = await broadcaster.create_mailer(chats=CHATS, content=content)
@@ -47,6 +47,7 @@ def main() -> None:
     default = DefaultBotProperties(parse_mode=ParseMode.HTML)
     bot = Bot(token=TOKEN, default=default)
     dispatcher = Dispatcher()
+    dispatcher.include_router(router)
 
     broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)

@@ -4,11 +4,13 @@ import sys
 from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster, Placeholder
 from aiogram_broadcaster.contents import TextContent
+from aiogram_broadcaster.utils.interrupt import interrupt
 
 
 TOKEN = "123:Abc"
@@ -28,8 +30,12 @@ async def process_start_command(message: Message, broadcaster: Broadcaster) -> N
 
 @placeholder.string(name="name")
 async def name_placeholder(chat_id: int, bot: Bot) -> str:
-    member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
-    return member.user.first_name
+    try:
+        member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
+    except TelegramAPIError:
+        interrupt()
+    else:
+        return member.user.first_name
 
 
 def main() -> None:
@@ -38,6 +44,7 @@ def main() -> None:
     default = DefaultBotProperties(parse_mode=ParseMode.HTML)
     bot = Bot(token=TOKEN, default=default)
     dispatcher = Dispatcher()
+    dispatcher.include_router(router)
 
     broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)
