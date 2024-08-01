@@ -47,5 +47,5 @@ class MappedContentAdapter(BaseContent):
         ) -> None: ...
 
         @abstractmethod
-        async def __call__(self, *args: Any, **kwargs: Any) -> str:
+        async def __call__(self, *args: Any, **kwargs: Any) -> Optional[str]:
             pass
