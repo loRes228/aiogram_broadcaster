@@ -1,5 +1,5 @@
 from asyncio import Task, gather
-from collections.abc import Coroutine, Iterable
+from collections.abc import Awaitable, Iterable
 from typing import Any, Optional, Union
 
 from aiogram_broadcaster.contents.base import ContentType
@@ -23,6 +23,9 @@ class MailerGroup(MailerContainer[ContentType]):
             except BaseException as error:  # noqa: BLE001, PERF203
                 results[mailer] = error
         return results
+
+    async def start_and_wait(self) -> dict[Mailer[ContentType], Union[bool, BaseException]]:
+        return await self._emit(mailer.start() for mailer in self)
 
     async def extend(
         self,
@@ -51,7 +54,7 @@ class MailerGroup(MailerContainer[ContentType]):
 
     async def _emit(
         self,
-        targets: Iterable[Coroutine[Any, Any, Any]],
+        targets: Iterable[Awaitable[Any]],
     ) -> dict[Mailer[ContentType], Any]:
         if not targets:
             return {}
