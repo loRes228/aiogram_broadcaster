@@ -106,13 +106,11 @@ class SQLAlchemyStorage(BaseStorage):
     async def set_record(self, mailer_id: int, record: StorageRecord) -> None:
         data = record.model_dump_json(exclude_defaults=True)
         insert_statement = insert(self.table).values(id=mailer_id, data=data)
+        update_statement = update(self.table).where(self.table.c.id == mailer_id).values(data=data)
         async with self.session_maker() as session:
             try:
                 await session.execute(statement=insert_statement)
             except IntegrityError:
-                update_statement = (
-                    update(self.table).where(self.table.c.id == mailer_id).values(data=data)
-                )
                 await session.rollback()
                 await session.execute(statement=update_statement)
             await session.commit()
