@@ -1,8 +1,14 @@
 from enum import Enum
 from re import Pattern, RegexFlag, compile
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any, Callable, Union
 
-from .base import BasePlaceholderItem, RenderResult
+from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlaceholderItem
+
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+    from aiogram_broadcaster.utils.common_types import WrapperType
 
 
 class RegexMode(str, Enum):
@@ -28,13 +34,40 @@ class RegexpPlaceholderItem(BasePlaceholderItem):
         super().__init__(value=value)
 
         self.pattern = (
-            compile(pattern=pattern, flags=flags) if isinstance(pattern, str) else pattern
+            compile(pattern=pattern, flags=flags) if isinstance(pattern, str) else self.pattern
         )
         self.flags = flags
         self.mode = mode
 
-    def _render(self, source: str) -> RenderResult:
-        match: Any = getattr(self.pattern, self.mode.value)(source)
-        if not match:
-            return None
-        return {"match": match}, lambda value: self.pattern.sub(repl=value, string=source)
+
+class RegexpPlaceholderDecorator(BasePlaceholderDecorator):
+    __item_class__ = RegexpPlaceholderItem
+
+    if TYPE_CHECKING:
+
+        def __call__(
+            self,
+            pattern: Union[str, Pattern[str]],
+            flags: Union[int, RegexFlag] = ...,
+            mode: RegexMode = ...,
+        ) -> WrapperType: ...
+
+        def register(
+            self,
+            value: Any,
+            pattern: Union[str, Pattern[str]],
+            flags: Union[int, RegexFlag] = ...,
+            mode: RegexMode = ...,
+        ) -> Self: ...
+
+
+class RegexpPlaceholderEngine(BasePlaceholderEngine):
+    async def render(self, source: str, *items: RegexpPlaceholderItem, **context: Any) -> str:
+        for item in items:
+            regex_method: Callable[[str], Any] = getattr(item.pattern, item.mode.value)
+            match: Any = regex_method(source)
+            if not match:
+                continue
+            value: Any = item.get_value(match=match, **context)
+            source = item.pattern.sub(repl=value, string=source)
+        return source

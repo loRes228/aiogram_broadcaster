@@ -1,41 +1,67 @@
+from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 from aiogram_broadcaster.utils.exceptions import DependencyNotFoundError
 
-from .base import BasePlaceholderItem, RenderResult
+from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlaceholderItem
 
 
 if TYPE_CHECKING:
-    from jinja2.nodes import Template as TemplateNode
+    from typing_extensions import Self
 
-
-try:
-    from jinja2 import DebugUndefined, Template
-    from jinja2.meta import find_undeclared_variables
-except ImportError as error:
-    raise DependencyNotFoundError(
-        feature_name="JinjaItem",
-        module_name="jinja2",
-        extra_name="jinja",
-    ) from error
+    from aiogram_broadcaster.utils.common_types import WrapperType
 
 
 class JinjaPlaceholderItem(BasePlaceholderItem):
     name: str
-    template_options: dict[str, Any]
 
-    def __init__(self, value: Any, name: str, **template_options: Any) -> None:
+    def __init__(self, value: Any, name: str) -> None:
         super().__init__(value=value)
 
         self.name = name
-        self.template_options = template_options
 
-    def _render(self, source: str) -> RenderResult:
-        template = Template(source=source, undefined=DebugUndefined, **self.template_options)
-        if not self._contains_name(template=template, source=source):
-            return None
-        return {"template": template}, lambda value: template.render({self.name: value})
+        try:
+            import_module(name="jinja2")
+        except ImportError as error:
+            raise DependencyNotFoundError(
+                feature_name="JinjaPlaceholderItem",
+                module_name="jinja2",
+                extra_name="jinja",
+            ) from error
 
-    def _contains_name(self, template: Template, source: str) -> bool:
-        node: TemplateNode = template.environment.parse(source=source)
-        return self.name in find_undeclared_variables(ast=node)
+
+class JinjaPlaceholderDecorator(BasePlaceholderDecorator):
+    __item_class__ = JinjaPlaceholderItem
+
+    if TYPE_CHECKING:
+
+        def __call__(
+            self,
+            name: str,
+        ) -> WrapperType: ...
+
+        def register(
+            self,
+            value: Any,
+            name: str,
+        ) -> Self: ...
+
+
+class JinjaPlaceholderEngine(BasePlaceholderEngine):
+    async def render(self, source: str, *items: JinjaPlaceholderItem, **context: Any) -> str:
+        from jinja2 import Template  # noqa: PLC0415
+        from jinja2.meta import find_undeclared_variables  # noqa: PLC0415
+
+        template = Template(source=source)
+        node = template.environment.parse(source=source)
+        template_keys: set[str] = find_undeclared_variables(ast=node)
+        if not template_keys:
+            return source
+        data = {
+            item.name: await item.get_value(template=template, **context)
+            for item in items
+            if item.name in template_keys
+        }
+        if not data:
+            return source
+        return template.render(data)

@@ -1,7 +1,13 @@
 from string import Template
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from .base import BasePlaceholderItem, RenderResult
+from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlaceholderItem
+
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+    from aiogram_broadcaster.utils.common_types import WrapperType
 
 
 class StringPlaceholderItem(BasePlaceholderItem):
@@ -12,13 +18,37 @@ class StringPlaceholderItem(BasePlaceholderItem):
 
         self.name = name
 
-    def _render(self, source: str) -> RenderResult:
-        template = Template(template=source)
-        if not self._contains_name(template=template, source=source):
-            return None
-        return {"template": template}, lambda value: template.safe_substitute({self.name: value})
 
-    def _contains_name(self, template: Template, source: str) -> bool:
-        return any(
-            match.group("named") == self.name for match in template.pattern.finditer(string=source)
-        )
+class StringPlaceholderDecorator(BasePlaceholderDecorator):
+    __item_class__ = StringPlaceholderItem
+
+    if TYPE_CHECKING:
+
+        def __call__(
+            self,
+            name: str,
+        ) -> WrapperType: ...
+
+        def register(
+            self,
+            value: Any,
+            name: str,
+        ) -> Self: ...
+
+
+class StringPlaceholderEngine(BasePlaceholderEngine):
+    async def render(self, source: str, *items: StringPlaceholderItem, **context: Any) -> str:
+        template = Template(template=source)
+        template_keys = {
+            match.group("named") for match in template.pattern.finditer(string=source)
+        }
+        if not template_keys:
+            return source
+        data = {
+            item.name: await item.get_value(template=template, **context)
+            for item in items
+            if item.name in template_keys
+        }
+        if not data:
+            return source
+        return template.safe_substitute(data)

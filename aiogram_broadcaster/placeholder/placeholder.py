@@ -5,17 +5,14 @@ from typing_extensions import Self
 
 from aiogram_broadcaster.utils.chain import Chain
 
-from .decorators import (
-    BasePlaceholderDecorator,
-    JinjaPlaceholderDecorator,
-    RegexpPlaceholderDecorator,
-    StringPlaceholderDecorator,
-)
-from .items.base import BasePlaceholderItem
+from .items.base import BasePlaceholderDecorator, BasePlaceholderItem
+from .items.jinja import JinjaPlaceholderDecorator
+from .items.regexp import RegexpPlaceholderDecorator
+from .items.string import StringPlaceholderDecorator
 
 
 class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
-    items: set[BasePlaceholderItem]
+    items: list[BasePlaceholderItem]
     jinja: JinjaPlaceholderDecorator
     regexp: RegexpPlaceholderDecorator
     string: StringPlaceholderDecorator
@@ -24,7 +21,7 @@ class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 
-        self.items = set()
+        self.items = []
         self.jinja = JinjaPlaceholderDecorator(placeholder=self)
         self.regexp = RegexpPlaceholderDecorator(placeholder=self)
         self.string = StringPlaceholderDecorator(placeholder=self)
@@ -42,5 +39,5 @@ class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
     def register(self, *items: BasePlaceholderItem) -> Self:
         if not items:
             raise ValueError("At least one item must be provided to register.")
-        self.items.update(items)
+        self.items.extend(items)
         return self
