@@ -102,13 +102,25 @@ class Broadcaster(MailerContainer):
     async def run_mailers(self) -> None:
         self.get_mailers(magic=F.status.is_(MailerStatus.STOPPED)).start()
 
-    def setup(self, dispatcher: Dispatcher, *, context_key: str = "broadcaster") -> Self:
-        self.context[context_key] = self
-        self.context.update(dispatcher.workflow_data, dispatcher=dispatcher)
+    def setup(
+        self,
+        dispatcher: Dispatcher,
+        *,
+        context_key: str = "broadcaster",
+        fetch_dispatcher_context: bool = True,
+        restore_mailers: bool = True,
+        run_mailers: bool = True,
+    ) -> Self:
         dispatcher[context_key] = self
+        self.context[context_key] = self
+        self.context["dispatcher"] = dispatcher
+        if fetch_dispatcher_context:
+            self.context.update(dispatcher.workflow_data)
         if self.storage:
             dispatcher.startup.register(self.storage.startup)
             dispatcher.shutdown.register(self.storage.shutdown)
-            dispatcher.startup.register(self.restore_mailers)
-        dispatcher.startup.register(self.run_mailers)
+            if restore_mailers:
+                dispatcher.startup.register(self.restore_mailers)
+        if run_mailers:
+            dispatcher.startup.register(self.run_mailers)
         return self
