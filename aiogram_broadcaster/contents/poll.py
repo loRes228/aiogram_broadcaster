@@ -83,7 +83,7 @@ class PollContent(BaseContent):
             question_parse_mode: Optional[Union[str, Default]] = ...,
             question_entities: Optional[list[MessageEntity]] = ...,
             is_anonymous: Optional[bool] = ...,
-            type: Optional[str] = ...,  # noqa: A002
+            type: Optional[str] = ...,
             allows_multiple_answers: Optional[bool] = ...,
             correct_option_id: Optional[int] = ...,
             explanation: Optional[str] = ...,

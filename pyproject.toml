@@ -115,6 +115,7 @@ extend-select = [
 ]
 ignore = [
     "D", # pydocstyle
+    "A", # flake8-builtins
     "CPY", # flake8-copyright
     "FA", # flake8-future-annotations
     "ANN", # flake8-annotations
@@ -132,7 +133,6 @@ ignore = [
     "PLR0917", # too-many-positional
     "PLR1702", # too-many-nested-blocks
     "PLW3201", # bad-dunder-method-name
-    "A004" # builtin-import-shadowing
 ]
 logger-objects = [
     "aiogram_broadcaster.utils.logger.logger"
