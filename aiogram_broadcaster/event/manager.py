@@ -9,7 +9,7 @@ class EventManager(Event):
     __chain_root__ = True
 
     async def emit_event(self, event_name: str, /, **context: Any) -> None:
-        with suppress_interrupt(stack_level=2):
+        with suppress_interrupt():
             for event in self.chain_tail:
                 with suppress_interrupt(stack_level=1):
                     for handler in event.observers[event_name].handlers:
