@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar, Literal
+from typing import ClassVar
 
 
 class BroadcasterError(Exception):
@@ -28,7 +28,24 @@ class DependencyNotFoundError(DetailedBroadcasterError, ImportError):
 
 @dataclass
 class MailerError(DetailedBroadcasterError, RuntimeError):
-    message = "Mailer id {mailer_id} cannot be {operation_name}."
-
     mailer_id: int
-    operation_name: Literal["stopped", "started", "destroyed", "extended", "reset"]
+
+
+class MailerStoppedError(MailerError):
+    message = "Mailer id {mailer_id} cannot be stopped."
+
+
+class MailerStartedError(MailerError):
+    message = "Mailer id {mailer_id} cannot be started."
+
+
+class MailerDestroyedError(MailerError):
+    message = "Mailer id {mailer_id} cannot be destroyed."
+
+
+class MailerExtendedError(MailerError):
+    message = "Mailer id {mailer_id} cannot be extended."
+
+
+class MailerResetError(MailerError):
+    message = "Mailer id {mailer_id} cannot be reset."
