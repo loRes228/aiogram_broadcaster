@@ -15,9 +15,12 @@ class ChatState(IntEnum):
     SUCCESS = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
 class ChatsMetric:
     ids: set[int]
+
+    def __str__(self) -> str:
+        return str(len(self))
 
     def __repr__(self) -> str:
         return f"ChatsMetric(total={len(self)})"
