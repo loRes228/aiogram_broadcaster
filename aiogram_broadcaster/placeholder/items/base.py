@@ -17,6 +17,14 @@ class BasePlaceholderItem:
     def __init__(self, value: Any) -> None:
         self._value = CallableObject(callback=value) if callable(value) else value
 
+    def __hash__(self) -> int:
+        return hash((type(self), repr(vars(self))))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BasePlaceholderItem):
+            return NotImplemented
+        return hash(self) == hash(other)
+
     @property
     def value(self) -> Any:
         if isinstance(self._value, CallableObject):

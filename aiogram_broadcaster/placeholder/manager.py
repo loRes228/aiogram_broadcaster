@@ -47,9 +47,9 @@ class PlaceholderManager(Placeholder):
                 yield field_name, field_value
 
     async def _render_source(self, source: str, /, **context: Any) -> str:
-        grouped_items = defaultdict(list)
+        grouped_items = defaultdict(set)
         for item in self.chain_items:
-            grouped_items[type(item)].append(item)
+            grouped_items[type(item)].add(item)
         with suppress_interrupt():
             for item_type, items in grouped_items.items():
                 with suppress_interrupt(stack_level=1):

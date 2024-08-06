@@ -12,7 +12,7 @@ from .items.string import StringPlaceholderDecorator
 
 
 class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
-    items: list[BasePlaceholderItem]
+    items: set[BasePlaceholderItem]
     jinja: JinjaPlaceholderDecorator
     regexp: RegexpPlaceholderDecorator
     string: StringPlaceholderDecorator
@@ -21,7 +21,7 @@ class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 
-        self.items = []
+        self.items = set()
         self.jinja = JinjaPlaceholderDecorator(placeholder=self)
         self.regexp = RegexpPlaceholderDecorator(placeholder=self)
         self.string = StringPlaceholderDecorator(placeholder=self)
@@ -39,5 +39,5 @@ class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
     def register(self, *items: BasePlaceholderItem) -> Self:
         if not items:
             raise ValueError("At least one item must be provided to register.")
-        self.items.extend(items)
+        self.items.update(items)
         return self
