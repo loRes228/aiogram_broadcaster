@@ -148,19 +148,44 @@ class Mailer(Generic[ContentType]):
             return NotImplemented
         return hash(self) == hash(other)
 
+    @property
+    def can_destroyed(self) -> bool:
+        return not self._destroyed
+
+    @property
+    def can_stopped(self) -> bool:
+        return not self._destroyed and self.status is MailerStatus.STARTED
+
+    @property
+    def can_started(self) -> bool:
+        return not self._destroyed and self.status is MailerStatus.STOPPED
+
+    @property
+    def can_extended(self) -> bool:
+        return not self._destroyed
+
+    @property
+    def can_reset(self) -> bool:
+        return (
+            not self._destroyed
+            and self.status is not MailerStatus.STARTED
+            and self.chats.total != self.chats.pending
+        )
+
     async def destroy(self) -> None:
-        if self._destroyed:
+        if not self.can_destroyed:
             raise MailerDestroyedError(mailer_id=self.id)
         logger.info("Mailer id=%d was destroyed.", self.id)
         self.status = MailerStatus.COMPLETED
         self._stop_event.set()
+        self._destroyed = True
         del self.broadcaster.mailers[self.id]
         if self.broadcaster.storage:
             await self.broadcaster.storage.delete_record(mailer_id=self.id)
         await self.broadcaster.event.emit_destroyed(**self.context)
 
     async def stop(self) -> None:
-        if self.status is not MailerStatus.STARTED:
+        if not self.can_stopped:
             raise MailerStoppedError(mailer_id=self.id)
         logger.info("Mailer id=%d was stopped.", self.id)
         self.status = MailerStatus.STOPPED
@@ -171,7 +196,7 @@ class Mailer(Generic[ContentType]):
         return create_task(coro=self._start())
 
     async def _start(self) -> bool:
-        if self.status is not MailerStatus.STOPPED:
+        if not self.can_started:
             raise MailerStartedError(mailer_id=self.id)
         logger.info("Mailer id=%d was started.", self.id)
         self.status = MailerStatus.STARTED
@@ -191,7 +216,7 @@ class Mailer(Generic[ContentType]):
         return True
 
     async def extend(self, chats: Iterable[int]) -> set[int]:
-        if self._destroyed:
+        if not self.can_extended:
             raise MailerExtendedError(mailer_id=self.id)
         difference: set[int] = set(chats) - self.chats.total.ids
         if not difference:
@@ -210,11 +235,9 @@ class Mailer(Generic[ContentType]):
         return difference
 
     async def reset(self) -> None:
-        if self._destroyed or self.status is MailerStatus.STARTED:
+        if not self.can_reset:
             raise MailerResetError(mailer_id=self.id)
         total_chats: set[int] = self.chats.total.ids
-        if self.chats.registry[ChatState.PENDING] == total_chats:
-            raise MailerResetError(mailer_id=self.id)
         self.chats.registry.clear()
         self.chats.registry[ChatState.PENDING].update(total_chats)
         if self.broadcaster.storage:
