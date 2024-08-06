@@ -10,7 +10,6 @@ from typing_extensions import Self
 
 from aiogram_broadcaster.contents.base import ContentType
 from aiogram_broadcaster.intervals.base import BaseInterval
-from aiogram_broadcaster.intervals.simple import SimpleInterval
 from aiogram_broadcaster.storages.base import StorageRecord
 from aiogram_broadcaster.utils.exceptions import (
     MailerDestroyedError,
@@ -38,7 +37,7 @@ class Mailer(Generic[ContentType]):
     status: MailerStatus
     chats: Chats
     content: ContentType
-    interval: BaseInterval
+    interval: Optional[BaseInterval]
     bot: Bot
     context: dict[str, Any]
     broadcaster: "Broadcaster"
@@ -62,7 +61,6 @@ class Mailer(Generic[ContentType]):
         mailer_id: int = generate_id(container=broadcaster)
         chats_ = Chats.from_iterable(iterable=chats)
         bot = bot or broadcaster.bots[-1]
-        interval = interval or SimpleInterval()
         stop_event = Event()
         stop_event.set()
         mailer = cls(
@@ -286,5 +284,6 @@ class Mailer(Generic[ContentType]):
                     record.chats = self.chats
             if not self.chats.registry[ChatState.PENDING]:
                 return True
-            await self.interval.sleep(self._stop_event, **self.context)
+            if self.interval:
+                await self.interval.sleep(self._stop_event, **self.context)
         return True

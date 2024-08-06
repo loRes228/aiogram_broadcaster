@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, AsyncIterable
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, SerializeAsAny
 
@@ -14,7 +15,7 @@ class StorageRecord(BaseModel):
 
     chats: Chats
     content: SerializeAsAny[BaseContent]
-    interval: SerializeAsAny[BaseInterval]
+    interval: Optional[SerializeAsAny[BaseInterval]] = None
     bot_id: int
     context: dict[str, JsonValue] = Field(default_factory=dict)
 
