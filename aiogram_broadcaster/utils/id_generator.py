@@ -8,6 +8,6 @@ class IntContainer(Protocol):
 
 def generate_id(container: Optional[IntContainer] = None) -> int:
     while True:
-        new_id: int = hash(uuid4())
+        new_id = hash(uuid4())
         if not container or new_id not in container:
             return new_id

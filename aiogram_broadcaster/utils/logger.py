@@ -1,4 +1,4 @@
-from logging import Logger, getLogger
+from logging import getLogger
 
 
-logger: Logger = getLogger(name="aiogram_broadcaster")
+logger = getLogger(name="aiogram_broadcaster")

@@ -23,10 +23,6 @@ DEFAULT_KEY_SEPERATOR = ":"
 
 
 class RedisStorage(BaseStorage):
-    redis: Redis
-    key_prefix: str
-    key_seperator: str
-
     def __init__(
         self,
         redis: Redis,

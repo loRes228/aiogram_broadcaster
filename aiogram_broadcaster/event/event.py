@@ -6,15 +6,6 @@ from .observer import EventObserver
 
 
 class Event(Chain["Event"], sub_name="event"):
-    created: EventObserver
-    destroyed: EventObserver
-    started: EventObserver
-    stopped: EventObserver
-    completed: EventObserver
-    failed_send: EventObserver
-    success_send: EventObserver
-    observers: dict[str, EventObserver]
-
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 

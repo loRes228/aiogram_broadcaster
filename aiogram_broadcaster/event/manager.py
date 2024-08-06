@@ -17,7 +17,7 @@ class EventManager(Event):
                         if not filter_result:
                             continue
                         context.update(filter_data)
-                        handler_result: Any = await handler.call(**context)
+                        handler_result = await handler.call(**context)
                         if isinstance(handler_result, dict):
                             context.update(handler_result)
 

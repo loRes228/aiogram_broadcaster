@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 from aiogram_broadcaster.utils.interrupt import suppress_interrupt
 
-from .items.base import BasePlaceholderEngine, BasePlaceholderItem
 from .items.jinja import JinjaPlaceholderEngine, JinjaPlaceholderItem
 from .items.regexp import RegexpPlaceholderEngine, RegexpPlaceholderItem
 from .items.string import StringPlaceholderEngine, StringPlaceholderItem
@@ -21,8 +20,6 @@ TEXT_FIELDS = {"text", "caption", "title", "description"}
 class PlaceholderManager(Placeholder):
     __chain_root__ = True
 
-    engines: dict[type[BasePlaceholderItem], BasePlaceholderEngine]
-
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 
@@ -36,7 +33,7 @@ class PlaceholderManager(Placeholder):
         if not tuple(self.chain_items):
             return model
         for field_name, field_value in self._parse_text_fields(model=model):
-            rendered_value: str = await self._render_source(field_value, **context)
+            rendered_value = await self._render_source(field_value, **context)
             model = model.model_copy(update={field_name: rendered_value})
         return model
 

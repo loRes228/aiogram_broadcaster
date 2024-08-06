@@ -40,10 +40,6 @@ DEFAULT_TABLE_NAME = "aiogram_broadcaster"
 
 
 class SQLAlchemyStorage(BaseStorage):
-    session_maker: async_sessionmaker[AsyncSession]
-    table_name: str
-    table: Table
-
     def __init__(
         self,
         session_maker: async_sessionmaker[AsyncSession],

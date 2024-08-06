@@ -26,8 +26,6 @@ from .status import MailerStatus
 
 
 if TYPE_CHECKING:
-    from aiogram.methods import TelegramMethod
-
     from aiogram_broadcaster.broadcaster import Broadcaster
 
 
@@ -58,7 +56,7 @@ class Mailer(Generic[ContentType]):
             raise ValueError("At least one chat must be provided.")
         if not bot and not broadcaster.bots:
             raise ValueError("At least one bot must be provided.")
-        mailer_id: int = generate_id(container=broadcaster)
+        mailer_id = generate_id(container=broadcaster)
         chats_ = Chats.from_iterable(iterable=chats)
         bot = bot or broadcaster.bots[-1]
         stop_event = Event()
@@ -102,7 +100,7 @@ class Mailer(Generic[ContentType]):
         record: StorageRecord,
     ) -> Self:
         try:
-            bot: Bot = {bot.id: bot for bot in broadcaster.bots}[record.bot_id]
+            bot = {bot.id: bot for bot in broadcaster.bots}[record.bot_id]
         except KeyError as error:
             raise LookupError(
                 f"Mailer id {mailer_id} could not find bot with id {record.bot_id}, "
@@ -218,7 +216,7 @@ class Mailer(Generic[ContentType]):
     async def extend(self, chats: Iterable[int]) -> set[int]:
         if not self.can_extended:
             raise MailerExtendedError(mailer_id=self.id)
-        difference: set[int] = set(chats) - self.chats.total.ids
+        difference = set(chats) - self.chats.total.ids
         if not difference:
             return difference
         self.chats.registry[ChatState.PENDING].update(difference)
@@ -237,7 +235,7 @@ class Mailer(Generic[ContentType]):
     async def reset(self) -> None:
         if not self.can_reset:
             raise MailerResetError(mailer_id=self.id)
-        total_chats: set[int] = self.chats.total.ids
+        total_chats = self.chats.total.ids
         self.chats.registry.clear()
         self.chats.registry[ChatState.PENDING].update(total_chats)
         if self.broadcaster.storage:
@@ -254,7 +252,7 @@ class Mailer(Generic[ContentType]):
         disable_placeholders: bool = False,
         disable_error_handling: bool = False,
     ) -> tuple[bool, Any]:
-        method: TelegramMethod[Any] = await self.content.as_method(
+        method = await self.content.as_method(
             chat_id=chat_id,
             **self.context,
         )
@@ -268,7 +266,7 @@ class Mailer(Generic[ContentType]):
         if disable_error_handling:
             return True, await method
         try:
-            response: Any = await method
+            response = await method
         except TelegramAPIError as error:
             logger.info(
                 "Mailer id=%d failed send the content to chat id=%d due to: %s.",
@@ -299,7 +297,7 @@ class Mailer(Generic[ContentType]):
         while self.chats.registry[ChatState.PENDING]:
             if self._stop_event.is_set():
                 return False
-            chat: int = self.chats.registry[ChatState.PENDING].pop()
+            chat = self.chats.registry[ChatState.PENDING].pop()
             success, _ = await self.send(chat_id=chat)
             self.chats.registry[ChatState.SUCCESS if success else ChatState.FAILED].add(chat)
             if self.broadcaster.storage:

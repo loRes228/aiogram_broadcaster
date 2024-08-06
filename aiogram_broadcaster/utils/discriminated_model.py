@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -32,14 +32,14 @@ class DiscriminatedModel(BaseModel):
     def _model_validator(cls, value: Any, handler: ValidatorFunctionWrapHandler) -> Any:
         if not isinstance(value, dict):
             return handler(value)
-        validator_name: Optional[str] = value.pop(VALIDATOR_KEY, None)
+        validator_name = value.pop(VALIDATOR_KEY, None)
         if validator_name is None:
             return handler(value)
-        validator: type[BaseModel] = cls._get_validator(name=validator_name)
+        validator = cls._get_validator(name=validator_name)
         return validator.model_validate(obj=value)
 
     @model_serializer(mode="wrap", return_type=Any)
     def _model_serializer(self, handler: SerializerFunctionWrapHandler) -> Any:
-        data: Any = handler(self)
+        data = handler(self)
         data[VALIDATOR_KEY] = type(self).__name__
         return data

@@ -7,8 +7,6 @@ from .mailer import Mailer
 
 
 class MailerContainer(Generic[ContentType]):
-    mailers: dict[int, Mailer[ContentType]]
-
     def __init__(self, *mailers: Mailer[ContentType]) -> None:
         self.mailers = {mailer.id: mailer for mailer in mailers}
 

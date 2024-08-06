@@ -28,8 +28,8 @@ class MappedContentAdapter(BaseContent):
         return item in self.__pydantic_extra__
 
     async def as_method(self, **context: Any) -> TelegramMethod[Any]:
-        key: str = await self.call(**context)
-        content: BaseContent = self[key]
+        key = await self.call(**context)
+        content = self[key]
         return await content.as_method(**context)
 
     def model_post_init(self, __context: Any) -> None:  # noqa: PYI063

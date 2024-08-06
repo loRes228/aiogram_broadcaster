@@ -1,6 +1,6 @@
 from enum import Enum
 from re import Pattern, RegexFlag, compile
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlaceholderItem
 
@@ -20,10 +20,6 @@ class RegexMode(str, Enum):
 
 
 class RegexpPlaceholderItem(BasePlaceholderItem):
-    pattern: Pattern[str]
-    flags: Union[int, RegexFlag]
-    mode: RegexMode
-
     def __init__(
         self,
         value: Any,
@@ -34,7 +30,7 @@ class RegexpPlaceholderItem(BasePlaceholderItem):
         super().__init__(value=value)
 
         self.pattern = (
-            compile(pattern=pattern, flags=flags) if isinstance(pattern, str) else self.pattern
+            compile(pattern=pattern, flags=flags) if isinstance(pattern, str) else pattern
         )
         self.flags = flags
         self.mode = mode
@@ -64,10 +60,10 @@ class RegexpPlaceholderDecorator(BasePlaceholderDecorator):
 class RegexpPlaceholderEngine(BasePlaceholderEngine):
     async def render(self, source: str, *items: RegexpPlaceholderItem, **context: Any) -> str:
         for item in items:
-            regex_method: Callable[[str], Any] = getattr(item.pattern, item.mode.value)
-            match: Any = regex_method(source)
+            regex_method = getattr(item.pattern, item.mode.value)
+            match = regex_method(source)
             if not match:
                 continue
-            value: Any = item.get_value(match=match, **context)
+            value = await item.get_value(match=match, **context)
             source = item.pattern.sub(repl=value, string=source)
         return source

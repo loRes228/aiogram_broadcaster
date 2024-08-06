@@ -11,8 +11,6 @@ from aiogram_broadcaster.utils.common_types import CallbackType, WrapperType
 class MagicContext(Filter):
     """For the magic filters to work properly."""
 
-    magic_filter: MagicFilter
-
     def __init__(self, magic_filter: MagicFilter) -> None:
         self.magic_filter = magic_filter
 
@@ -21,10 +19,8 @@ class MagicContext(Filter):
 
 
 class EventObserver:
-    handlers: list[HandlerObject]
-
     def __init__(self) -> None:
-        self.handlers = []
+        self.handlers: list[HandlerObject] = []
 
     def __call__(self, *filters: CallbackType) -> WrapperType:
         def wrapper(callback: CallbackType) -> CallbackType:

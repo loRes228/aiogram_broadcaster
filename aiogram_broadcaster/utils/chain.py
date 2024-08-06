@@ -16,10 +16,6 @@ class Chain(Generic[ChainType]):
     __chain_root__: ClassVar[bool]
     __chain_sub_name__: ClassVar[str]
 
-    name: str
-    head: Optional[ChainType]
-    tail: list[ChainType]
-
     def __init_subclass__(cls, **kwargs: Any) -> None:
         if not hasattr(cls, "__chain_object__"):
             cls.__chain_object__ = cls
@@ -29,8 +25,8 @@ class Chain(Generic[ChainType]):
 
     def __init__(self, name: Optional[str] = None) -> None:
         self.name = hex(id(self)) if name is None else name
-        self.head = None
-        self.tail = []
+        self.head: Optional[ChainType] = None
+        self.tail: list[ChainType] = []
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(name='{self.name}')"

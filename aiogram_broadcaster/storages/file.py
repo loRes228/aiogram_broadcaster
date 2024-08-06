@@ -17,12 +17,9 @@ class StorageRecords(BaseModel):
 
 
 class FileStorage(BaseStorage):
-    file: Path
-    _lock: Optional[Lock]
-
     def __init__(self, filename: Union[str, PathLike[str], Path] = ".mailers.json") -> None:
         self.file = Path(filename)
-        self._lock = None
+        self._lock: Optional[Lock] = None
 
     @property
     def lock(self) -> Lock:

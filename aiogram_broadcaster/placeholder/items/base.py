@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 from aiogram.dispatcher.event.handler import CallableObject
 from typing_extensions import Self
@@ -12,8 +12,6 @@ if TYPE_CHECKING:
 
 
 class BasePlaceholderItem:
-    _value: Union[CallableObject, Any]
-
     def __init__(self, value: Any) -> None:
         self._value = CallableObject(callback=value) if callable(value) else value
 
@@ -38,8 +36,6 @@ class BasePlaceholderItem:
 
 
 class BasePlaceholderDecorator(ABC):
-    _placeholder: "Placeholder"
-
     def __init__(self, placeholder: "Placeholder") -> None:
         self._placeholder = placeholder
 
@@ -51,7 +47,7 @@ class BasePlaceholderDecorator(ABC):
         return wrapper
 
     def register(self, *args: Any, **kwargs: Any) -> Self:
-        item: BasePlaceholderItem = self.__item_class__(*args, **kwargs)
+        item = self.__item_class__(*args, **kwargs)
         self._placeholder.register(item)
         return self
 

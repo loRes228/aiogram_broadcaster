@@ -14,7 +14,7 @@ class BaseInterval(DiscriminatedModel, CallableModel):
     async def sleep(self, event: Event, /, **context: Any) -> bool:
         if event.is_set():
             return False
-        delay: float = await self.call(**context)
+        delay = await self.call(**context)
         if not delay:
             return True
         return await sleep(event=event, delay=delay)

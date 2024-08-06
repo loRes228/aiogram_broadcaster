@@ -20,12 +20,6 @@ from .storages.base import BaseStorage
 
 
 class Broadcaster(MailerContainer):
-    bots: tuple[Bot, ...]
-    storage: Optional[BaseStorage]
-    context: dict[str, Any]
-    event: EventManager
-    placeholder: PlaceholderManager
-
     def __init__(
         self,
         *bots: Bot,

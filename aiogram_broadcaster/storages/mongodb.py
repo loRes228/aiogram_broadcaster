@@ -9,7 +9,7 @@ from .base import BaseStorage, StorageRecord
 
 
 try:
-    from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
+    from motor.motor_asyncio import AsyncIOMotorClient
 except ImportError as error:
     raise DependencyNotFoundError(
         feature_name="MongoDBStorage",
@@ -23,11 +23,6 @@ DEFAULT_COLLECTION_NAME = "mailers"
 
 
 class MongoDBStorage(BaseStorage):
-    client: AsyncIOMotorClient
-    database_name: str
-    collection_name: str
-    collection: AsyncIOMotorCollection
-
     def __init__(
         self,
         client: AsyncIOMotorClient,

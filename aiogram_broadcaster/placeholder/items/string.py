@@ -11,8 +11,6 @@ if TYPE_CHECKING:
 
 
 class StringPlaceholderItem(BasePlaceholderItem):
-    name: str
-
     def __init__(self, value: Any, name: str) -> None:
         super().__init__(value=value)
 

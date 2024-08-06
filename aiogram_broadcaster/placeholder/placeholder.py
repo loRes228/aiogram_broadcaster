@@ -5,23 +5,17 @@ from typing_extensions import Self
 
 from aiogram_broadcaster.utils.chain import Chain
 
-from .items.base import BasePlaceholderDecorator, BasePlaceholderItem
+from .items.base import BasePlaceholderItem
 from .items.jinja import JinjaPlaceholderDecorator
 from .items.regexp import RegexpPlaceholderDecorator
 from .items.string import StringPlaceholderDecorator
 
 
 class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
-    items: set[BasePlaceholderItem]
-    jinja: JinjaPlaceholderDecorator
-    regexp: RegexpPlaceholderDecorator
-    string: StringPlaceholderDecorator
-    decorators: dict[str, BasePlaceholderDecorator]
-
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 
-        self.items = set()
+        self.items: set[BasePlaceholderItem] = set()
         self.jinja = JinjaPlaceholderDecorator(placeholder=self)
         self.regexp = RegexpPlaceholderDecorator(placeholder=self)
         self.string = StringPlaceholderDecorator(placeholder=self)

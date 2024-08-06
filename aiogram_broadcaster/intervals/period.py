@@ -18,7 +18,7 @@ class PeriodInterval(BaseInterval):
 
     @classmethod
     def from_datetime(cls, period: datetime) -> Self:
-        delta: timedelta = period - datetime.now(tz=period.tzinfo)
+        delta = period - datetime.now(tz=period.tzinfo)
         return cls(period=delta.total_seconds())
 
     async def __call__(self, mailer: Mailer) -> float:

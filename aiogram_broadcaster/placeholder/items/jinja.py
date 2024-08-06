@@ -13,8 +13,6 @@ if TYPE_CHECKING:
 
 
 class JinjaPlaceholderItem(BasePlaceholderItem):
-    name: str
-
     def __init__(self, value: Any, name: str) -> None:
         super().__init__(value=value)
 
@@ -54,7 +52,7 @@ class JinjaPlaceholderEngine(BasePlaceholderEngine):
 
         template = Template(source=source)
         node = template.environment.parse(source=source)
-        template_keys: set[str] = find_undeclared_variables(ast=node)
+        template_keys = find_undeclared_variables(ast=node)
         if not template_keys:
             return source
         data = {
