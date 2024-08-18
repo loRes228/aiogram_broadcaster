@@ -7,11 +7,10 @@ from aiogram_broadcaster.utils.logger import logger
 from aiogram_broadcaster.utils.sleep import sleep
 
 
-event = Event(name=__name__)
+retry_after_handler_event = Event(name=__name__)
 
 
-@event.completed(
-    F.handle_retry_after,
+@retry_after_handler_event.failed_send(
     F.error.cast(type).is_(TelegramRetryAfter),
     F.error.retry_after.as_("delay"),
 )
@@ -24,3 +23,8 @@ async def handle_retry_after(mailer: Mailer, chat_id: int, delay: float) -> None
     )
     if await sleep(event=mailer._stop_event, delay=delay):  # noqa: SLF001
         await mailer.send(chat_id=chat_id)
+
+
+def setup_retry_after_handler(event: Event) -> Event:
+    event.bind(retry_after_handler_event)
+    return event

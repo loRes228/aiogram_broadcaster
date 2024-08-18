@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import Self
 
@@ -11,6 +11,10 @@ from .items.regexp import RegexpPlaceholderDecorator
 from .items.string import StringPlaceholderDecorator
 
 
+if TYPE_CHECKING:
+    from .items.base import BasePlaceholderDecorator
+
+
 class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
@@ -19,7 +23,7 @@ class Placeholder(Chain["Placeholder"], sub_name="placeholder"):
         self.jinja = JinjaPlaceholderDecorator(placeholder=self)
         self.regexp = RegexpPlaceholderDecorator(placeholder=self)
         self.string = StringPlaceholderDecorator(placeholder=self)
-        self.decorators = {
+        self.decorators: dict[str, BasePlaceholderDecorator] = {
             "jinja": self.jinja,
             "regexp": self.regexp,
             "string": self.string,

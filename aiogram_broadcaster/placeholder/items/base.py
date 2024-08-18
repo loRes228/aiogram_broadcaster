@@ -1,10 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from aiogram.dispatcher.event.handler import CallableObject
 from typing_extensions import Self
-
-from aiogram_broadcaster.utils.common_types import CallbackType, WrapperType
 
 
 if TYPE_CHECKING:
@@ -39,8 +37,12 @@ class BasePlaceholderDecorator(ABC):
     def __init__(self, placeholder: "Placeholder") -> None:
         self._placeholder = placeholder
 
-    def __call__(self, *args: Any, **kwargs: Any) -> WrapperType:
-        def wrapper(callback: CallbackType) -> CallbackType:
+    def __call__(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        def wrapper(callback: Callable[..., Any]) -> Callable[..., Any]:
             self.register(callback, *args, **kwargs)
             return callback
 

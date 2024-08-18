@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from aiogram.methods import TelegramMethod
 from pydantic import ConfigDict
+from pydantic_discriminated_model import DiscriminatedModel
 
 from aiogram_broadcaster.utils.callable_model import CallableModel
-from aiogram_broadcaster.utils.discriminated_model import DiscriminatedModel
 
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ else:
     ContentType = TypeVar("ContentType", bound="BaseContent")
 
 
-class BaseContent(DiscriminatedModel, CallableModel):
+class BaseContent(DiscriminatedModel, CallableModel, register=False):
     model_config = ConfigDict(
         extra="allow",
         validate_assignment=True,

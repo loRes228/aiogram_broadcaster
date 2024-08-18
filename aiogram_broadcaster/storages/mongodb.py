@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterable
+from collections.abc import AsyncIterable, Mapping
 from typing import Any, Optional
 
 from typing_extensions import Self
@@ -38,7 +38,7 @@ class MongoDBStorage(BaseStorage):
     def from_url(
         cls,
         url: str,
-        client_options: Optional[dict[str, Any]] = None,
+        client_options: Optional[Mapping[str, Any]] = None,
         database_name: str = DEFAULT_DATABASE_NAME,
         collection_name: str = DEFAULT_COLLECTION_NAME,
     ) -> Self:

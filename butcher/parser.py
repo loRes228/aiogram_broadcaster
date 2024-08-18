@@ -1,10 +1,11 @@
+from collections.abc import Generator
 from inspect import signature
-from typing import Any, Generator, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional
 
-from .normaiizer import normalize_type
+from .normalizer import normalize_type
 
 
-EXCLUDED_NAMED = {
+EXCLUDED_NAMES = {
     "self",
     "extra_data",
     "kwargs",
@@ -26,7 +27,7 @@ class FieldNode(NamedTuple):
 def parse_nodes(obj: Any) -> Generator[FieldNode, None, None]:
     parameters = signature(obj=obj).parameters
     for name, param in parameters.items():
-        if name in EXCLUDED_NAMED:
+        if name in EXCLUDED_NAMES:
             continue
         yield FieldNode(
             name=name,

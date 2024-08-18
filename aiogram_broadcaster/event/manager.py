@@ -24,8 +24,8 @@ class EventManager(Event):
     async def emit_created(self, **context: Any) -> None:
         await self.emit_event("created", **context)
 
-    async def emit_destroyed(self, **context: Any) -> None:
-        await self.emit_event("destroyed", **context)
+    async def emit_deleted(self, **context: Any) -> None:
+        await self.emit_event("deleted", **context)
 
     async def emit_started(self, **context: Any) -> None:
         await self.emit_event("started", **context)

@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from aiogram_broadcaster.utils.exceptions import DependencyNotFoundError
 
@@ -8,8 +8,6 @@ from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlacehold
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-
-    from aiogram_broadcaster.utils.common_types import WrapperType
 
 
 class JinjaPlaceholderItem(BasePlaceholderItem):
@@ -36,7 +34,7 @@ class JinjaPlaceholderDecorator(BasePlaceholderDecorator):
         def __call__(
             self,
             name: str,
-        ) -> WrapperType: ...
+        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]: ...
 
         def register(
             self,

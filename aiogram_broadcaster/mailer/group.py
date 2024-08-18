@@ -9,8 +9,8 @@ from .mailer import Mailer
 
 
 class MailerGroup(MailerContainer[ContentType]):
-    async def destroy(self) -> dict[Mailer[ContentType], Optional[BaseException]]:
-        return await self._emit(mailer.destroy() for mailer in self)
+    async def delete(self) -> dict[Mailer[ContentType], Optional[BaseException]]:
+        return await self._emit(mailer.delete() for mailer in self)
 
     async def stop(self) -> dict[Mailer[ContentType], Optional[BaseException]]:
         return await self._emit(mailer.stop() for mailer in self)
@@ -52,10 +52,7 @@ class MailerGroup(MailerContainer[ContentType]):
             for mailer in self
         )
 
-    async def _emit(
-        self,
-        targets: Iterable[Awaitable[Any]],
-    ) -> dict[Mailer[ContentType], Any]:
+    async def _emit(self, targets: Iterable[Awaitable[Any]]) -> dict[Mailer[ContentType], Any]:
         if not targets:
             return {}
         results = await gather(*targets, return_exceptions=True)

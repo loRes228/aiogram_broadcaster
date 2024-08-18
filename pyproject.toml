@@ -47,7 +47,8 @@ keywords = [
     "wrapper"
 ]
 dependencies = [
-    "aiogram>=3.10.0"
+    "aiogram>=3.10.0",
+    "pydantic_discriminated_model@git+https://github.com/loRes228/pydantic_discriminated_model"
 ]
 
 [project.optional-dependencies]
@@ -56,7 +57,7 @@ all = [
 ]
 dev = [
     "mypy>=1.11.0",
-    "ruff>=0.5.0",
+    "ruff>=0.6.0",
     "types-aiofiles>=24.1.0",
     "motor-types>=1.0.0b4"
 ]
@@ -93,6 +94,9 @@ path = "aiogram_broadcaster/__meta__.py"
 
 [tool.hatch.envs.default]
 path = ".venv"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 
 [tool.ruff]
