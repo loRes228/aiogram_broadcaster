@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterable
+from collections.abc import AsyncIterable, Mapping
 from typing import Any, Optional, Union
 
 from typing_extensions import Self
@@ -47,7 +47,7 @@ class RedisStorage(BaseStorage):
     def from_url(
         cls,
         url: str,
-        connection_options: Optional[dict[str, Any]] = None,
+        connection_options: Optional[Mapping[str, Any]] = None,
         key_prefix: str = DEFAULT_KEY_PREFIX,
         key_seperator: str = DEFAULT_KEY_SEPERATOR,
     ) -> Self:

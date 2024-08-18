@@ -9,7 +9,7 @@ from aiogram.types import Message
 from aiogram_broadcaster import Broadcaster, Event, Mailer
 from aiogram_broadcaster.contents import MessageSendContent
 from aiogram_broadcaster.intervals import SimpleInterval
-from aiogram_broadcaster.utils.events import destroy_on_complete, retry_after_handler
+from aiogram_broadcaster.utils.retry_after_handler import setup_retry_after_handler
 
 
 TOKEN = "123:Abc"
@@ -72,9 +72,7 @@ def main() -> None:
     broadcaster = Broadcaster(bot)
     broadcaster.setup(dispatcher=dispatcher)
     broadcaster.event.bind(event)
-
-    # Enable builtin events
-    broadcaster.event.bind(destroy_on_complete.event, retry_after_handler.event)
+    setup_retry_after_handler(event=broadcaster.event)
 
     dispatcher.run_polling(bot)
 

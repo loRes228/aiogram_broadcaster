@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from abc import abstractmethod
 
 
-class LazyContentAdapter(BaseContent):
+class LazyContentAdapter(BaseContent, register=False):
     async def as_method(self, **context: Any) -> TelegramMethod[Any]:
         content: BaseContent = await self.call(**context)
         return await content.as_method(**context)

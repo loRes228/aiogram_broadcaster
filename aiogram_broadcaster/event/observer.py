@@ -1,11 +1,9 @@
-from typing import Any
+from typing import Any, Callable
 
 from aiogram.dispatcher.event.handler import FilterObject, HandlerObject
 from aiogram.filters import Filter
 from magic_filter import AttrDict, MagicFilter
 from typing_extensions import Self
-
-from aiogram_broadcaster.utils.common_types import CallbackType, WrapperType
 
 
 class MagicContext(Filter):
@@ -22,14 +20,17 @@ class EventObserver:
     def __init__(self) -> None:
         self.handlers: list[HandlerObject] = []
 
-    def __call__(self, *filters: CallbackType) -> WrapperType:
-        def wrapper(callback: CallbackType) -> CallbackType:
+    def __call__(
+        self,
+        *filters: Callable[..., Any],
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        def wrapper(callback: Callable[..., Any]) -> Callable[..., Any]:
             self.register(callback, *filters)
             return callback
 
         return wrapper
 
-    def register(self, callback: CallbackType, *filters: CallbackType) -> Self:
+    def register(self, callback: Callable[..., Any], *filters: Callable[..., Any]) -> Self:
         filters_ = [
             FilterObject(
                 callback=(

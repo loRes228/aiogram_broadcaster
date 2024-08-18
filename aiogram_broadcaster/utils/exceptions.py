@@ -31,19 +31,19 @@ class MailerError(DetailedBroadcasterError, RuntimeError):
     mailer_id: int
 
 
-class MailerStoppedError(MailerError):
+class MailerStopError(MailerError):
     message = "Mailer id {mailer_id} cannot be stopped."
 
 
-class MailerStartedError(MailerError):
+class MailerStartError(MailerError):
     message = "Mailer id {mailer_id} cannot be started."
 
 
-class MailerDestroyedError(MailerError):
-    message = "Mailer id {mailer_id} cannot be destroyed."
+class MailerDeleteError(MailerError):
+    message = "Mailer id {mailer_id} cannot be deleted."
 
 
-class MailerExtendedError(MailerError):
+class MailerExtendError(MailerError):
     message = "Mailer id {mailer_id} cannot be extended."
 
 

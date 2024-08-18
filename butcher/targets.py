@@ -1,4 +1,4 @@
-from typing import Any, List, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional
 
 from aiogram.methods import (
     CopyMessage,
@@ -37,7 +37,7 @@ class Target(NamedTuple):
     call_result: str
     method_exec: str
     put_model_extra: bool = True
-    model_extra_nodes: Optional[List[FieldNode]] = None
+    model_extra_nodes: Optional[list[FieldNode]] = None
 
 
 TARGETS = (

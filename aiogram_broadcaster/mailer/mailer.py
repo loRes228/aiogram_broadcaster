@@ -12,11 +12,11 @@ from aiogram_broadcaster.contents.base import ContentType
 from aiogram_broadcaster.intervals.base import BaseInterval
 from aiogram_broadcaster.storages.base import StorageRecord
 from aiogram_broadcaster.utils.exceptions import (
-    MailerDestroyedError,
-    MailerExtendedError,
+    MailerDeleteError,
+    MailerExtendError,
     MailerResetError,
-    MailerStartedError,
-    MailerStoppedError,
+    MailerStartError,
+    MailerStopError,
 )
 from aiogram_broadcaster.utils.id_generator import generate_id
 from aiogram_broadcaster.utils.logger import logger
@@ -40,7 +40,7 @@ class Mailer(Generic[ContentType]):
     context: dict[str, Any]
     broadcaster: "Broadcaster"
     _stop_event: Event
-    _destroyed: bool
+    _deleted: bool
 
     @classmethod
     async def create(
@@ -71,7 +71,7 @@ class Mailer(Generic[ContentType]):
             context=context.copy(),
             broadcaster=broadcaster,
             _stop_event=stop_event,
-            _destroyed=False,
+            _deleted=False,
         )
         mailer.context.update(
             broadcaster.context,
@@ -123,7 +123,7 @@ class Mailer(Generic[ContentType]):
             context=record.context.copy(),
             broadcaster=broadcaster,
             _stop_event=stop_event,
-            _destroyed=False,
+            _deleted=False,
         )
         mailer.context.update(
             broadcaster.context,
@@ -147,44 +147,44 @@ class Mailer(Generic[ContentType]):
         return hash(self) == hash(other)
 
     @property
-    def can_destroyed(self) -> bool:
-        return not self._destroyed
+    def can_deleted(self) -> bool:
+        return not self._deleted
 
     @property
     def can_stopped(self) -> bool:
-        return not self._destroyed and self.status is MailerStatus.STARTED
+        return not self._deleted and self.status is MailerStatus.STARTED
 
     @property
     def can_started(self) -> bool:
-        return not self._destroyed and self.status is MailerStatus.STOPPED
+        return not self._deleted and self.status is MailerStatus.STOPPED
 
     @property
     def can_extended(self) -> bool:
-        return not self._destroyed
+        return not self._deleted
 
     @property
     def can_reset(self) -> bool:
         return (
-            not self._destroyed
+            not self._deleted
             and self.status is not MailerStatus.STARTED
             and self.chats.total != self.chats.pending
         )
 
-    async def destroy(self) -> None:
-        if not self.can_destroyed:
-            raise MailerDestroyedError(mailer_id=self.id)
-        logger.info("Mailer id=%d was destroyed.", self.id)
+    async def delete(self) -> None:
+        if not self.can_deleted:
+            raise MailerDeleteError(mailer_id=self.id)
+        logger.info("Mailer id=%d was deleted.", self.id)
         self.status = MailerStatus.COMPLETED
         self._stop_event.set()
-        self._destroyed = True
+        self._deleted = True
         del self.broadcaster.mailers[self.id]
         if self.broadcaster.storage:
             await self.broadcaster.storage.delete_record(mailer_id=self.id)
-        await self.broadcaster.event.emit_destroyed(**self.context)
+        await self.broadcaster.event.emit_deleted(**self.context)
 
     async def stop(self) -> None:
         if not self.can_stopped:
-            raise MailerStoppedError(mailer_id=self.id)
+            raise MailerStopError(mailer_id=self.id)
         logger.info("Mailer id=%d was stopped.", self.id)
         self.status = MailerStatus.STOPPED
         self._stop_event.set()
@@ -195,7 +195,7 @@ class Mailer(Generic[ContentType]):
 
     async def _start(self) -> bool:
         if not self.can_started:
-            raise MailerStartedError(mailer_id=self.id)
+            raise MailerStartError(mailer_id=self.id)
         logger.info("Mailer id=%d was started.", self.id)
         self.status = MailerStatus.STARTED
         self._stop_event.clear()
@@ -215,14 +215,12 @@ class Mailer(Generic[ContentType]):
 
     async def extend(self, chats: Iterable[int]) -> set[int]:
         if not self.can_extended:
-            raise MailerExtendedError(mailer_id=self.id)
+            raise MailerExtendError(mailer_id=self.id)
         difference = set(chats) - self.chats.total.ids
         if not difference:
             return difference
         self.chats.registry[ChatState.PENDING].update(difference)
-        if self.broadcaster.storage:
-            async with self.broadcaster.storage.update_record(mailer_id=self.id) as record:
-                record.chats = self.chats
+        await self._preserve_chats()
         if self.status is MailerStatus.COMPLETED:
             self.status = MailerStatus.STOPPED
         logger.info(
@@ -238,9 +236,7 @@ class Mailer(Generic[ContentType]):
         total_chats = self.chats.total.ids
         self.chats.registry.clear()
         self.chats.registry[ChatState.PENDING].update(total_chats)
-        if self.broadcaster.storage:
-            async with self.broadcaster.storage.update_record(mailer_id=self.id) as record:
-                record.chats = self.chats
+        await self._preserve_chats()
         if self.status is MailerStatus.COMPLETED:
             self.status = MailerStatus.STOPPED
         logger.info("Mailer id=%d has been reset.")
@@ -300,11 +296,14 @@ class Mailer(Generic[ContentType]):
             chat = self.chats.registry[ChatState.PENDING].pop()
             success, _ = await self.send(chat_id=chat)
             self.chats.registry[ChatState.SUCCESS if success else ChatState.FAILED].add(chat)
-            if self.broadcaster.storage:
-                async with self.broadcaster.storage.update_record(mailer_id=self.id) as record:
-                    record.chats = self.chats
+            await self._preserve_chats()
             if not self.chats.registry[ChatState.PENDING]:
                 return True
             if self.interval:
                 await self.interval.sleep(self._stop_event, **self.context)
         return True
+
+    async def _preserve_chats(self) -> None:
+        if self.broadcaster.storage:
+            async with self.broadcaster.storage.update_record(mailer_id=self.id) as record:
+                record.chats = self.chats

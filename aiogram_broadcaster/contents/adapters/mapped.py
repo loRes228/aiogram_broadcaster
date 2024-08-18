@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from abc import abstractmethod
 
 
-class MappedContentAdapter(BaseContent):
+class MappedContentAdapter(BaseContent, register=False):
     default: Optional[SerializeAsAny[BaseContent]] = None
     __pydantic_extra__: dict[str, SerializeAsAny[BaseContent]]
 

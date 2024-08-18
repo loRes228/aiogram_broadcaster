@@ -1,13 +1,11 @@
 from string import Template
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlaceholderItem
 
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-
-    from aiogram_broadcaster.utils.common_types import WrapperType
 
 
 class StringPlaceholderItem(BasePlaceholderItem):
@@ -25,7 +23,7 @@ class StringPlaceholderDecorator(BasePlaceholderDecorator):
         def __call__(
             self,
             name: str,
-        ) -> WrapperType: ...
+        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]: ...
 
         def register(
             self,

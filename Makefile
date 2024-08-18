@@ -31,8 +31,8 @@ lint:
 
 .PHONY: format
 format:
-	ruff check --fix --unsafe-fixes ${PACKAGE_DIRECTORY}
 	ruff format ${CODE_DIRECTORIES}
+	ruff check --fix --unsafe-fixes ${PACKAGE_DIRECTORY}
 
 
 # =====================================

@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterable
+from collections.abc import AsyncIterable, Mapping
 from typing import Any, Optional, Union, cast
 
 from typing_extensions import Self
@@ -70,7 +70,7 @@ class SQLAlchemyStorage(BaseStorage):
     def from_engine(
         cls,
         engine: AsyncEngine,
-        session_options: Optional[dict[str, Any]] = None,
+        session_options: Optional[Mapping[str, Any]] = None,
         table_name: str = DEFAULT_TABLE_NAME,
     ) -> Self:
         session_maker = async_sessionmaker(bind=engine, **(session_options or {}))
@@ -80,8 +80,8 @@ class SQLAlchemyStorage(BaseStorage):
     def from_url(
         cls,
         url: Union[str, URL],
-        engine_options: Optional[dict[str, Any]] = None,
-        session_options: Optional[dict[str, Any]] = None,
+        engine_options: Optional[Mapping[str, Any]] = None,
+        session_options: Optional[Mapping[str, Any]] = None,
         table_name: str = DEFAULT_TABLE_NAME,
     ) -> Self:
         engine = create_async_engine(url=url, **(engine_options or {}))

@@ -94,7 +94,8 @@ class Broadcaster(MailerContainer):
                 logger.exception("Failed to restore mailer id=%d.", mailer_id)
 
     async def run_mailers(self) -> None:
-        self.get_mailers(magic=F.status.is_(MailerStatus.STOPPED)).start()
+        group = self.get_mailers(magic=F.status.is_(MailerStatus.STOPPED))
+        group.start()
 
     def setup(
         self,
@@ -111,10 +112,10 @@ class Broadcaster(MailerContainer):
         if fetch_dispatcher_context:
             self.context.update(dispatcher.workflow_data)
         if self.storage:
-            dispatcher.startup.register(self.storage.startup)
-            dispatcher.shutdown.register(self.storage.shutdown)
+            dispatcher.startup.register(callback=self.storage.startup)
+            dispatcher.shutdown.register(callback=self.storage.shutdown)
             if restore_mailers:
-                dispatcher.startup.register(self.restore_mailers)
+                dispatcher.startup.register(callback=self.restore_mailers)
         if run_mailers:
-            dispatcher.startup.register(self.run_mailers)
+            dispatcher.startup.register(callback=self.run_mailers)
         return self

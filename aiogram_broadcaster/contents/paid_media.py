@@ -26,6 +26,7 @@ from .base import BaseContent
 class PaidMediaContent(BaseContent):
     star_count: int
     media: list[Union[InputPaidMediaPhoto, InputPaidMediaVideo]]
+    business_connection_id: Optional[str] = None
     caption: Optional[str] = None
     parse_mode: Optional[str] = None
     caption_entities: Optional[list[MessageEntity]] = None
@@ -41,6 +42,7 @@ class PaidMediaContent(BaseContent):
             chat_id=chat_id,
             star_count=self.star_count,
             media=self.media,
+            business_connection_id=self.business_connection_id,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -58,6 +60,7 @@ class PaidMediaContent(BaseContent):
             *,
             star_count: int,
             media: list[Union[InputPaidMediaPhoto, InputPaidMediaVideo]],
+            business_connection_id: Optional[str] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[list[MessageEntity]] = ...,

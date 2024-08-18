@@ -1,14 +1,12 @@
 from enum import Enum
 from re import Pattern, RegexFlag, compile
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, Callable, Union
 
 from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlaceholderItem
 
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-
-    from aiogram_broadcaster.utils.common_types import WrapperType
 
 
 class RegexMode(str, Enum):
@@ -46,7 +44,7 @@ class RegexpPlaceholderDecorator(BasePlaceholderDecorator):
             pattern: Union[str, Pattern[str]],
             flags: Union[int, RegexFlag] = ...,
             mode: RegexMode = ...,
-        ) -> WrapperType: ...
+        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]: ...
 
         def register(
             self,

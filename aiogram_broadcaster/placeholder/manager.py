@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Generator
-from typing import Any, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 from pydantic import BaseModel
 
@@ -10,6 +10,10 @@ from .items.jinja import JinjaPlaceholderEngine, JinjaPlaceholderItem
 from .items.regexp import RegexpPlaceholderEngine, RegexpPlaceholderItem
 from .items.string import StringPlaceholderEngine, StringPlaceholderItem
 from .placeholder import Placeholder
+
+
+if TYPE_CHECKING:
+    from .items.base import BasePlaceholderEngine, BasePlaceholderItem
 
 
 ModelType = TypeVar("ModelType", bound=BaseModel)
@@ -23,7 +27,7 @@ class PlaceholderManager(Placeholder):
     def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name=name)
 
-        self.engines = {
+        self.engines: dict[type[BasePlaceholderItem], BasePlaceholderEngine] = {
             JinjaPlaceholderItem: JinjaPlaceholderEngine(),
             RegexpPlaceholderItem: RegexpPlaceholderEngine(),
             StringPlaceholderItem: StringPlaceholderEngine(),
@@ -33,8 +37,9 @@ class PlaceholderManager(Placeholder):
         if not tuple(self.chain_items):
             return model
         for field_name, field_value in self._parse_text_fields(model=model):
-            rendered_value = await self._render_source(field_value, **context)
-            model = model.model_copy(update={field_name: rendered_value})
+            rendered_field_value = await self._render_source(field_value, **context)
+            if rendered_field_value != field_value:
+                model = model.model_copy(update={field_name: rendered_field_value})
         return model
 
     def _parse_text_fields(self, model: BaseModel) -> Generator[tuple[str, str], None, None]:
