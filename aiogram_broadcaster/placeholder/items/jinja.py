@@ -1,3 +1,5 @@
+# ruff: noqa: PLC0415
+
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -45,8 +47,8 @@ class JinjaPlaceholderDecorator(BasePlaceholderDecorator):
 
 class JinjaPlaceholderEngine(BasePlaceholderEngine):
     async def render(self, source: str, *items: JinjaPlaceholderItem, **context: Any) -> str:
-        from jinja2 import Template  # noqa: PLC0415
-        from jinja2.meta import find_undeclared_variables  # noqa: PLC0415
+        from jinja2 import Template
+        from jinja2.meta import find_undeclared_variables
 
         template = Template(source=source)
         node = template.environment.parse(source=source)
