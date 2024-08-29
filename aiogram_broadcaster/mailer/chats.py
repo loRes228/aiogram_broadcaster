@@ -9,12 +9,6 @@ from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
 
-class ChatState(IntEnum):
-    PENDING = auto()
-    FAILED = auto()
-    SUCCESS = auto()
-
-
 @dataclass(frozen=True)
 class ChatsMetric:
     ids: set[int]
@@ -79,6 +73,12 @@ class ChatsMetric:
         return (int(self) + int(other)) / 2
 
 
+class ChatState(IntEnum):
+    PENDING = auto()
+    FAILED = auto()
+    SUCCESS = auto()
+
+
 class Chats(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
 
@@ -105,17 +105,17 @@ class Chats(BaseModel):
 
     @property
     def pending(self) -> ChatsMetric:
-        chats = self.registry[ChatState.PENDING]
+        chats = self.registry[ChatState.PENDING].copy()
         return ChatsMetric(ids=chats)
 
     @property
     def failed(self) -> ChatsMetric:
-        chats = self.registry[ChatState.FAILED]
+        chats = self.registry[ChatState.FAILED].copy()
         return ChatsMetric(ids=chats)
 
     @property
     def success(self) -> ChatsMetric:
-        chats = self.registry[ChatState.SUCCESS]
+        chats = self.registry[ChatState.SUCCESS].copy()
         return ChatsMetric(ids=chats)
 
     @property
