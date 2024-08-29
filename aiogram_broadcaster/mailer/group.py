@@ -1,11 +1,14 @@
 from asyncio import Task, gather
 from collections.abc import Awaitable, Iterable
-from typing import Any, Optional, Union
+from typing import Any, Optional, TypeVar, Union
 
 from aiogram_broadcaster.contents.base import ContentType
 
 from .container import MailerContainer
 from .mailer import Mailer
+
+
+ReturnType = TypeVar("ReturnType")
 
 
 class MailerGroup(MailerContainer[ContentType]):
@@ -52,7 +55,10 @@ class MailerGroup(MailerContainer[ContentType]):
             for mailer in self
         )
 
-    async def _emit(self, targets: Iterable[Awaitable[Any]]) -> dict[Mailer[ContentType], Any]:
+    async def _emit(
+        self,
+        targets: Iterable[Awaitable[ReturnType]],
+    ) -> dict[Mailer[ContentType], Union[ReturnType, BaseException]]:
         if not targets:
             return {}
         results = await gather(*targets, return_exceptions=True)
