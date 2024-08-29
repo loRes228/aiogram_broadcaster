@@ -1,5 +1,6 @@
 import logging
 import sys
+from typing import Optional
 
 from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
@@ -10,7 +11,6 @@ from aiogram.types import Message
 
 from aiogram_broadcaster import Broadcaster, Placeholder
 from aiogram_broadcaster.contents import TextContent
-from aiogram_broadcaster.utils.interrupt import interrupt
 
 
 TOKEN = "123:Abc"
@@ -29,11 +29,11 @@ async def process_start_command(message: Message, broadcaster: Broadcaster) -> N
 
 
 @placeholder.string(name="name")
-async def name_placeholder(chat_id: int, bot: Bot) -> str:
+async def name_placeholder(chat_id: int, bot: Bot) -> Optional[str]:
     try:
         member = await bot.get_chat_member(chat_id=chat_id, user_id=chat_id)
     except TelegramAPIError:
-        interrupt()
+        return None
     else:
         return member.user.first_name
 

@@ -9,6 +9,7 @@ from .base import BasePlaceholderDecorator, BasePlaceholderEngine, BasePlacehold
 
 
 if TYPE_CHECKING:
+    from jinja2 import Template
     from typing_extensions import Self
 
 
@@ -48,18 +49,38 @@ class JinjaPlaceholderDecorator(BasePlaceholderDecorator):
 class JinjaPlaceholderEngine(BasePlaceholderEngine):
     async def render(self, source: str, *items: JinjaPlaceholderItem, **context: Any) -> str:
         from jinja2 import Template
-        from jinja2.meta import find_undeclared_variables
 
         template = Template(source=source)
-        node = template.environment.parse(source=source)
-        template_keys = find_undeclared_variables(ast=node)
+        template_keys = self.get_template_keys(template=template, source=source)
         if not template_keys:
             return source
-        data = {
-            item.name: await item.get_value(template=template, **context)
-            for item in items
-            if item.name in template_keys
-        }
+        data = await self.get_data(
+            template_keys,
+            *items,
+            **context,
+            template=template,
+        )
         if not data:
             return source
         return template.render(data)
+
+    def get_template_keys(self, template: "Template", source: str) -> set[str]:
+        from jinja2.meta import find_undeclared_variables
+
+        node = template.environment.parse(source=source)
+        return find_undeclared_variables(ast=node)
+
+    async def get_data(
+        self,
+        template_keys: set[str],
+        *items: JinjaPlaceholderItem,
+        **context: Any,
+    ) -> dict[str, Any]:
+        data = {}
+        for item in items:
+            if item.name in template_keys:
+                continue
+            value = await item.get_value(**context)
+            if value is not None:
+                data[item.name] = value
+        return data

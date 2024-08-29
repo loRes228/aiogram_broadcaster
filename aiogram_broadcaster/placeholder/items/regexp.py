@@ -63,5 +63,6 @@ class RegexpPlaceholderEngine(BasePlaceholderEngine):
             if not match:
                 continue
             value = await item.get_value(match=match, **context)
-            source = item.pattern.sub(repl=value, string=source)
+            if value is not None:
+                source = item.pattern.sub(repl=value, string=source)
         return source
