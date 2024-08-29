@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 from pydantic import BaseModel
 
-from aiogram_broadcaster.utils.interrupt import suppress_interrupt
-
 from .items.jinja import JinjaPlaceholderEngine, JinjaPlaceholderItem
 from .items.regexp import RegexpPlaceholderEngine, RegexpPlaceholderItem
 from .items.string import StringPlaceholderEngine, StringPlaceholderItem
@@ -52,12 +50,10 @@ class PlaceholderManager(Placeholder):
         grouped_items = defaultdict(set)
         for item in self.chain_items:
             grouped_items[type(item)].add(item)
-        with suppress_interrupt():
-            for item_type, items in grouped_items.items():
-                with suppress_interrupt(stack_level=1):
-                    source = await self.engines[item_type].render(
-                        source,
-                        *items,
-                        **context,
-                    )
+        for item_type, items in grouped_items.items():
+            source = await self.engines[item_type].render(
+                source,
+                *items,
+                **context,
+            )
         return source
