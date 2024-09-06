@@ -47,8 +47,7 @@ keywords = [
     "wrapper"
 ]
 dependencies = [
-    "aiogram>=3.10.0",
-    "pydantic_discriminated_model@git+https://github.com/loRes228/pydantic_discriminated_model"
+    "aiogram>=3.10.0"
 ]
 
 [project.optional-dependencies]
@@ -57,7 +56,7 @@ all = [
 ]
 dev = [
     "mypy>=1.11.0",
-    "ruff>=0.6.0",
+    "ruff>=0.6.4",
     "types-aiofiles>=24.1.0",
     "motor-types>=1.0.0b4"
 ]

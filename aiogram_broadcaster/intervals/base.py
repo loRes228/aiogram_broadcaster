@@ -1,17 +1,16 @@
 from asyncio import Event
 from typing import TYPE_CHECKING, Any
 
-from pydantic_discriminated_model import DiscriminatedModel
-
 from aiogram_broadcaster.utils.callable_model import CallableModel
 from aiogram_broadcaster.utils.sleep import sleep
+from aiogram_broadcaster.utils.union_model import UnionModel
 
 
 if TYPE_CHECKING:
     from abc import abstractmethod
 
 
-class BaseInterval(DiscriminatedModel, CallableModel, register=False):
+class BaseInterval(UnionModel, CallableModel, register=False):
     async def sleep(self, event: Event, /, **context: Any) -> bool:
         if event.is_set():
             return False

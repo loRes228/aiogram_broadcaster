@@ -63,7 +63,7 @@ class FileStorage(BaseStorage):
         pass
 
     async def read_records(self) -> StorageRecords:
-        async with open(file=self.file, mode="r", encoding="utf-8") as file:
+        async with open(file=self.file, encoding="utf-8") as file:
             data = await file.read()
             return StorageRecords.model_validate_json(json_data=data)
 
