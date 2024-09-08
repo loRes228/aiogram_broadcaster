@@ -1,9 +1,9 @@
 PACKAGE_DIRECTORY = aiogram_broadcaster
-EXAMPLES_DIRECTORY = examples
 TESTS_DIRECTORY = tests
-CODE_DIRECTORIES = ${PACKAGE_DIRECTORY} ${TESTS_DIRECTORY} ${EXAMPLES_DIRECTORY}
+EXAMPLES_DIRECTORY = examples
+BUTCHER_DIRECTORY = butcher
 CACHE_DIRECTORY = .cache
-REPORTS_DIRECTORY = ${CACHE_DIRECTORY}/reports
+CODE_DIRECTORIES = ${PACKAGE_DIRECTORY} ${TESTS_DIRECTORY} ${EXAMPLES_DIRECTORY} ${BUTCHER_DIRECTORY}
 
 
 all: lint
@@ -32,7 +32,7 @@ lint:
 .PHONY: format
 format:
 	ruff format ${CODE_DIRECTORIES}
-	ruff check --fix ${PACKAGE_DIRECTORY}
+	ruff check --fix --unsafe-fixes ${PACKAGE_DIRECTORY}
 
 
 # =====================================
@@ -43,13 +43,16 @@ format:
 test:
 	pytest
 
-.PHONY: test-report
-test-report:
-	pytest --cov ${PACKAGE_DIRECTORY} --html "${REPORTS_DIRECTORY}/tests/index.html"
-	coverage html --directory "${REPORTS_DIRECTORY}/coverage"
 
-.PHONY: test-report-view
-test-report-view:
-	-$(MAKE) test-report
-	python -m webbrowser "${CURDIR}/${REPORTS_DIRECTORY}/tests/index.html"
-	python -m webbrowser "${CURDIR}/${REPORTS_DIRECTORY}/coverage/index.html"
+# =====================================
+# Project
+# =====================================
+
+.PHONY: butcher
+butcher:
+	python -m butcher
+	$(MAKE) format
+
+.PHONY: release
+release:
+	git tag "v$(shell hatch version)"

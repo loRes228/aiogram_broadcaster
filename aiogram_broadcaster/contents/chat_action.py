@@ -1,6 +1,14 @@
-from typing import TYPE_CHECKING, Any, Optional
+# THIS CODE WAS AUTO-GENERATED VIA `butcher`
 
-from aiogram.methods import SendChatAction
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Optional,
+)
+
+from aiogram.methods import (
+    SendChatAction,
+)
 
 from .base import BaseContent
 

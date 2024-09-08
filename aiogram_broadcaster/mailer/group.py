@@ -1,48 +1,64 @@
-from asyncio import ensure_future, gather, wait
-from typing import Any, Coroutine, Dict, Iterable, Optional, Set, Union
+from asyncio import Task, gather
+from collections.abc import Awaitable, Iterable
+from typing import Any, Optional, TypeVar, Union
+
+from aiogram_broadcaster.contents.base import ContentType
 
 from .container import MailerContainer
 from .mailer import Mailer
 
 
-class MailerGroup(MailerContainer):
-    def start(self) -> Dict[Mailer, Optional[Exception]]:
-        results: Dict[Mailer, Optional[Exception]] = {}
+ReturnType = TypeVar("ReturnType")
+
+
+class MailerGroup(MailerContainer[ContentType]):
+    async def delete(self) -> dict[Mailer[ContentType], Optional[BaseException]]:
+        return await self._emit(mailer.delete() for mailer in self)
+
+    async def stop(self) -> dict[Mailer[ContentType], Optional[BaseException]]:
+        return await self._emit(mailer.stop() for mailer in self)
+
+    def start(self) -> dict[Mailer[ContentType], Union[Task[bool], BaseException]]:
+        results: dict[Mailer[ContentType], Union[Task[bool], BaseException]] = {}
         for mailer in self:
             try:
-                mailer.start()
-                results[mailer] = None
-            except Exception as error:  # noqa: BLE001, PERF203
+                results[mailer] = mailer.start()
+            except BaseException as error:  # noqa: BLE001, PERF203
                 results[mailer] = error
         return results
 
-    async def wait(self) -> None:
-        if not self._mailers:
-            return
-        await wait(ensure_future(mailer.wait()) for mailer in self)
+    async def start_and_wait(self) -> dict[Mailer[ContentType], Union[bool, BaseException]]:
+        return await self._emit(mailer.start() for mailer in self)
 
-    async def run(self) -> Dict[Mailer, Union[Exception, bool]]:
-        return await self._gather_targets(mailer.run() for mailer in self)
-
-    async def stop(self) -> Dict[Mailer, Optional[Exception]]:
-        return await self._gather_targets(mailer.stop() for mailer in self)
-
-    async def destroy(self) -> Dict[Mailer, Optional[Exception]]:
-        return await self._gather_targets(mailer.destroy() for mailer in self)
-
-    async def add_chats(self, chats: Iterable[int]) -> Dict[Mailer, Union[Exception, Set[int]]]:
-        return await self._gather_targets(mailer.add_chats(chats=chats) for mailer in self)
-
-    async def reset_chats(self) -> Dict[Mailer, Union[Exception, bool]]:
-        return await self._gather_targets(mailer.reset_chats() for mailer in self)
-
-    async def send(self, chat_id: int) -> Dict[Mailer, Any]:
-        return await self._gather_targets(mailer.send(chat_id=chat_id) for mailer in self)
-
-    async def _gather_targets(
+    async def extend(
         self,
-        targets: Iterable[Coroutine[Any, Any, Any]],
-    ) -> Dict[Mailer, Any]:
+        chats: Iterable[int],
+    ) -> dict[Mailer[ContentType], Union[set[int], BaseException]]:
+        return await self._emit(mailer.extend(chats=chats) for mailer in self)
+
+    async def reset(self) -> dict[Mailer[ContentType], Optional[BaseException]]:
+        return await self._emit(mailer.reset() for mailer in self)
+
+    async def send(
+        self,
+        chat_id: int,
+        *,
+        disable_placeholders: bool = False,
+        disable_error_handling: bool = False,
+    ) -> dict[Mailer[ContentType], Union[tuple[bool, Any], BaseException]]:
+        return await self._emit(
+            mailer.send(
+                chat_id=chat_id,
+                disable_placeholders=disable_placeholders,
+                disable_error_handling=disable_error_handling,
+            )
+            for mailer in self
+        )
+
+    async def _emit(
+        self,
+        targets: Iterable[Awaitable[ReturnType]],
+    ) -> dict[Mailer[ContentType], Union[ReturnType, BaseException]]:
         if not targets:
             return {}
         results = await gather(*targets, return_exceptions=True)

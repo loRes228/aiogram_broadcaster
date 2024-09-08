@@ -1,7 +1,16 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+# THIS CODE WAS AUTO-GENERATED VIA `butcher`
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Optional,
+    Union,
+)
 
 from aiogram.client.default import Default
-from aiogram.methods import SendMessage
+from aiogram.methods import (
+    SendMessage,
+)
 from aiogram.types import (
     ForceReply,
     InlineKeyboardMarkup,
@@ -18,18 +27,13 @@ class TextContent(BaseContent):
     text: str
     business_connection_id: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
-    entities: Optional[List[MessageEntity]] = None
+    entities: Optional[list[MessageEntity]] = None
     link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = Default("link_preview")
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
     message_effect_id: Optional[str] = None
     reply_markup: Optional[
-        Union[
-            InlineKeyboardMarkup,
-            ReplyKeyboardMarkup,
-            ReplyKeyboardRemove,
-            ForceReply,
-        ]
+        Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
     ] = None
 
     async def __call__(self, chat_id: int) -> SendMessage:
@@ -55,18 +59,13 @@ class TextContent(BaseContent):
             text: str,
             business_connection_id: Optional[str] = ...,
             parse_mode: Optional[Union[str, Default]] = ...,
-            entities: Optional[List[MessageEntity]] = ...,
+            entities: Optional[list[MessageEntity]] = ...,
             link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
             message_effect_id: Optional[str] = ...,
             reply_markup: Optional[
-                Union[
-                    InlineKeyboardMarkup,
-                    ReplyKeyboardMarkup,
-                    ReplyKeyboardRemove,
-                    ForceReply,
-                ]
+                Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
             ] = ...,
             **kwargs: Any,
         ) -> None: ...

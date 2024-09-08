@@ -1,0 +1,6 @@
+blank_issues_enabled: true
+
+contact_links:
+  - name: Discuss anything related to the library
+    url: https://github.com/loRes228/aiogram_broadcaster/discussions
+    about: Ask a question about aiogram-broadcaster or share your code snippets and ideas.

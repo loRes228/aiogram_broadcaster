@@ -1,3 +1,4 @@
-__all__ = ("EventRegistry",)
+__all__ = ("Event",)
 
-from .registry import EventRegistry
+
+from .event import Event

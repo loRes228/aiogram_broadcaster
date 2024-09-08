@@ -1,8 +1,19 @@
-from typing import TYPE_CHECKING, Any, Optional, Union
+# THIS CODE WAS AUTO-GENERATED VIA `butcher`
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Optional,
+    Union,
+)
 
 from aiogram.client.default import Default
-from aiogram.methods import SendGame
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.methods import (
+    SendGame,
+)
+from aiogram.types import (
+    InlineKeyboardMarkup,
+)
 
 from .base import BaseContent
 
