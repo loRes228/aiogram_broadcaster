@@ -27,6 +27,7 @@ class PaidMediaContent(BaseContent):
     star_count: int
     media: list[Union[InputPaidMediaPhoto, InputPaidMediaVideo]]
     business_connection_id: Optional[str] = None
+    payload: Optional[str] = None
     caption: Optional[str] = None
     parse_mode: Optional[str] = None
     caption_entities: Optional[list[MessageEntity]] = None
@@ -43,6 +44,7 @@ class PaidMediaContent(BaseContent):
             star_count=self.star_count,
             media=self.media,
             business_connection_id=self.business_connection_id,
+            payload=self.payload,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -61,6 +63,7 @@ class PaidMediaContent(BaseContent):
             star_count: int,
             media: list[Union[InputPaidMediaPhoto, InputPaidMediaVideo]],
             business_connection_id: Optional[str] = ...,
+            payload: Optional[str] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[str] = ...,
             caption_entities: Optional[list[MessageEntity]] = ...,
