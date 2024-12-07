@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from aiogram import Bot, Dispatcher, Router
+from aiogram import Bot, Dispatcher, Router, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import Message
@@ -28,19 +28,14 @@ async def process_any_message(message: Message, broadcaster: Broadcaster) -> Non
         chats=CHATS,
         content=content,
         interval=interval,
-        destroy_on_complete=True,
+        delete_on_complete=True,
     )
     mailer.start()
 
 
-@event.started()
-async def process_mailer_started(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
-    await mailer.content.message.as_(bot=bot).reply(text="Broadcasting started.")
-
-
-@event.stopped()
-async def process_mailer_stopped(mailer: Mailer[MessageSendContent], bot: Bot) -> None:
-    await mailer.content.message.as_(bot=bot).reply(text="Broadcasting stopped.")
+@event.completed(F.delete_on_complete)
+async def process_mailer_delete_on_complete(mailer: Mailer) -> None:
+    await mailer.delete()
 
 
 @event.completed()
@@ -69,7 +64,7 @@ def main() -> None:
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(bot)
+    broadcaster = Broadcaster(bot, handle_retry_after=True)
     broadcaster.setup(dispatcher=dispatcher)
     broadcaster.event.bind(event)
     setup_retry_after_handler(event=broadcaster.event)
