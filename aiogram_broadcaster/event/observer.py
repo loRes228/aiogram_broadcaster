@@ -34,7 +34,7 @@ class EventObserver:
         filters_ = [
             FilterObject(
                 callback=(
-                    MagicContext(magic_filter=filter_)  # type: ignore[arg-type]
+                    MagicContext(magic_filter=filter_)
                     if isinstance(filter_, MagicFilter)
                     else filter_
                 ),

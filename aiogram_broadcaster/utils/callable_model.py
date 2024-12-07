@@ -15,6 +15,6 @@ class CallableModel(BaseModel, ABC):
     async def call(self, **context: Any) -> Any:
         return await self._callback.call(**context)
 
-    def model_post_init(self, __context: Any) -> None:  # noqa: PYI063
+    def model_post_init(self, __context: Any) -> None:  # noqa: RUF052, PYI063
         super().model_post_init(__context)
         self._callback = CallableObject(callback=self.__call__)
