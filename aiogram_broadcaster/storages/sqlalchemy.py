@@ -90,7 +90,7 @@ class SQLAlchemyStorage(BaseStorage):
 
     @property
     def engine(self) -> AsyncEngine:
-        return cast(AsyncEngine, self.session_maker.kw["bind"])
+        return cast("AsyncEngine", self.session_maker.kw["bind"])
 
     async def get_records(self) -> AsyncIterable[tuple[int, StorageRecord]]:
         statement = select(self.table)

@@ -15,6 +15,7 @@ EXCLUDED_NAMES = {
     "allow_sending_without_reply",
     "reply_to_message_id",
     "disable_web_page_preview",
+    "allow_paid_broadcast",
 }
 
 

@@ -87,7 +87,7 @@ class Mailer(Generic[ContentType]):
         )
         if broadcaster.storage:
             await broadcaster.storage.set_record(mailer_id=mailer.id, record=record)
-        broadcaster.mailers[mailer.id] = cast(Mailer, mailer)
+        broadcaster.mailers[mailer.id] = cast("Mailer", mailer)
         logger.info("Mailer id=%d was created.", mailer.id)
         await broadcaster.event.emit_created(**mailer.context)
         return mailer
@@ -117,7 +117,7 @@ class Mailer(Generic[ContentType]):
             id=mailer_id,
             status=status,
             chats=record.chats,
-            content=cast(ContentType, record.content),
+            content=cast("ContentType", record.content),
             interval=record.interval,
             bot=bot,
             context=record.context.copy(),
@@ -130,7 +130,7 @@ class Mailer(Generic[ContentType]):
             mailer=mailer,
             bot=bot,
         )
-        broadcaster.mailers[mailer.id] = cast(Mailer, mailer)
+        broadcaster.mailers[mailer.id] = cast("Mailer", mailer)
         logger.info("Mailer id=%d was restored from storage.", mailer.id)
         await broadcaster.event.emit_created(**mailer.context)
         return mailer

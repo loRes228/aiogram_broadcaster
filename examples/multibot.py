@@ -20,22 +20,22 @@ router = Router(name=__name__)
 @router.message()
 async def process_any_message(message: Message, broadcaster: Broadcaster) -> None:
     content = MessageSendContent(message=message)
-    mailer_group = await broadcaster.create_mailers(chats=CHATS, content=content)
-    mailer_group.start()
+    mailers = await broadcaster.create_mailers(chats=CHATS, content=content)
+    mailers.start()
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
     default = DefaultBotProperties(parse_mode=ParseMode.HTML)
-    bot = [Bot(token=token, default=default) for token in TOKENS]
+    bots = [Bot(token=token, default=default) for token in TOKENS]
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
-    broadcaster = Broadcaster(*bot)
+    broadcaster = Broadcaster(*bots)
     broadcaster.setup(dispatcher=dispatcher)
 
-    dispatcher.run_polling(*bot)
+    dispatcher.run_polling(*bots)
 
 
 if __name__ == "__main__":

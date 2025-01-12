@@ -1,4 +1,4 @@
-# ruff: noqa: TCH004
+# ruff: noqa: TC004
 
 __all__ = (
     "BaseStorage",

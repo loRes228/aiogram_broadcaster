@@ -47,7 +47,7 @@ keywords = [
     "wrapper"
 ]
 dependencies = [
-    "aiogram>=3.10.0"
+    "aiogram>=3.17.0"
 ]
 
 [project.optional-dependencies]
@@ -55,29 +55,29 @@ all = [
     "aiogram_broadcaster[dev,test,butcher,sqlalchemy,mongo,redis,jinja]"
 ]
 dev = [
-    "mypy>=1.11.0",
-    "ruff>=0.6.4",
-    "types-aiofiles>=24.1.0",
-    "motor-types>=1.0.0b4"
+    "mypy~=1.14.0",
+    "ruff~=0.8.6",
+    "types-aiofiles~=24.1.0",
+    "motor-types~=1.0.0b4"
 ]
 test = [
-    "pytest>=8.2.0",
-    "pytest-asyncio>=0.23.0",
+    "pytest~=8.3.0",
+    "pytest-asyncio~=0.23.0",
 ]
 butcher = [
-    "jinja2>=3.1.0"
+    "jinja2~=3.1.0"
 ]
 sqlalchemy = [
-    "sqlalchemy>=2.0.0"
+    "sqlalchemy~=2.0.0"
 ]
 mongo = [
-    "motor>=3.5.0"
+    "motor~=3.6.0"
 ]
 redis = [
-    "redis[hiredis]>=5.0.0"
+    "redis[hiredis]~=5.2.0"
 ]
 jinja = [
-    "jinja2>=3.1.0"
+    "jinja2~=3.1.0"
 ]
 
 
@@ -114,18 +114,16 @@ select = [
     "ALL"
 ]
 extend-select = [
-    "ANN204", # missing-return-type-special-method
 ]
 ignore = [
     "D", # pydocstyle
-    "A", # flake8-builtins
     "CPY", # flake8-copyright
     "FA", # flake8-future-annotations
-    "ANN", # flake8-annotations
     "EM", # flake8-errmsg
-    "ICN", # flake8-import-conventions
+    "A", # flake8-builtins
+    "ANN401", # any-type
     "TRY003", # raise-vanilla-args
-    "PLR6301", # no-self-use
+    "PLW3201", # bad-dunder-method-name
     "PLR0904", # too-many-public-methods
     "PLR0911", # too-many-return-statements
     "PLR0912", # too-many-branches
@@ -133,9 +131,9 @@ ignore = [
     "PLR0914", # too-many-locals
     "PLR0915", # too-many-statements
     "PLR0916", # too-many-boolean-expressions
-    "PLR0917", # too-many-positional
+    "PLR0917", # too-many-positional-arguments
     "PLR1702", # too-many-nested-blocks
-    "PLW3201", # bad-dunder-method-name
+    "PLR6301", # no-self-use
 ]
 logger-objects = [
     "aiogram_broadcaster.utils.logger.logger"
