@@ -32,7 +32,7 @@ class MappedContentAdapter(BaseContent, register=False):
         content = self[key]
         return await content.as_method(**context)
 
-    def model_post_init(self, __context: Any) -> None:  # noqa: RUF052, PYI063
+    def model_post_init(self, __context: Any) -> None:  # noqa: PYI063
         super().model_post_init(__context)
         if not self.default and not self.model_extra:
             raise ValueError("At least one content must be provided.")
