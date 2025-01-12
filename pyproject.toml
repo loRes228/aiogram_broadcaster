@@ -47,7 +47,7 @@ keywords = [
     "wrapper"
 ]
 dependencies = [
-    "aiogram>=3.10.0"
+    "aiogram>=3.17.0"
 ]
 
 [project.optional-dependencies]
@@ -55,8 +55,8 @@ all = [
     "aiogram_broadcaster[dev,test,butcher,sqlalchemy,mongo,redis,jinja]"
 ]
 dev = [
-    "mypy~=1.13.0",
-    "ruff~=0.8.0",
+    "mypy~=1.14.0",
+    "ruff~=0.8.6",
     "types-aiofiles~=24.1.0",
     "motor-types~=1.0.0b4"
 ]
