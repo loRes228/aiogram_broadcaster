@@ -59,7 +59,7 @@ class StringPlaceholderEngine(BasePlaceholderEngine):
     ) -> dict[str, Any]:
         data = {}
         for item in items:
-            if item.name in template_keys:
+            if item.name not in template_keys:
                 continue
             value = await item.get_value(**context)
             if value is not None:
