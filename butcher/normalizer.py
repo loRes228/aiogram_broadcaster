@@ -2,6 +2,7 @@ import typing
 from typing import Any, Literal, Optional, Union, _SpecialForm, get_args, get_origin
 
 import aiogram
+import datetime
 
 
 def normalize_type(annotation: Any) -> str:
@@ -11,6 +12,7 @@ def normalize_type(annotation: Any) -> str:
             {
                 **typing.__dict__,
                 **aiogram.types.__dict__,
+                "datetime": datetime,
                 "Default": aiogram.client.default.Default,
             },
         )

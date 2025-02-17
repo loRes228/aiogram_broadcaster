@@ -1,5 +1,6 @@
 # THIS CODE WAS AUTO-GENERATED VIA `butcher`
 
+from datetime import datetime, timedelta
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -30,6 +31,8 @@ class VideoContent(BaseContent):
     width: Optional[int] = None
     height: Optional[int] = None
     thumbnail: Optional[InputFile] = None
+    cover: Optional[Union[str, InputFile]] = None
+    start_timestamp: Optional[Union[datetime, timedelta, int]] = None
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[list[MessageEntity]] = None
@@ -52,6 +55,8 @@ class VideoContent(BaseContent):
             width=self.width,
             height=self.height,
             thumbnail=self.thumbnail,
+            cover=self.cover,
+            start_timestamp=self.start_timestamp,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -76,6 +81,8 @@ class VideoContent(BaseContent):
             width: Optional[int] = ...,
             height: Optional[int] = ...,
             thumbnail: Optional[InputFile] = ...,
+            cover: Optional[Union[str, InputFile]] = ...,
+            start_timestamp: Optional[Union[datetime, timedelta, int]] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[list[MessageEntity]] = ...,
