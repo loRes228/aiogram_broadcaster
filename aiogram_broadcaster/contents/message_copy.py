@@ -1,5 +1,6 @@
 # THIS CODE WAS AUTO-GENERATED VIA `butcher`
 
+from datetime import datetime, timedelta
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -25,6 +26,7 @@ from .base import BaseContent
 
 class MessageCopyContent(BaseContent):
     message: Message
+    video_start_timestamp: Optional[Union[datetime, timedelta, int]] = None
     caption: Optional[str] = None
     parse_mode: Optional[Union[str, Default]] = Default("parse_mode")
     caption_entities: Optional[list[MessageEntity]] = None
@@ -38,6 +40,7 @@ class MessageCopyContent(BaseContent):
     async def __call__(self, chat_id: int) -> CopyMessage:
         return self.message.copy_to(
             chat_id=chat_id,
+            video_start_timestamp=self.video_start_timestamp,
             caption=self.caption,
             parse_mode=self.parse_mode,
             caption_entities=self.caption_entities,
@@ -54,6 +57,7 @@ class MessageCopyContent(BaseContent):
             self,
             *,
             message: Message,
+            video_start_timestamp: Optional[Union[datetime, timedelta, int]] = ...,
             caption: Optional[str] = ...,
             parse_mode: Optional[Union[str, Default]] = ...,
             caption_entities: Optional[list[MessageEntity]] = ...,

@@ -1,5 +1,6 @@
 # THIS CODE WAS AUTO-GENERATED VIA `butcher`
 
+from datetime import datetime, timedelta
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -18,6 +19,7 @@ from .base import BaseContent
 class FromChatForwardMessageContent(BaseContent):
     from_chat_id: Union[int, str]
     message_id: int
+    video_start_timestamp: Optional[Union[datetime, timedelta, int]] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
 
@@ -26,6 +28,7 @@ class FromChatForwardMessageContent(BaseContent):
             chat_id=chat_id,
             from_chat_id=self.from_chat_id,
             message_id=self.message_id,
+            video_start_timestamp=self.video_start_timestamp,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
             **(self.model_extra or {}),
@@ -38,6 +41,7 @@ class FromChatForwardMessageContent(BaseContent):
             *,
             from_chat_id: Union[int, str],
             message_id: int,
+            video_start_timestamp: Optional[Union[datetime, timedelta, int]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
             **kwargs: Any,
