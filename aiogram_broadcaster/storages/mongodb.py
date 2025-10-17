@@ -1,21 +1,14 @@
 from collections.abc import AsyncIterable, Mapping
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from typing_extensions import Self
-
-from aiogram_broadcaster.utils.exceptions import DependencyNotFoundError
 
 from .base import BaseStorage, StorageRecord
 
 
-try:
+if TYPE_CHECKING:
     from motor.motor_asyncio import AsyncIOMotorClient
-except ImportError as error:
-    raise DependencyNotFoundError(
-        feature_name="MongoDBStorage",
-        module_name="motor",
-        extra_name="mongo",
-    ) from error
+    from pymongo import AsyncMongoClient
 
 
 DEFAULT_DATABASE_NAME = "aiogram_broadcaster"
@@ -25,7 +18,7 @@ DEFAULT_COLLECTION_NAME = "mailers"
 class MongoDBStorage(BaseStorage):
     def __init__(
         self,
-        client: AsyncIOMotorClient,
+        client: "AsyncMongoClient | AsyncIOMotorClient",
         database_name: str = DEFAULT_DATABASE_NAME,
         collection_name: str = DEFAULT_COLLECTION_NAME,
     ) -> None:
@@ -38,11 +31,12 @@ class MongoDBStorage(BaseStorage):
     def from_url(
         cls,
         url: str,
+        client_class: "type[AsyncMongoClient | AsyncIOMotorClient]",
         client_options: Optional[Mapping[str, Any]] = None,
         database_name: str = DEFAULT_DATABASE_NAME,
         collection_name: str = DEFAULT_COLLECTION_NAME,
     ) -> Self:
-        client = AsyncIOMotorClient(host=url, **(client_options or {}))
+        client = client_class(host=url, **(client_options or {}))
         return cls(client=client, database_name=database_name, collection_name=collection_name)
 
     async def get_records(self) -> AsyncIterable[tuple[int, StorageRecord]]:
