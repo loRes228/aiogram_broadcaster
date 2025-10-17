@@ -42,6 +42,7 @@ class PollContent(BaseContent):
     is_closed: Optional[bool] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    allow_paid_broadcast: Optional[bool] = None
     message_effect_id: Optional[str] = None
     reply_markup: Optional[
         Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
@@ -67,6 +68,7 @@ class PollContent(BaseContent):
             is_closed=self.is_closed,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            allow_paid_broadcast=self.allow_paid_broadcast,
             message_effect_id=self.message_effect_id,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
@@ -94,6 +96,7 @@ class PollContent(BaseContent):
             is_closed: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            allow_paid_broadcast: Optional[bool] = ...,
             message_effect_id: Optional[str] = ...,
             reply_markup: Optional[
                 Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]

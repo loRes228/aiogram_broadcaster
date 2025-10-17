@@ -12,6 +12,9 @@ from aiogram.client.default import Default
 from aiogram.methods import (
     ForwardMessage,
 )
+from aiogram.types import (
+    SuggestedPostParameters,
+)
 
 from .base import BaseContent
 
@@ -22,6 +25,7 @@ class FromChatForwardMessageContent(BaseContent):
     video_start_timestamp: Optional[Union[datetime, timedelta, int]] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    suggested_post_parameters: Optional[SuggestedPostParameters] = None
 
     async def __call__(self, chat_id: int) -> ForwardMessage:
         return ForwardMessage(
@@ -31,6 +35,7 @@ class FromChatForwardMessageContent(BaseContent):
             video_start_timestamp=self.video_start_timestamp,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            suggested_post_parameters=self.suggested_post_parameters,
             **(self.model_extra or {}),
         )
 
@@ -44,5 +49,6 @@ class FromChatForwardMessageContent(BaseContent):
             video_start_timestamp: Optional[Union[datetime, timedelta, int]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            suggested_post_parameters: Optional[SuggestedPostParameters] = ...,
             **kwargs: Any,
         ) -> None: ...
