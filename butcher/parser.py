@@ -11,11 +11,11 @@ EXCLUDED_NAMES = {
     "kwargs",
     "chat_id",
     "message_thread_id",
+    "direct_messages_topic_id",
     "reply_parameters",
     "allow_sending_without_reply",
     "reply_to_message_id",
     "disable_web_page_preview",
-    "allow_paid_broadcast",
 }
 
 

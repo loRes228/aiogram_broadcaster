@@ -18,6 +18,7 @@ from aiogram.types import (
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
+    SuggestedPostParameters,
 )
 
 from .base import BaseContent
@@ -31,7 +32,9 @@ class TextContent(BaseContent):
     link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = Default("link_preview")
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    allow_paid_broadcast: Optional[bool] = None
     message_effect_id: Optional[str] = None
+    suggested_post_parameters: Optional[SuggestedPostParameters] = None
     reply_markup: Optional[
         Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
     ] = None
@@ -46,7 +49,9 @@ class TextContent(BaseContent):
             link_preview_options=self.link_preview_options,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            allow_paid_broadcast=self.allow_paid_broadcast,
             message_effect_id=self.message_effect_id,
+            suggested_post_parameters=self.suggested_post_parameters,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -63,7 +68,9 @@ class TextContent(BaseContent):
             link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            allow_paid_broadcast: Optional[bool] = ...,
             message_effect_id: Optional[str] = ...,
+            suggested_post_parameters: Optional[SuggestedPostParameters] = ...,
             reply_markup: Optional[
                 Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
             ] = ...,

@@ -18,13 +18,14 @@ from aiogram.types import (
     MessageEntity,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
+    SuggestedPostParameters,
 )
 
 from .base import BaseContent
 
 
 class DocumentContent(BaseContent):
-    document: Union[InputFile, str]
+    document: Union[str, InputFile]
     business_connection_id: Optional[str] = None
     thumbnail: Optional[InputFile] = None
     caption: Optional[str] = None
@@ -33,7 +34,9 @@ class DocumentContent(BaseContent):
     disable_content_type_detection: Optional[bool] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    allow_paid_broadcast: Optional[bool] = None
     message_effect_id: Optional[str] = None
+    suggested_post_parameters: Optional[SuggestedPostParameters] = None
     reply_markup: Optional[
         Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
     ] = None
@@ -50,7 +53,9 @@ class DocumentContent(BaseContent):
             disable_content_type_detection=self.disable_content_type_detection,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            allow_paid_broadcast=self.allow_paid_broadcast,
             message_effect_id=self.message_effect_id,
+            suggested_post_parameters=self.suggested_post_parameters,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -60,7 +65,7 @@ class DocumentContent(BaseContent):
         def __init__(
             self,
             *,
-            document: Union[InputFile, str],
+            document: Union[str, InputFile],
             business_connection_id: Optional[str] = ...,
             thumbnail: Optional[InputFile] = ...,
             caption: Optional[str] = ...,
@@ -69,7 +74,9 @@ class DocumentContent(BaseContent):
             disable_content_type_detection: Optional[bool] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            allow_paid_broadcast: Optional[bool] = ...,
             message_effect_id: Optional[str] = ...,
+            suggested_post_parameters: Optional[SuggestedPostParameters] = ...,
             reply_markup: Optional[
                 Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
             ] = ...,

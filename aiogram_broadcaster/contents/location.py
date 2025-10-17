@@ -16,6 +16,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
+    SuggestedPostParameters,
 )
 
 from .base import BaseContent
@@ -31,7 +32,9 @@ class LocationContent(BaseContent):
     proximity_alert_radius: Optional[int] = None
     disable_notification: Optional[bool] = None
     protect_content: Optional[Union[bool, Default]] = Default("protect_content")
+    allow_paid_broadcast: Optional[bool] = None
     message_effect_id: Optional[str] = None
+    suggested_post_parameters: Optional[SuggestedPostParameters] = None
     reply_markup: Optional[
         Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
     ] = None
@@ -48,7 +51,9 @@ class LocationContent(BaseContent):
             proximity_alert_radius=self.proximity_alert_radius,
             disable_notification=self.disable_notification,
             protect_content=self.protect_content,
+            allow_paid_broadcast=self.allow_paid_broadcast,
             message_effect_id=self.message_effect_id,
+            suggested_post_parameters=self.suggested_post_parameters,
             reply_markup=self.reply_markup,
             **(self.model_extra or {}),
         )
@@ -67,7 +72,9 @@ class LocationContent(BaseContent):
             proximity_alert_radius: Optional[int] = ...,
             disable_notification: Optional[bool] = ...,
             protect_content: Optional[Union[bool, Default]] = ...,
+            allow_paid_broadcast: Optional[bool] = ...,
             message_effect_id: Optional[str] = ...,
+            suggested_post_parameters: Optional[SuggestedPostParameters] = ...,
             reply_markup: Optional[
                 Union[InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply]
             ] = ...,
