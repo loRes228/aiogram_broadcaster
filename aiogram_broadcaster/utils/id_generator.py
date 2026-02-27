@@ -1,5 +1,5 @@
 from typing import Optional, Protocol
-from uuid import uuid4
+from time import time_ns
 
 
 class IntContainer(Protocol):
@@ -8,6 +8,6 @@ class IntContainer(Protocol):
 
 def generate_id(container: Optional[IntContainer] = None) -> int:
     while True:
-        new_id = hash(uuid4())
+        new_id = time_ns()
         if not container or new_id not in container:
             return new_id
